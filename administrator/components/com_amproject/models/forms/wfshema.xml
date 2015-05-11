@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+	<fields>
+
+		<field
+			name="id"
+			type="hidden"
+			default="0"
+			required="true"
+			readonly="true"/>							
+															
+		<field
+			id="title"
+			name="title"
+			type="text"
+			required="true"
+			label="Title"
+			description="title_Desc"
+			class="inputbox"
+			size="40"/>						
+								
+						
+		<field
+			id="description"
+			name="description"
+			type="editor"
+			required="true"
+			label="Description"
+			description="description_Desc"
+			class="inputbox"
+			buttons="readmore,pagebreak"/>
+							
+		<field
+			name="ordering"
+      label="Ordering"
+			type="text"/>						  
+
+		<field
+			name="state"
+      label="State"
+			type="list">
+      <option value="0">Disabled</option>
+      <option value="1">Enabled</option>
+    </field>  						  
+																			
+		<field
+			id="product_id"
+			name="product_id"
+			required="false"
+			type="amprojectproduct"
+			label="Product"
+			description="product_id_Desc"
+			class="inputbox"
+			size="1"/>						
+								
+	</fields>	
+		
+</form>	

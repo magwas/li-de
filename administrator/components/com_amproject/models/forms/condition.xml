@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+	<fields>
+
+		<field
+			name="id"
+			type="hidden"
+			default="0"
+			required="true"
+			readonly="true"/>							
+															
+		<field
+			id="table_type"
+			name="table_type"
+			type="list"
+			required="true"
+			label="Table_type"
+			description="table_type_Desc"
+      onchange="Joomla.submitbutton('refresh')"
+			class="inputbox">
+      <option value="#__ampm_wfshema">Wfshema</option>
+      <option value="#__ampm_taskshema">Taskshema</option>
+      <option value="#__ampm_project">Project</option>
+      <option value="#__ampm_workflow">Workflow</option>
+      <option value="#__ampm_task">Task</option>
+      <option value="#__ampm_resource">Resource</option>
+    </field>  						
+								
+														
+		<field
+			id="table_id"
+			name="table_id"
+			type="text"
+			required="true"
+			label="Table_id"
+			description="table_id_Desc"
+			class="inputbox"
+			size="40"/>						
+								
+														
+		<field
+			id="type"
+			name="type"
+			type="list"
+			required="true"
+			label="Type"
+			description="type_Desc"
+      onchange="Joomla.submitbutton('refresh')"
+			class="inputbox">
+      <option value="20">WFSHEMA_NOT_BEGIN</option>						
+      <option value="21">WFSHEMA_NOT_WORKING</option>						
+      <option value="22">WFSHEMA_WORKING</option>						
+      <option value="23">WFSHEMA_END</option>
+
+      <option value="30">TASKSHEMA_NOT_BEGIN</option>						
+      <option value="31">TASKSHEMA_NOT_WORKING</option>						
+      <option value="32">TASKSHEMA_WORKING</option>						
+      <option value="33">TASKSHEMA_END</option>
+
+      <option value="40">WORKFLOW_NOT_BEGIN</option>						
+      <option value="41">WORKFLOW_NOT_WORKING</option>						
+      <option value="42">WORKFLOW_WORKING</option>						
+      <option value="43">WORKFLOW_END</option>
+                  
+      <option value="50">TASK_NOT_BEGIN</option>						
+      <option value="51">TASK_NOT_WORKING</option>						
+      <option value="52">TASK_WORKING</option>						
+      <option value="53">TASK_END</option>
+
+      <option value="60">RESORCE_ENABLED</option>						
+		</field>						
+														
+		<field
+			id="assigned_id"
+			name="assigned_id"
+			type="text"
+			required="true"
+			label="Assigned_id"
+			description="assigned_id_Desc"
+			class="inputbox"
+			size="40"/>						
+								
+														
+		<field
+			id="volume"
+			name="volume"
+			type="text"
+			required="false"
+			label="Volume"
+			description="volume_Desc"
+			size="40"/>						
+								
+								
+	</fields>	
+		
+</form>	

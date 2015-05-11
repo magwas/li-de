@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+	<fields>
+
+		<field
+			name="id"
+			type="hidden"
+			default="0"
+			required="true"
+			readonly="true"/>							
+															
+		<field
+			id="title"
+			name="title"
+			type="text"
+			required="true"
+			label="Title"
+			description="title_Desc"
+			class="inputbox"
+			size="40"/>						
+								
+						
+		<field
+			id="description"
+			name="description"
+			type="editor"
+			label="Description"
+			description="description_Desc"
+			class="inputbox"
+			buttons="readmore,pagebreak"/>
+							
+		<field
+			id="state"
+			name="state"
+			type="text"
+			class="inputbox"
+			default="1"
+			size="1"
+			label="State"
+			description="State" />
+                          
+		<field
+			name="ordering"
+      labeé="Ordering"
+      description="Ordering 1 is first"
+			type="text"
+			filter="unset"/>						  
+																			
+		<field
+			id="wfshema_id"
+			name="wfshema_id"
+			required="true"
+			type="amprojectwfshema"
+			label="Wfshema"
+			description="wfshema_id_Desc"
+			class="inputbox"
+			size="1"/>						
+								
+	</fields>	
+		
+</form>	

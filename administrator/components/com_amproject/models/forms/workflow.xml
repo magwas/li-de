@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+	<fields>
+
+		<field
+			name="id"
+			type="hidden"
+			default="0"
+			required="true"
+			readonly="true"/>							
+															
+		<field
+			id="title"
+			name="title"
+			type="text"
+			required="true"
+			label="Title"
+			description="title_Desc"
+			class="inputbox"
+			size="40"/>						
+								
+						
+		<field
+			id="description"
+			name="description"
+			type="editor"
+			label="Description"
+			description="description_Desc"
+			class="inputbox"
+			buttons="readmore,pagebreak"/>
+							
+		<field
+			id="published"
+			name="published"
+			type="list"
+			class="inputbox"
+			default="1"
+			size="1"
+			label="JField_Published_Label"
+			description="JField_Published_Desc">
+			<option
+				value="1">
+				JOption_Published</option>
+			<option
+				value="0">
+				JOption_UnPublished</option>
+			<option
+				value="-1">
+				JOption_Archived</option>
+			<option
+				value="-2">
+				JOption_Trashed</option>
+		</field>
+                          
+		<field
+			name="ordering"
+			type="hidden"
+			filter="unset"/>						  
+																			
+		<field
+			id="project_id"
+			name="project_id"
+			required="true"
+			type="amprojectproject"
+			label="Project"
+			description="project_id_Desc"
+			class="inputbox"
+			size="1"/>						
+														
+		<field
+			id="start"
+			name="start"
+			type="text"
+			required="false"
+			label="Start"
+			description="start_Desc"
+			class="inputbox"
+			size="40"/>						
+								
+														
+		<field
+			id="deadline"
+			name="deadline"
+			type="text"
+			required="false"
+			label="Deadline"
+			description="deadline_Desc"
+			class="inputbox"
+			size="40"/>						
+								
+														
+		<field
+			id="mmanager_id"
+			name="mmanager_id"
+			type="text"
+			required="false"
+			label="Mmanager_id"
+			description="mmanager_id_Desc"
+			class="inputbox"
+			size="40"/>						
+								
+														
+		<field
+			id="priority"
+			name="priority"
+			type="text"
+			required="false"
+			label="Priority"
+			description="priority_Desc"
+			class="inputbox"
+			size="40"/>						
+								
+						
+		<field
+			id="process_desc"
+			name="process_desc"
+			type="editor"
+			label="Process_desc"
+			description="process_desc_Desc"
+			class="inputbox"
+			buttons="readmore,pagebreak"/>
+							
+		<field
+			id="result_desc"
+			name="result_desc"
+			type="editor"
+			label="Result_desc"
+			description="result_desc_Desc"
+			class="inputbox"
+			buttons="readmore,pagebreak"/>
+																			
+		<field
+			id="wfshema_id"
+			name="wfshema_id"
+			required="true"
+			type="amprojectwfshema"
+			label="Wfshema"
+			description="wfshema_id_Desc"
+			class="inputbox"
+			size="1"/>						
+								
+	</fields>	
+		
+</form>	

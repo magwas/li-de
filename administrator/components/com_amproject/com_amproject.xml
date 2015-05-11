@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="component" method="upgrade" version="1.6">
+	<name>Amproject</name>
+	<creationDate>2014-12-30</creationDate>
+	<author>Fogler Tibor</author>
+	<authorEmail>tibor.fogler@gmail.com</authorEmail>
+	<authorUrl>http://adatmagus.hu</authorUrl>
+	<copyright>Copyright (C) 2014 Fogler Tibor Open Source Matters. All rights reserved.</copyright>	
+	<license>GNU/GPL</license>
+	<version>1.00</version>
+	<description>Projekt menedzser</description>
+	<installfile></installfile>
+	<uninstallfile></uninstallfile>
+	<install>
+		<sql>
+			<file driver="mysql" charset="utf8">sql/install.mysql.sql</file>
+		</sql>
+	</install>
+	<uninstall>
+		<sql>
+			<file driver="mysql" charset="utf8">sql/uninstall.mysql.sql</file>
+		</sql>
+	</uninstall>
+	<files folder="site">
+			<filename>amproject.php</filename>
+			<filename>controller.php</filename>
+			<filename>index.html</filename>			
+			<filename>router.php</filename>
+			<folder>controllers</folder>
+			<folder>helpers</folder>
+			<folder>models</folder>
+			<folder>views</folder>
+			<folder>assets</folder>			
+	</files>	
+	<languages folder="site">
+		<language tag="en-GB">language/en-GB.com_amproject.ini</language>
+   	<language tag="hu-HU">language/hu-HU.com_amproject.ini</language>            
+	</languages>
+	<administration>
+		<menu link="index.php?option=com_amproject">Amproject</menu>
+			<submenu>
+		  <menu link="option=com_amproject&amp;view=worker">Worker</menu>
+		  <menu link="option=com_amproject&amp;view=product">Product</menu>
+		  <menu link="option=com_amproject&amp;view=wfshema">Wfshema</menu>
+		  <menu link="option=com_amproject&amp;view=taskshema">Taskshema</menu>
+		  <menu link="option=com_amproject&amp;view=resource">Resource</menu>
+		  <menu link="option=com_amproject&amp;view=project">Project</menu>
+		  <menu link="option=com_amproject&amp;view=workflow">Workflow</menu>
+		  <menu link="option=com_amproject&amp;view=task">Task</menu>
+      <menu link="option=com_amproject&amp;view=condition">Condition</menu>
+		  <menu link="option=com_amproject&amp;view=events">Events</menu>
+		  <menu link="option=com_amproject&amp;view=resourcetype">Resourcetype</menu>
+		  <menu link="option=com_amproject&amp;view=setup">Setup</menu>
+			</submenu>
+		<files folder="admin">
+			<filename>config.xml</filename>
+			<filename>amproject.php</filename>
+			<filename>controller.php</filename>
+			<filename>index.html</filename>
+			<filename>access.xml</filename>			
+			<folder>assets</folder>
+			<folder>elements</folder>				
+			<folder>controllers</folder>
+			<folder>helpers</folder>
+			<folder>models</folder>
+			<folder>sql</folder>			
+			<folder>tables</folder>
+			<folder>views</folder>									
+		</files>	
+        <languages folder="admin">
+        	<language tag="en-GB">language/en-GB.com_amproject.ini</language>
+          <language tag="hu-HU">language/hu-HU.com_amproject.ini</language>
+        	<language tag="en-GB">language/en-GB.com_amproject.sys.ini</language>
+          <language tag="hu-HU">language/hu-HU.com_amproject.sys.ini</language>                           
+		</languages>		
+	</administration>
+</extension>

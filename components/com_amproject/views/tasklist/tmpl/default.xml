@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<metadata>
+	<layout title="Tasklist">
+		<help
+			key = "TaskLIST_DESC"
+		/>
+		<message>
+			<![CDATA[TaskLIST_DESC]]>
+		</message>
+	</layout>
+	<state>
+	<name>Task List Layout</name>
+		<description>Task List Layout_DESC</description>	
+		<params>
+		</params>
+	</state>
+	<!-- Add fields to the parameters object for the layout. -->
+	<fields name="params">
+	</fields>
+</metadata>

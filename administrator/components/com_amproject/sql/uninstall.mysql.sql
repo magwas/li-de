@@ -1,0 +1,12 @@
+DROP TABLE IF EXISTS #__ampm_condition;
+DROP TABLE IF EXISTS #__ampm_events;
+DROP TABLE IF EXISTS #__ampm_product;
+DROP TABLE IF EXISTS #__ampm_project;
+DROP TABLE IF EXISTS #__ampm_resurce;
+DROP TABLE IF EXISTS #__ampm_task;
+DROP TABLE IF EXISTS #__ampm_taskshema;
+DROP TABLE IF EXISTS #__ampm_worker;
+DROP TABLE IF EXISTS #__ampm_workflow;
+DROP TABLE IF EXISTS #__ampm_resourcetype;
+DROP TABLE IF EXISTS #__ampm_wfshema;
+DROP TABLE IF EXISTS #__ampm_setup;

@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+	<fieldset
+		name="FrontEndSettings"
+		label="COM_JOOCOMMENTS_VIEW_CONFIGURATION_TAB_HEADING_FRONTEND_SETTINGS"
+		description="COM_JOOCOMMENTS_VIEW_CONFIGURATION_ADMINISTRATOR_SETTINGS_COMMENTS"
+	>
+		<field 
+			name="frontend-comment_order"
+			type="list"
+			label="COM_JOOCOMMENTS_VIEW_CONFIGURATION_TAB_COMMENT_ORDER"
+			description="COM_JOOCOMMENTS_VIEW_CONFIGURATION_TAB_COMMENT_ORDER_DESCRIPTION"
+			default="0"
+			>
+			<option value="0">COM_JOOCOMMENTS_VIEW_CONFIGURATION_TAB_COMMENT_ORDER_NEWEST</option>
+			<option value="1">COM_JOOCOMMENTS_VIEW_CONFIGURATION_TAB_COMMENT_ORDER_OLDEST</option>
+			</field>
+		<field 
+			name="frontend-comment_feature_link"
+			type="list"
+			label="COM_JOOCOMMENTS_VIEW_CONFIGURATION_TAB_FEATURE_LINK"
+			description="COM_JOOCOMMENTS_VIEW_CONFIGURATION_TAB_FEATURE_LINK_DESCRIPTION"
+			default="1"
+			>
+			<option value="1">JYES</option>
+			<option value="0">JNO</option>
+			</field>
+		<field 
+			name="frontend-comment_category_link"
+			type="list"
+			label="COM_JOOCOMMENTS_VIEW_CONFIGURATION_TAB_CATEGORY_LINK"
+			description="COM_JOOCOMMENTS_VIEW_CONFIGURATION_TAB_CATEGORY_LINK_DESCRIPTION"
+			default="1"
+			>
+			<option value="1">JYES</option>
+			<option value="0">JNO</option>
+		</field>
+		<field 
+			name="frontend-comment_count_in_link"
+			type="list"
+			label="COM_JOOCOMMENTS_VIEW_CONFIGURATION_TAB_COMMENT_COUNT_IN_LINK"
+			description="COM_JOOCOMMENTS_VIEW_CONFIGURATION_TAB_COMMENT_COUNT_IN_LINK_DESCRIPTION"
+			default="1"
+			>
+			<option value="1">JYES</option>
+			<option value="0">JNO</option>
+		</field>
+
+		<field
+			name="gravatar_enabled"
+			type="radio"
+			label="COM_JOOCOMMENTS_VIEW_CONFIGURATION_FRONTEND_OPTIONS_GRAVATAR_ENABLED"
+			description="COM_JOOCOMMENTS_VIEW_CONFIGURATION_FRONTEND_OPTIONS_GRAVATAR_ENABLED_DESCRIPTION"
+			default="1"
+		>
+			<option value="1">JYES</option>
+			<option value="0">JNO</option>
+		</field>
+		<field
+			name="gravatar_icon"
+			type="radioWithImage"
+			label="COM_JOOCOMMENTS_VIEW_CONFIGURATION_FRONTEND_OPTIONS_GRAVATAR_DEFAULT_ICON"
+			description="COM_JOOCOMMENTS_VIEW_CONFIGURATION_FRONTEND_OPTIONS_GRAVATAR_DEFAULT_ICON_DESCRIPTION"
+			default="mm"
+		>
+			<option value="mm">Mystry Man </option>
+			<option value="identicon">Identicon</option>
+			<option value="monsterid">Monsterid</option>
+			<option value="wavatar">wavatar</option>
+			<option value="retro">retro</option>
+		</field>
+		<!-- planned for v1.0.4 <field
+			name="like_enabled"
+			type="radio"
+			label="Like Enable"
+			description="Enable disable gravatar"
+			default="1"
+		>
+			<option value="1">JYES</option>
+			<option value="0">JNO</option>
+		</field>
+		-->
+		<field name="captcha_enabled" type="list"
+			label="COM_JOOCOMMENTS_VIEW_CONFIGURATION_FRONTEND_OPTIONS_CAPTCHA_ENABLED"
+			description="COM_JOOCOMMENTS_VIEW_CONFIGURATION_FRONTEND_OPTIONS_CAPTCHA_ENABLED_DESC"
+			default="0">
+			<option value="0">JYES</option>
+			<option value="1">JNO</option>
+			<option value="2">ONLY_GUEST_IN</option>
+		</field>
+		<field
+			name="captcha_foreground_color"
+			type="tsgcolor"
+			label="COM_JOOCOMMENTS_VIEW_CONFIGURATION_FRONTEND_OPTIONS_CAPTCHA_FONT_COLOR"
+			description="COM_JOOCOMMENTS_VIEW_CONFIGURATION_FRONTEND_OPTIONS_CAPTCHA_FONT_COLOR_DESCRIPTION"
+			default="FF2864"
+		>
+			
+		</field>
+		
+		<field
+			name="captcha_background_color"
+			type="tsgcolor"
+			label="COM_JOOCOMMENTS_VIEW_CONFIGURATION_FRONTEND_OPTIONS_CAPTCHA_BACKGROUND_COLOR"
+			description="COM_JOOCOMMENTS_VIEW_CONFIGURATION_FRONTEND_OPTIONS_CAPTCHA_BACKGROUND_COLOR_DESCRIPTION"
+			default="ffffff"
+		></field>
+		<field
+			name="captcha_noise_type"
+			type="list"
+			label="COM_JOOCOMMENTS_VIEW_CONFIGURATION_FRONTEND_OPTIONS_CAPTCHA_NOISE_TYPE"
+			description="COM_JOOCOMMENTS_VIEW_CONFIGURATION_FRONTEND_OPTIONS_CAPTCHA_NOISE_TYPE_TYPE"
+			default="0">
+			<option value="0">JOONONE</option>
+			<option value="1">JOODOTS</option>
+			<option value="2">JOOLINES</option>
+			<option value="3">JOOBOTH</option>
+		</field>
+		<!-- planned for version 1.0.5<field
+			name="comment_Enable_Disable"
+			type="category"
+			extension="com_content"
+			published="1"
+			onchange="requestArticleDetails();"
+			label="Choose Category"
+			description="Change the background color of generated captcha,Changing this color to the color of your page may make the comments form look better."
+			class="inputbox">
+		</field>
+		 -->
+		
+	</fieldset>
+	<fieldset
+		name="AdministratorSettings"
+		label="COM_JOOCOMMENTS_VIEW_CONFIGURATION_TAB_HEADING_ADMINISTRATOR_SETTINGS"
+		description="COM_JOOCOMMENTS_VIEW_CONFIGURATION_ADMINISTRATOR_SETTINGS"
+	>
+		<field 
+			name="email_administrator_notification"
+			type="radio" 
+			label="COM_JOOCOMMENTS_VIEW_CONFIGURATION_ADMINISTRATOR_SETTINGS_EMAIL_NOTIFICATION_NEW_COMMENTS"
+			description="COM_JOOCOMMENTS_VIEW_CONFIGURATION_ADMINISTRATOR_SETTINGS_EMAIL_NOTIFICATION_NEW_COMMENTS_DESCRIPTION"
+			default="0" 
+		>
+			<option value="1" onclick="notifyEmailDetails()">JYES</option>
+			<option value="0">JNO</option>
+		</field>
+		<field name="email_administrator_value" type="text" label="COM_JOOCOMMENTS_VIEW_CONFIGURATION_ADMINISTRATOR_SETTINGS_EMAIL_ID" 
+		   description="COM_JOOCOMMENTS_VIEW_CONFIGURATION_EMAIL_ID_DESCRIPTION"
+			default="0" >
+			<option value="0">Author of the article</option>
+			<option value="1">Choose the email</option>
+		</field>
+		
+		<field name="autoapprove_administrator" type="list" label="COM_JOOCOMMENTS_VIEW_CONFIGURATION_ADMINISTRATOR_SETTINGS_AUTOMETICALLY_APPROVED_COMMENTS" 
+		   description="COM_JOOCOMMENTS_VIEW_CONFIGURATION_ADMINISTRATOR_SETTINGS_AUTOMETICALLY_APPROVED_COMMENTS_DESC"
+			default="1" >
+			<option value="0">JYES</option>
+			<option value="1">JNO</option>
+			<option value="2">ONLY_LOGGED_IN</option>
+			
+		</field>
+	</fieldset>
+</config>

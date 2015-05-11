@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+	<fields>
+
+		<field
+			name="id"
+			type="hidden"
+			default="0"
+			required="true"
+			readonly="true"/>							
+															
+		<field
+			id="title"
+			name="title"
+			type="text"
+			required="true"
+			label="Title"
+			description="title_Desc"
+			class="inputbox"
+			size="40"/>						
+								
+						
+		<field
+			id="description"
+			name="description"
+			type="editor"
+			label="Description"
+			description="description_Desc"
+			class="inputbox"
+			buttons="readmore,pagebreak"/>
+							
+		<field
+			id="published"
+			name="published"
+			type="list"
+			class="inputbox"
+			default="1"
+			size="1"
+			label="JField_Published_Label"
+			description="JField_Published_Desc">
+			<option
+				value="1">
+				JOption_Published</option>
+			<option
+				value="0">
+				JOption_UnPublished</option>
+			<option
+				value="-1">
+				JOption_Archived</option>
+			<option
+				value="-2">
+				JOption_Trashed</option>
+		</field>
+                          
+		<field
+			name="ordering"
+			type="hidden"
+			filter="unset"/>						  
+																			
+		<field
+			id="workflow_id"
+			name="workflow_id"
+			required="true"
+			type="amprojectworkflow"
+			label="Workflow"
+			description="workflow_id_Desc"
+			class="inputbox"
+			size="1"/>						
+														
+		<field
+			id="start"
+			name="start"
+			type="text"
+			required="false"
+			label="Start"
+			description="start_Desc"
+			class="inputbox"
+			size="40"/>						
+								
+														
+		<field
+			id="deadline"
+			name="deadline"
+			type="text"
+			required="false"
+			label="Deadline"
+			description="deadline_Desc"
+			class="inputbox"
+			size="40"/>						
+								
+														
+		<field
+			id="priority"
+			name="priority"
+			type="text"
+			required="false"
+			label="Priority"
+			description="priority_Desc"
+			class="inputbox"
+			size="40"/>						
+								
+														
+		<field
+			id="manager_id"
+			name="manager_id"
+			type="text"
+			required="false"
+			label="Manager_id"
+			description="manager_id_Desc"
+			class="inputbox"
+			size="40"/>						
+								
+						
+		<field
+			id="process_desc"
+			name="process_desc"
+			type="editor"
+			label="Process_desc"
+			description="process_desc_Desc"
+			class="inputbox"
+			buttons="readmore,pagebreak"/>
+							
+		<field
+			id="result_desc"
+			name="result_desc"
+			type="editor"
+			label="Result_desc"
+			description="result_desc_Desc"
+			class="inputbox"
+			buttons="readmore,pagebreak"/>
+																			
+		<field
+			id="taskshema_id"
+			name="taskshema_id"
+			required="true"
+			type="amprojecttaskshema"
+			label="Taskshema"
+			description="taskshema_id_Desc"
+			class="inputbox"
+			size="1"/>						
+														
+		<field
+			id="volume"
+			name="volume"
+			type="text"
+			required="false"
+			label="Volume"
+			description="volume_Desc"
+			class="inputbox"
+			size="40"/>						
+		
+    <field
+			id="tracking"
+			name="tracking"
+			type="checkbox"
+			required="true"
+			label="Tracking"
+			description="tracking_Desc"/>						
+								
+	</fields>	
+		
+</form>	

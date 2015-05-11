@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<metadata>
+	<layout title="Projectlist">
+		<help
+			key = "ProjectLIST_DESC"
+		/>
+		<message>
+			<![CDATA[ProjectLIST_DESC]]>
+		</message>
+	</layout>
+	<state>
+	<name>Project List Layout</name>
+		<description>Project List Layout_DESC</description>	
+		<params>
+		</params>
+	</state>
+	<!-- Add fields to the parameters object for the layout. -->
+	<fields name="params">
+	</fields>
+</metadata>

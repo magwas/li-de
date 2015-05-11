@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+	<fields>
+
+		<field
+			name="id"
+			type="hidden"
+			default="0"
+			required="true"
+			readonly="true"/>							
+															
+		<field
+			id="title"
+			name="title"
+			type="text"
+			required="true"
+			label="Title"
+			description="title_Desc"
+			class="inputbox"
+			size="40"/>						
+								
+						
+		<field
+			id="description"
+			name="description"
+			type="editor"
+			label="Description"
+			description="description_Desc"
+			class="inputbox"
+			buttons="readmore,pagebreak"/>
+							
+		<field
+			name="ordering"
+			type="hidden"
+			filter="unset"/>						  
+															
+		<field
+			id="volume"
+			name="volume"
+			type="text"
+			required="false"
+			label="Volume"
+			description="volume_Desc"
+			class="inputbox"
+			size="40"/>						
+								
+														
+		<field
+			id="unit"
+			name="unit"
+			type="text"
+			required="false"
+			label="Unit"
+			description="unit_Desc"
+			class="inputbox"
+			size="40"/>						
+								
+						
+		<field
+			id="start"
+			name="start"
+			type="calendar"
+			required="false"
+			label="Start"
+			description="start_Desc"
+			class="inputbox"
+			size="10"
+			format="%Y-%m-%d"/>			
+							
+							
+		<field
+			id="deadline"
+			name="deadline"
+			type="calendar"
+			required="false"
+			label="Deadline"
+			description="deadline_Desc"
+			class="inputbox"
+			size="10"
+			format="%Y-%m-%d"/>			
+							
+															
+		<field
+			id="priority"
+			name="priority"
+			type="text"
+			required="false"
+			label="Priority"
+			description="priority_Desc"
+			class="inputbox"
+			size="40"/>						
+								
+														
+		<field
+			id="manager_id"
+			name="manager_id"
+			type="text"
+			required="false"
+			label="Manager_id"
+			description="manager_id_Desc"
+			class="inputbox"
+			size="40"/>						
+								
+														
+		<field
+			id="state"
+			name="state"
+			type="text"
+			required="false"
+			label="State"
+			description="sate_Desc"
+			class="inputbox"
+			size="40"/>						
+								
+																		
+		<field
+			id="product_id"
+			name="product_id"
+			required="true"
+			type="amprojectproduct"
+			label="Product"
+			description="product_id_Desc"
+			class="inputbox"
+			size="1"/>						
+								
+	</fields>	
+		
+</form>	
