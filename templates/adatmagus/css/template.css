@@ -105,7 +105,7 @@ input[type="search"]::-webkit-search-decoration,
 input[type="search"]::-webkit-search-cancel-button {
 	-webkit-appearance: none;
 }
-#mod-search-searchword {width:85px;}
+
 textarea {
 	overflow: auto;
 	vertical-align: top;
@@ -2861,7 +2861,7 @@ input[type="submit"].btn.btn-mini {
 .nav-header {
 	display: block;
 	padding: 8px 15px;
-	font-size: 12px;
+	font-size: 13px;
 	font-weight: bold;
 	line-height: 18px;
 	color: white;
@@ -7524,3 +7524,16 @@ table.pollResult th {background-color:#66B1E2 }
 .altemak {border-style:solid; border-color: #67b1e2; border-width:3px;}
 .altemak h3 {margin:0px; background-color: #67b1e2; color: white; font-weight:bold; }
 #formEmailes textarea {width:600px;}
+#SL_balloon_obj {display:none}
+
+/* fõmenü és keresõ doboz */
+.navigation > ul.nav-pills {display:inline-block; width:600px;}
+.navigation > div.searchKereses {display:block; width:250px; float:right; margin-top:5px;}
+#mod-search-searchword {width:120px;}
+#aside > div.Slogin {display:none}
+
+
+/* kunena fórum testreszabás */
+#Kunena span.kavatar img.kavatar {width:80px;}
+#Kunena .kblocktable .kthead-child {display:none}
+#Kunena #jumpto .inputbox {max-width:600px;}
