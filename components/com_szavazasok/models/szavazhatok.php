@@ -1,5 +1,8 @@
 <?php
 
+// szavazhatok és aktuális szavazások model
+// ha JRequest::getVar('aktualis=1') akkor az aktuális szavazásokat kell kigyüjten
+// egyébként ahol most szavazhatok
 
 jimport('joomla.application.component.modellist');
 jimport('joomla.application.component.helper');
@@ -36,6 +39,8 @@ class SzavazasokModelSzavazhatok extends JModelList {
 	protected function getListQuery()	{
     $w = explode('|',urldecode(JRequest::getVar('filterStr','')));
     $user = JFactory::getUser();
+	// aktuális szavazásokat kell kigyüjteni (0-ás szavazok rekord soha nincsen)
+	if (JRequest::getVar('aktualis')==1) $user->id = 0;
     $filterStr = $w[0];
     $filterAktiv = $w[1];
     if ($filterAktiv==1)
@@ -52,14 +57,16 @@ class SzavazasokModelSzavazhatok extends JModelList {
     /* szavazások ahol jelenleg szavazhatok */
 /* ==================================== */
 /* ahol minden regisztrált szavazhat */
-SELECT sz.*
+SELECT sz.megnevezes, sz.vita1, sz.vita2, sz.szavazas, sz.lezart, sz.szavazas_vege, sz.titkos, szk.user_id,
+  sz.id, sz.temakor_id
 FROM #__szavazasok sz
 INNER join #__temakorok te ON te.id = sz.temakor_id
-LEFT OUTER JOIN #__szavazok szk ON szk.szavazas_id = sz.id AND szk.user_id = '.$user->id.'
+LEFT OUTER JOIN #__szavazok szk ON szk.szavazas_id = sz.id AND szk.user_id = "'.$user->id.'"
 WHERE sz.szavazok=1 AND sz.szavazas=1 AND szk.user_id IS NULL '.$filterStr.'
 /* ahol a tagok szavazhatnak és én tag vagyok */
 UNION 
-SELECT sz.*
+SELECT sz.megnevezes, sz.vita1, sz.vita2, sz.szavazas, sz.lezart, sz.szavazas_vege, sz.titkos, szk.user_id,
+  sz.id, sz.temakor_id
 FROM #__szavazasok sz
 INNER join #__temakorok te ON te.id = sz.temakor_id
 INNER JOIN #__tagok t ON t.temakor_id = sz.temakor_id AND t.user_id='.$user->id.'
@@ -67,7 +74,8 @@ LEFT OUTER JOIN #__szavazok szk ON szk.szavazas_id = sz.id AND szk.user_id = '.$
 WHERE sz.szavazok=2 AND sz.szavazas=1 AND szk.user_id IS NULL '.$filterStr.'
 /* ahol a felsöbb szintű témakör tagjai szavazhatnak és én ott tag vagyok   1 */
 UNION 
-SELECT sz.*
+SELECT sz.megnevezes, sz.vita1, sz.vita2, sz.szavazas, sz.lezart, sz.szavazas_vege, sz.titkos, szk.user_id,
+  sz.id, sz.temakor_id
 FROM #__szavazasok sz
 INNER JOIN #__temakorok tk ON tk.id = sz.temakor_id
 INNER JOIN #__tagok t ON t.temakor_id = tk.szulo AND t.user_id='.$user->id.'
@@ -75,7 +83,8 @@ LEFT OUTER JOIN #__szavazok szk ON szk.szavazas_id = sz.id AND szk.user_id = '.$
 WHERE sz.szavazok=3 AND sz.szavazas=1 AND szk.user_id IS NULL '.$filterStr.'
 /* ahol a felsöbb szintű témakör tagjai szavazhatnak és én ott tag vagyok   2 */
 UNION 
-SELECT sz.*
+SELECT sz.megnevezes, sz.vita1, sz.vita2, sz.szavazas, sz.lezart, sz.szavazas_vege, sz.titkos, szk.user_id,
+  sz.id, sz.temakor_id
 FROM #__szavazasok sz
 INNER JOIN #__temakorok tk ON tk.id = sz.temakor_id
 INNER JOIN #__temakorok tk1 ON tk1.id = tk.szulo
@@ -84,7 +93,8 @@ LEFT OUTER JOIN #__szavazok szk ON szk.szavazas_id = sz.id AND szk.user_id = '.$
 WHERE sz.szavazok=3 AND sz.szavazas=1 AND szk.user_id IS NULL '.$filterStr.'
 /* ahol a felsöbb szintű témakör tagjai szavazhatnak és én ott tag vagyok   3 */
 UNION 
-SELECT sz.*
+SELECT sz.megnevezes, sz.vita1, sz.vita2, sz.szavazas, sz.lezart, sz.szavazas_vege, sz.titkos, szk.user_id,
+  sz.id, sz.temakor_id
 FROM #__szavazasok sz
 INNER JOIN #__temakorok tk ON tk.id = sz.temakor_id
 INNER JOIN #__temakorok tk1 ON tk1.id = tk.szulo
@@ -94,7 +104,8 @@ LEFT OUTER JOIN #__szavazok szk ON szk.szavazas_id = sz.id AND szk.user_id = '.$
 WHERE sz.szavazok=3 AND sz.szavazas=1 AND szk.user_id IS NULL '.$filterStr.'
 /* ahol a felsöbb szintű témakör tagjai szavazhatnak és én ott tag vagyok   4 */
 UNION 
-SELECT sz.*
+SELECT sz.megnevezes, sz.vita1, sz.vita2, sz.szavazas, sz.lezart, sz.szavazas_vege, sz.titkos, szk.user_id,
+  sz.id, sz.temakor_id
 FROM #__szavazasok sz
 INNER JOIN #__temakorok tk ON tk.id = sz.temakor_id
 INNER JOIN #__temakorok tk1 ON tk1.id = tk.szulo
@@ -104,15 +115,7 @@ INNER JOIN #__tagok t ON t.temakor_id = tk3.szulo AND t.user_id='.$user->id.'
 LEFT OUTER JOIN #__szavazok szk ON szk.szavazas_id = sz.id AND szk.user_id = '.$user->id.'
 WHERE sz.szavazok=3 AND sz.szavazas=1 AND szk.user_id IS NULL '.$filterStr.'
 ';
-    if (JRequest::getVar('order')=='')
-      $query .= ' order by 1 ASC, 6 DESC';
-    else if (JRequest::getVar('order','1')=='1')
-      $query .= ' order by '.JRequest::getVar('order','1').' ASC, 6 DESC';
-    else   
-      $query .= ' order by '.JRequest::getVar('order','1').' DESC, 6 DESC';
-      
-    //DBG echo '<hr>'.$query.'<hr>';  
-      
+    $query .= ' order by '.JRequest::getVar('order','6');
     return $query;  
 	}
   /**
@@ -122,6 +125,10 @@ WHERE sz.szavazok=3 AND sz.szavazas=1 AND szk.user_id IS NULL '.$filterStr.'
   public function getTotal($filterStr='') {
      $result = 0;
      $db = JFactory::getDBO();
+	 $user = JFactory::getUser();
+	 // aktuális szavazásokat kell kigyüjteni (0-ás szavazok rekord soha nincsen)
+	 if (JRequest::getVar('aktualis')==1) $user->id = 0;
+	 
      $db->setQuery('
     /* szavazások ahol jelenleg szavazhatok */
 /* ==================================== */
@@ -182,7 +189,7 @@ WHERE sz.szavazok=3 AND sz.szavazas=1 AND szk.user_id IS NULL '.$filterStr.'
      
      //DBG echo '<hr>'.$db->getQuery().'<hr>';
      
-     $res = $db->loadObejctList();
+     $res = $db->loadObjectList();
      $result = count($res);
      return $result;
   }

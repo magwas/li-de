@@ -41,9 +41,19 @@ jimport('joomla.application.component.helper');
 JHTML::addIncludePath(JPATH_COMPONENT_ADMINISTRATOR.'/helpers' );
 
 // ===============set the default values ========================
-$task = JRequest::getWord('task','browse');
+$task = JRequest::getVar('task','browse');
 $config 	=& JComponentHelper::getParams( 'com_szavazasok' );
 $viewname = JRequest::getWord('view', 'szavazasoklist');
+// view="szavazasok" id=0 az alapértelmezett hivás --> vita_alt
+if (($viewname == 'szavazasok') & 
+    (JRequest::getVar('id')==0) &
+	(JRequest::getVar('task')=='')) {
+	$viewname = 'szavazasoklist';
+	$task = 'browse';
+}
+
+JRequest::setVar('task',$task);
+JRequest::setvar('view',$viewname);
 // ==============================================================
 
 // load specific controller if exists

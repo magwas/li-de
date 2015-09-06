@@ -23,6 +23,8 @@ class SzavazasokViewSzavazhatok  extends JViewLegacy
 		$uri 		= &JFactory::getURI();
 		$user 		= &JFactory::getUser();
 		$pagination	= &$this->get('pagination');
+        $this->set('LapozoSor', $pagination->getListFooter());
+
 		$params		= $app ->getParams();				
 		$menus	= &JSite::getMenu();
 		

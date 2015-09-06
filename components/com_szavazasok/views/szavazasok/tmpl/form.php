@@ -36,7 +36,7 @@ echo '
   <input type="hidden" name="order" value="'.JRequest::getVar('order').'" />
   <input type="hidden" name="filterStr" value="'.JRequest::getVar('filterStr').'" />
   <input type="hidden" name="temakor" value="'.JRequest::getVar('temakor','0').'" />
-  <input type="hidden" name="temakor_id" value="'.JRequest::getVar('temakor','0').'" />
+  <!-- input type="hidden" name="temakor_id" value="'.JRequest::getVar('temakor','0').'" / -->
   <input type="hidden" name="itemId" value="'.JRequest::getVar('itemId').'" />
   <input type="hidden" name="id" value="'.JRequest::getVar('szavazas').'" />
  '; 
@@ -51,6 +51,18 @@ echo '
 				<div class="clr"></div>
 				<?php echo $this->form->getInput('leiras');  ?>
 				<div class="clr"></div>
+				
+				<?php if ($this->item->id > 0) {
+					echo $this->form->getLabel('temakor_id');
+				    echo '<select name="temakor_id">
+					'.$this->temakorTree.'
+					</select>
+					';
+				} else {
+					echo '<input type="hidden" name="temakor_id" value="'.JRequest::getVar('temakor').'" />
+					';
+				}
+				?>
 				<?php echo $this->form->getLabel('titkos'); ?>
 				<?php echo $this->form->getInput('titkos');  ?>
 				<div class="clr"></div>

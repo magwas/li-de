@@ -88,10 +88,10 @@ function decrypt($encrypted_string, $encryption_key) {
  */
 class SzavazasokController extends JControllerLegacy {
   protected $NAME='szavazasok';
-	protected $_viewname = 'item';
-	protected $_mainmodel = 'item';
-	protected $_itemname = 'Item';    
-	protected $_context = "com_szavazasok";
+  protected $_viewname = 'item';
+  protected $_mainmodel = 'item';
+  protected $_itemname = 'Item';    
+  protected $_context = "com_szavazasok";
   protected $temakorokHelper = null;
   protected $temakor_id = 0;
   protected $temakor = null;
@@ -115,7 +115,7 @@ class SzavazasokController extends JControllerLegacy {
         // browser paraméterek ellenörzése, ha kell javitása
         if (JRequest::getVar('limit')=='') JRequest::setVar('limit',20);
         if (JRequest::getVar('limitstart')=='') JRequest::setVar('limitstart',0);
-        if (JRequest::getVar('order')=='') JRequest::setVar('order',1);
+        if (JRequest::getVar('order')=='') JRequest::setVar('order',6);
         
         // általánosan használt helper
         if (file_exists(JPATH_ROOT.DS.'components'.DS.'com_temakorok'.DS.'helpers'.DS.'temakorok.php')) {
@@ -136,17 +136,18 @@ class SzavazasokController extends JControllerLegacy {
         if ($res) {
           $this->temakor_admin = ($res->admin == 1);
         }	
-
+		
 		$document =& JFactory::getDocument();
 		$viewType	= $document->getType();
 		$this->view = $this->getView($this->_viewname,$viewType);
 		$this->model = $this->getModel($this->_mainmodel);
 		$this->view->setModel($this->model,true);		
+        $this->view->set('temakorokHelper',$this->temakorokHelper);
 		JRequest :: setVar('view', $this->_viewname);
     
         // automatikus szavazás állapot változtatás
         $this->temakorokHelper->setSzavazasAllapot();
-    
+		
 	}
   /**
    * kik a szavazás felvivők?
@@ -177,7 +178,7 @@ class SzavazasokController extends JControllerLegacy {
 	 * @session object 'temakoroklist_status'   
 	 */                     
   public function browse() {
-    jimport('hs.user.user');
+	jimport('hs.user.user');
     JHTML::_('behavior.modal'); 
     $total = 0;
     $pagination = null;
@@ -206,7 +207,8 @@ class SzavazasokController extends JControllerLegacy {
     $limit = JRequest::getVar('limit',$brStatus->limit);
     $order = JRequest::getVar('order',$brStatus->order);
     $filterStr = urldecode(JRequest::getVar('filterStr',$brStatus->filterStr));
-    if ($this->temakor_id=='') $this->temakor_id = $brStatus->temakor_id;
+    
+	//if ($this->temakor_id=='') $this->temakor_id = $brStatus->temakor_id;
     
     // browser status save to session and JRequest
     $brStatus->limit = $limit;
@@ -223,8 +225,10 @@ class SzavazasokController extends JControllerLegacy {
     // adattábla tartalom elérése és átadása a view -nek
     $items = $this->model->getItems();
     if ($this->model->getDBO()->getErrorNum() > 0) $this->model->getDBO()->stderr();
-    //DBG echo 'count='.count($items).'  '.$this->model->getDBO()->getQuery();
-    $alTemak = $this->model->getAltemak();
+	if (JRequest::getVar('temakor') > 0)
+	   $alTemak = $this->model->getAltemak();
+    else
+	   $alTemak = array();	
     
     if ($this->model->getError() != '')
       $this->view->Msg = $this->model->getError();
@@ -232,8 +236,11 @@ class SzavazasokController extends JControllerLegacy {
     $this->view->set('AlTemak',$alTemak);
     $this->view->set('Temakor',$this->temakor);
     $this->view->set('Szulok',$this->temakorokHelper->getSzulok());
-    $this->view->set('Title',JText::_('SZAVAZASOK'));
-    if ($this->temakor->lathatosag == 2)
+    if (JRequest::getVar('temakor') > 0)
+	   $this->view->set('Title',JText::_('SZAVAZASOK'));
+    else
+	   $this->view->set('Title',JText::_('AKTIV_SZAVAZASOK'));
+	if ($this->temakor->lathatosag == 2)
       $this->view->set('TemakorGroupId',$this->temakorokHelper->getTemakorGroupId($this->temakor->id));
     
     // browser müködéshez linkek definiálása
@@ -402,7 +409,7 @@ class SzavazasokController extends JControllerLegacy {
     $pagination = new JPagination($total, $limitStart, $limit);
     $pagination->setAdditionalUrlParam('order',$order);
     $pagination->setAdditionalUrlParam('filterStr',urlencode($filterStr));
-    $this->view->set('LapozoSor', $pagination->getListFooter());
+	$this->view->set('LapozoSor', $pagination->getListFooter());
     
     // kacsolodó cikk id-jének elérése és átadása a viewer-nek
     $db->setQuery('SELECT id from #__content WHERE alias="t'.$this->temakor_id.'"');
@@ -531,6 +538,8 @@ class SzavazasokController extends JControllerLegacy {
       $this->view->set('Item',$item);
       $this->view->set('Temakor',$this->temakor);
       $this->view->set('Title', JText::_('SZAVAZASMODOSITAS'));
+	  $temakorTree = $this->temakorokHelper->getTemakorTree(0,'options',0,$item->temakor_id);
+	  $this->view->set('temakorTree',$temakorTree);
       
       // akciok definiálása
       $akciok = array();
@@ -751,7 +760,8 @@ class SzavazasokController extends JControllerLegacy {
     } else {
       echo '<div class="errorMsg">Access denied</div>';
     }
-  } // save task        
+  } // save task 
+  
   /**
    * delete task
    * @JRequest limit,limitstart,order, filterStr, temakor
@@ -976,10 +986,14 @@ class SzavazasokController extends JControllerLegacy {
          echo '<h2 class="errorMsg">Wrong status '.$szavazas->megnevezes.'</h2>';
          return;
      }
+	 
+	 // 2015.07.26. idönként az éles rendszerben előfordul, hogy a JRequest temakor_id üres
+	 $temakor_id = $szavazas->temakor_id;
+	 
      // user témakör képviselő vagy általános képviselő?
      $db->setQuery('select * from #__kepviselok 
      where kepviselo_id='.$user->id.' and
-           (temakor_id='.$temakor_id.' or temakor_id = 0)
+           (temakor_id='.$db->quote($temakor_id).' or temakor_id = 0)
      ');
      $res = $db->loadObjectList();
      $kepviselo = (count($res) > 0);
@@ -1218,6 +1232,11 @@ class SzavazasokController extends JControllerLegacy {
        left outer join #__users u on szo.kepviselo_id = u.id 
        left outer join #__alternativak a on sz.alternativa_id = a.id
        where  sz.szavazas_id='.$szavazas_id.' and sz.user_id > 0 and szo.kepviselo_id > 0
+       union all
+       select concat("eMail-",sz.szavazo_id), sz.szavazo_id, sz.szavazo_id, sz.pozicio, a.megnevezes alternativa 
+       from #__szavazatok sz
+       left outer join #__alternativak a on sz.alternativa_id = a.id
+       where  sz.szavazas_id='.$szavazas_id.' and sz.user_id = 0 
        ) w
        group by name, kepviselo_id, pozicio, alternativa
        order by 1,2,3
@@ -1276,12 +1295,12 @@ class SzavazasokController extends JControllerLegacy {
     
     // browser müködéshez linkek definiálása
     $reorderLink =
-       JURI::base().'index.php?option=com_'.$this->NAME.'&view=szavazhatok'.
+       JURI::base().'index.php?option=com_'.$this->NAME.'&view=szavazhatok&task=szavazhatok'.
        '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
        '&filterStr='.urlencode($filterStr).
        '&temakor='.$this->temakor_id;
     $doFilterLink =
-       JURI::base().'index.php?option=com_'.$this->NAME.'&view=szavazhatok'.
+       JURI::base().'index.php?option=com_'.$this->NAME.'&view=szavazhatok&task=szavazhatok'.
        '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
        '&order='.JRequest::getVar('order','1').
        '&temakor='.$this->temakor_id;
@@ -1318,7 +1337,8 @@ class SzavazasokController extends JControllerLegacy {
     
     $this->view->display();
   } // szavazhatok task
- 	/**
+ 
+     /**
 	 * szavazasok ahol a vita folyik task
 	 * @return void
 	 * @request integer limit
@@ -1366,12 +1386,12 @@ class SzavazasokController extends JControllerLegacy {
     
     // browser müködéshez linkek definiálása
     $reorderLink =
-       JURI::base().'index.php?option=com_'.$this->NAME.'&view=szavazhatok'.
+       JURI::base().'index.php?option=com_'.$this->NAME.'&view=vita&task=vita'.
        '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
        '&filterStr='.urlencode($filterStr).
        '&temakor='.$this->temakor_id;
     $doFilterLink =
-       JURI::base().'index.php?option=com_'.$this->NAME.'&view=szavazhatok'.
+       JURI::base().'index.php?option=com_'.$this->NAME.'&view=vita&task=vita'.
        '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
        '&order='.JRequest::getVar('order','1').
        '&temakor='.$this->temakor_id;
@@ -1408,7 +1428,359 @@ class SzavazasokController extends JControllerLegacy {
     
     $this->view->display();
   } // vita
- 	/**
+
+     /**
+	 * szavazasok amik vita1 állapotban vannak
+	 * @return void
+	 * @request integer limit
+	 * @request integer limitstart
+	 * @request integer order
+	 * @request integer filterStr
+	 * @session object 'temakoroklist_status'   
+	 */                     
+  public function vita_alt() {
+    jimport('hs.user.user');
+    JHTML::_('behavior.modal'); 
+    $total = 0;
+    $pagination = null;
+    $user = JFactory::getUser();
+    $db = JFactory::getDBO();
+
+    // alapértelmezett browser status beolvasása sessionból
+    $session = JFactory::getSession();
+    $brStatusStr = '{"limit":20,"limitstart":0,"order":1,"filterStr":"|1"}';
+    $brStatus = JSON_decode($brStatus);
+    
+    $limitStart = JRequest::getVar('limitstart',$brStatus->limitstart);
+    $limit = JRequest::getVar('limit',$brStatus->limit);
+    $order = JRequest::getVar('order',$brStatus->order);
+    $filterStr = urldecode(JRequest::getVar('filterStr',$brStatus->filterStr));
+    if ($this->temakor_id=='') $this->temakor_id = $brStatus->temakor_id;
+    JRequest::setVar('limit',$limit);
+    JRequest::setVar('limitstart',$limitStart);
+    JRequest::setVar('order',$order);
+    JRequest::setVar('filterStr',$filterStr);
+    JRequest::setVar('temakor',$this->temakor_id);
+
+    // adattábla tartalom elérése és átadása a view -nek
+    $items = $this->model->getItems();
+    if ($this->model->getDBO()->getErrorNum() > 0) $this->model->getDBO()->stderr();
+    if ($this->model->getError() != '')
+      $this->view->Msg = $this->model->getError();
+  
+    $this->view->set('Items',$items);
+    $this->view->set('Title',JText::_('SZAVAZASOK_VITA1'));
+    
+    // browser müködéshez linkek definiálása
+    $reorderLink =
+       JURI::base().'index.php?option=com_'.$this->NAME.'&view=vita_alt&task=vita_alt'.
+       '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
+       '&filterStr='.urlencode($filterStr).
+       '&temakor='.$this->temakor_id;
+    $doFilterLink =
+       JURI::base().'index.php?option=com_'.$this->NAME.'&view=vita_alt&task=vita_alt'.
+       '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
+       '&order='.JRequest::getVar('order','1').
+       '&temakor='.$this->temakor_id;
+    $itemLink =
+       JURI::base().'index.php?option=com_alternativak&view=alternativaklist'.
+       '&task=browse'.
+       '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
+       '&filterStr='.urlencode($filterStr).
+       '&order='.JRequest::getVar('order','1');
+    $backLink =
+       JURI::base().'index.php?option=com_temakorok&view=temakoroklist'.
+       '&task=browse';
+       
+    $this->view->set('reorderLink',$reorderLink);
+    $this->view->set('doFilterLink',$doFilterLink);
+    $this->view->set('itemLink',$itemLink);
+    $this->view->set('backLink',$backLink);
+    $this->view->set('temakorLink',$temakorLink);
+    
+    // kik a szavazaás felvivők?
+    $szavazas_felvivo = $this->szavazas_felvivo();
+
+    // akciók definiálása
+    $akciok = array();
+    $this->view->set('Akciok',$akciok);
+    
+    //lapozósor definiálása
+    jimport( 'joomla.html.pagination' );    
+    $total = $this->model->getTotal($filterStr);
+    $pagination = new JPagination($total, $limitStart, $limit);
+    $pagination->setAdditionalUrlParam('order',$order);
+    $pagination->setAdditionalUrlParam('filterStr',urlencode($filterStr));
+    $this->view->set('LapozoSor', $pagination->getListFooter());
+    
+    $this->view->display();
+  } // vita1
+
+     /**
+	 * szavazasok amik vita2 állapotban vannak
+	 * @return void
+	 * @request integer limit
+	 * @request integer limitstart
+	 * @request integer order
+	 * @request integer filterStr
+	 * @session object 'temakoroklist_status'   
+	 */                     
+  public function vita_too() {
+    jimport('hs.user.user');
+    JHTML::_('behavior.modal'); 
+    $total = 0;
+    $pagination = null;
+    $user = JFactory::getUser();
+    $db = JFactory::getDBO();
+
+    // alapértelmezett browser status beolvasása sessionból
+    $session = JFactory::getSession();
+    $brStatusStr = '{"limit":20,"limitstart":0,"order":1,"filterStr":"|1"}';
+    $brStatus = JSON_decode($brStatus);
+    
+    $limitStart = JRequest::getVar('limitstart',$brStatus->limitstart);
+    $limit = JRequest::getVar('limit',$brStatus->limit);
+    $order = JRequest::getVar('order',$brStatus->order);
+    $filterStr = urldecode(JRequest::getVar('filterStr',$brStatus->filterStr));
+    if ($this->temakor_id=='') $this->temakor_id = $brStatus->temakor_id;
+    JRequest::setVar('limit',$limit);
+    JRequest::setVar('limitstart',$limitStart);
+    JRequest::setVar('order',$order);
+    JRequest::setVar('filterStr',$filterStr);
+    JRequest::setVar('temakor',$this->temakor_id);
+
+    // adattábla tartalom elérése és átadása a view -nek
+    $items = $this->model->getItems();
+    if ($this->model->getDBO()->getErrorNum() > 0) $this->model->getDBO()->stderr();
+    if ($this->model->getError() != '')
+      $this->view->Msg = $this->model->getError();
+  
+    $this->view->set('Items',$items);
+    $this->view->set('Title',JText::_('SZAVAZASOK_VITA2'));
+    
+    // browser müködéshez linkek definiálása
+    $reorderLink =
+       JURI::base().'index.php?option=com_'.$this->NAME.'&view=vita_too&task=vita_too'.
+       '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
+       '&filterStr='.urlencode($filterStr).
+       '&temakor='.$this->temakor_id;
+    $doFilterLink =
+       JURI::base().'index.php?option=com_'.$this->NAME.'&view=vita_too&task=vita_too'.
+       '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
+       '&order='.JRequest::getVar('order','1').
+       '&temakor='.$this->temakor_id;
+    $itemLink =
+       JURI::base().'index.php?option=com_alternativak&view=alternativaklist'.
+       '&task=browse'.
+       '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
+       '&filterStr='.urlencode($filterStr).
+       '&order='.JRequest::getVar('order','1');
+    $backLink =
+       JURI::base().'index.php?option=com_temakorok&view=temakoroklist'.
+       '&task=browse';
+       
+    $this->view->set('reorderLink',$reorderLink);
+    $this->view->set('doFilterLink',$doFilterLink);
+    $this->view->set('itemLink',$itemLink);
+    $this->view->set('backLink',$backLink);
+    $this->view->set('temakorLink',$temakorLink);
+    
+    // kik a szavazaás felvivők?
+    $szavazas_felvivo = $this->szavazas_felvivo();
+
+    // akciók definiálása
+    $akciok = array();
+    $this->view->set('Akciok',$akciok);
+    
+    //lapozósor definiálása
+    jimport( 'joomla.html.pagination' );    
+    $total = $this->model->getTotal($filterStr);
+    $pagination = new JPagination($total, $limitStart, $limit);
+    $pagination->setAdditionalUrlParam('order',$order);
+    $pagination->setAdditionalUrlParam('filterStr',urlencode($filterStr));
+    $this->view->set('LapozoSor', $pagination->getListFooter());
+    
+    $this->view->display();
+  } // vita_too
+
+     /**
+	 * szavazasok amik szavazas állapotban vannak
+	 * @return void
+	 * @request integer limit
+	 * @request integer limitstart
+	 * @request integer order
+	 * @request integer filterStr
+	 * @session object 'temakoroklist_status'   
+	 */                     
+  public function szavazas_folyik() {
+    jimport('hs.user.user');
+    JHTML::_('behavior.modal'); 
+    $total = 0;
+    $pagination = null;
+    $user = JFactory::getUser();
+    $db = JFactory::getDBO();
+
+    // alapértelmezett browser status beolvasása sessionból
+    $session = JFactory::getSession();
+    $brStatusStr = '{"limit":20,"limitstart":0,"order":1,"filterStr":"|1"}';
+    $brStatus = JSON_decode($brStatus);
+    
+    $limitStart = JRequest::getVar('limitstart',$brStatus->limitstart);
+    $limit = JRequest::getVar('limit',$brStatus->limit);
+    $order = JRequest::getVar('order',$brStatus->order);
+    $filterStr = urldecode(JRequest::getVar('filterStr',$brStatus->filterStr));
+    if ($this->temakor_id=='') $this->temakor_id = $brStatus->temakor_id;
+    JRequest::setVar('limit',$limit);
+    JRequest::setVar('limitstart',$limitStart);
+    JRequest::setVar('order',$order);
+    JRequest::setVar('filterStr',$filterStr);
+    JRequest::setVar('temakor',$this->temakor_id);
+
+    // adattábla tartalom elérése és átadása a view -nek
+    $items = $this->model->getItems();
+    if ($this->model->getDBO()->getErrorNum() > 0) $this->model->getDBO()->stderr();
+    if ($this->model->getError() != '')
+      $this->view->Msg = $this->model->getError();
+  
+    $this->view->set('Items',$items);
+    $this->view->set('Title',JText::_('SZAVAZASOK_SZAVAZAS'));
+    
+    // browser müködéshez linkek definiálása
+    $reorderLink =
+       JURI::base().'index.php?option=com_'.$this->NAME.'&view=szavazas_folyik&task=szavazas_folyik'.
+       '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
+       '&filterStr='.urlencode($filterStr).
+       '&temakor='.$this->temakor_id;
+    $doFilterLink =
+       JURI::base().'index.php?option=com_'.$this->NAME.'&view=szavazas_folyik&task=szavazas_folyik'.
+       '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
+       '&order='.JRequest::getVar('order','1').
+       '&temakor='.$this->temakor_id;
+    $itemLink =
+       JURI::base().'index.php?option=com_alternativak&view=alternativaklist'.
+       '&task=browse'.
+       '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
+       '&filterStr='.urlencode($filterStr).
+       '&order='.JRequest::getVar('order','1');
+    $backLink =
+       JURI::base().'index.php?option=com_temakorok&view=temakoroklist'.
+       '&task=browse';
+       
+    $this->view->set('reorderLink',$reorderLink);
+    $this->view->set('doFilterLink',$doFilterLink);
+    $this->view->set('itemLink',$itemLink);
+    $this->view->set('backLink',$backLink);
+    $this->view->set('temakorLink',$temakorLink);
+    
+    // kik a szavazaás felvivők?
+    $szavazas_felvivo = $this->szavazas_felvivo();
+
+    // akciók definiálása
+    $akciok = array();
+    $this->view->set('Akciok',$akciok);
+    
+    //lapozósor definiálása
+    jimport( 'joomla.html.pagination' );    
+    $total = $this->model->getTotal($filterStr);
+    $pagination = new JPagination($total, $limitStart, $limit);
+    $pagination->setAdditionalUrlParam('order',$order);
+    $pagination->setAdditionalUrlParam('filterStr',urlencode($filterStr));
+    $this->view->set('LapozoSor', $pagination->getListFooter());
+    
+    $this->view->display();
+  } // szavazas_folyik
+
+     /**
+	 * szavazasok amik lezárt állapotban vannak
+	 * @return void
+	 * @request integer limit
+	 * @request integer limitstart
+	 * @request integer order
+	 * @request integer filterStr
+	 * @session object 'temakoroklist_status'   
+	 */                     
+  public function lezart() {
+    jimport('hs.user.user');
+    JHTML::_('behavior.modal'); 
+    $total = 0;
+    $pagination = null;
+    $user = JFactory::getUser();
+    $db = JFactory::getDBO();
+
+    // alapértelmezett browser status beolvasása sessionból
+    $session = JFactory::getSession();
+    $brStatusStr = '{"limit":20,"limitstart":0,"order":1,"filterStr":"|1"}';
+    $brStatus = JSON_decode($brStatus);
+    
+    $limitStart = JRequest::getVar('limitstart',$brStatus->limitstart);
+    $limit = JRequest::getVar('limit',$brStatus->limit);
+    $order = JRequest::getVar('order',$brStatus->order);
+    $filterStr = urldecode(JRequest::getVar('filterStr',$brStatus->filterStr));
+    if ($this->temakor_id=='') $this->temakor_id = $brStatus->temakor_id;
+    JRequest::setVar('limit',$limit);
+    JRequest::setVar('limitstart',$limitStart);
+    JRequest::setVar('order',$order);
+    JRequest::setVar('filterStr',$filterStr);
+    JRequest::setVar('temakor',$this->temakor_id);
+
+    // adattábla tartalom elérése és átadása a view -nek
+    $items = $this->model->getItems();
+    //DBG echo 'lezart count='.count($items).'<br>';
+    if ($this->model->getDBO()->getErrorNum() > 0) $this->model->getDBO()->stderr();
+    if ($this->model->getError() != '')
+      $this->view->Msg = $this->model->getError();
+  
+    $this->view->set('Items',$items);
+    $this->view->set('Title',JText::_('SZAVAZASOK_LEZART'));
+    
+    // browser müködéshez linkek definiálása
+    $reorderLink =
+       JURI::base().'index.php?option=com_'.$this->NAME.'&view=lezart&task=lezart'.
+       '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
+       '&filterStr='.urlencode($filterStr).
+       '&temakor='.$this->temakor_id;
+    $doFilterLink =
+       JURI::base().'index.php?option=com_'.$this->NAME.'&view=lezart&task=lezart'.
+       '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
+       '&order='.JRequest::getVar('order','1').
+       '&temakor='.$this->temakor_id;
+    $itemLink =
+       JURI::base().'index.php?option=com_alternativak&view=alternativaklist'.
+       '&task=browse'.
+       '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
+       '&filterStr='.urlencode($filterStr).
+       '&order='.JRequest::getVar('order','1');
+    $backLink =
+       JURI::base().'index.php?option=com_temakorok&view=temakoroklist'.
+       '&task=browse';
+       
+    $this->view->set('reorderLink',$reorderLink);
+    $this->view->set('doFilterLink',$doFilterLink);
+    $this->view->set('itemLink',$itemLink);
+    $this->view->set('backLink',$backLink);
+    $this->view->set('temakorLink',$temakorLink);
+    
+    // kik a szavazaás felvivők?
+    $szavazas_felvivo = $this->szavazas_felvivo();
+
+    // akciók definiálása
+    $akciok = array();
+    $this->view->set('Akciok',$akciok);
+    
+    //lapozósor definiálása
+    jimport( 'joomla.html.pagination' );    
+    $total = $this->model->getTotal($filterStr);
+    $pagination = new JPagination($total, $limitStart, $limit);
+    $pagination->setAdditionalUrlParam('order',$order);
+    $pagination->setAdditionalUrlParam('filterStr',urlencode($filterStr));
+    $this->view->set('LapozoSor', $pagination->getListFooter());
+    //DBG echo 'total='.$total.'<br>';
+    $this->view->display();
+  } // lezart
+
+
+
+  /**
 	 * szavaztam
 	 * @return void
 	 * @request integer limit
@@ -1456,17 +1828,17 @@ class SzavazasokController extends JControllerLegacy {
     
     // browser müködéshez linkek definiálása
     $reorderLink =
-       JURI::base().'index.php?option=com_'.$this->NAME.'&view=szavazhatok'.
+       JURI::base().'index.php?option=com_'.$this->NAME.'&view=szavazhatok&task=szavazhatok'.
        '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
        '&filterStr='.urlencode($filterStr).
        '&temakor='.$this->temakor_id;
     $doFilterLink =
-       JURI::base().'index.php?option=com_'.$this->NAME.'&view=szavazhatok'.
+       JURI::base().'index.php?option=com_'.$this->NAME.'&view=szavazhatok&task=szavazhatok'.
        '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
        '&order='.JRequest::getVar('order','1').
        '&temakor='.$this->temakor_id;
     $itemLink =
-       JURI::base().'index.php?option=com_alternativak&view=alternativaklist'.
+       JURI::base().'index.php?option=com_alternativak&view=alternativaklist&task=szavazhatok'.
        '&task=browse'.
        '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
        '&filterStr='.urlencode($filterStr).
@@ -1535,7 +1907,7 @@ class SzavazasokController extends JControllerLegacy {
    public function sendemails() {
       $user = JFactory::getUser();
       $db = JFactory::getDBO();
-      $db->setQuery('select * from #__szavazasok where id="'.JRequest::getvar('szavazas',0).'"');
+      $db->setQuery('select * from #__szavazasok where id="'.JRequest::getVar('szavazas',0).'"');
       $szavazas = $db->loadObject();
       $temakorModel = new TemakorokModelTemakorok;
       $temakor = $temakorModel->getItem($szavazas->temakor_id);
@@ -1891,7 +2263,52 @@ class SzavazasokController extends JControllerLegacy {
      $data = JRequest::setVar('data',encrypt($felado,ENCRYPTION_KEY));
      JRequest::setVar('data',$data);
      $this->meghivo();
-   }                            
+   }
+   /**
+     * leiratkozás hirlevélről task
+     * JRequest integer 'is'  #__levelkuldesek.id
+    */
+    public function unsub() {
+        $user = false;
+        $naplo = false;
+        $db = JFactory::getDBO();
+        
+        // levelkuldesek naplo elérése
+        $db->setQuery('select * from #__levelkuldesek where id="'.JRequest::getVar('id',0).'"');        
+        $naplo = $db->loadObject();
+        if ($naplo) {
+            // user rekord elérése     
+            $db->setQuery('select * from  #__users where email="'.$naplo->cimzett_email.'"');
+            $user = $db->loadObject();
+        }        
+        if ($user) {
+          // van már rekord a user_profiles táblában?
+          $db->setQuery('select * from #__user_profiles where user_id="'.$user->id.'" and profile_key="profile.noNewsLetter"');
+          $res = $db->loadObject();
+          if ($res) {
+              // van, update
+              $db->setQuery('update #__user_profiles
+              set profile_value="1" 
+              where user_id="'.$user->id.'" and profile_key="profile.noNewsLetter"');
+          } else {
+              // nincs, insert 
+              $db->setQuery('insert into #__user_profiles 
+              (user_id, profile_key, profile_value)
+              value 
+              ("'.$user->id.'","profile.noNewLetter","1")');
+          }
+          // végrehajtás
+          if (!$db->query()) {
+            echo '<p>Error in unsub process '.$db->getErrorMsg().'</p>';  
+          } else {
+            echo '<p>Kedves '.$user->name.' '.$user->email.' !</p>'; 
+            echo '<p>Sajnáljuk, hogy leiratkoztál a hírlevélről, reméljük ennek ellenére aktív látogatója maradsz oldalunknak.</p>';
+            echo '<br /><br /><br /><br /><br /><br /><br />';
+          }  
+        } else {
+             echo '<p>Error in process (unsub user not found)</p>';
+        }
+    }    
 }// class
   
 ?>

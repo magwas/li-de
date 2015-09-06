@@ -68,9 +68,7 @@ echo '
       </a>  
     </th>
     <th rowspan="2" class="'.thClass(8).'">
-      <a href="'.$this->reorderLink.'&order=8">
   		'.JText::_('SZAVAZTAL').' 
-      </a>  
     </th>
     
   </tr>

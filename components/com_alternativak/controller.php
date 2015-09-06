@@ -146,6 +146,7 @@ class AlternativakController extends JControllerLegacy {
     $pagination = null;
     $user = JFactory::getUser();
     $db = JFactory::getDBO();
+
     // hozzáférés ellenörzés
     if ($this->temakorokHelper->isAdmin($user) == false) {
       if ((($this->temakor->lathatosag == 1) & ($user->id == 0)) |
@@ -187,6 +188,11 @@ class AlternativakController extends JControllerLegacy {
     JRequest::setVar('szavazas',$this->szavazas_id);
     // adattábla tartalom elérése és átadása a view -nek
     $items = $this->model->getItems();
+	$db->setQuery('select sum(igen) igen, sum(nem) nem
+	from #__szavazasok_in
+	where szavazas_id = '.$db->quote($this->szavazas_id));
+	$igenNem = $db->loadObject();
+	
     // user szavazott?
     $db->setQuery('select * from #__szavazok where szavazas_id="'.$this->szavazas->id.'" and user_id="'.$user->id.'"');
     $szavazo = $db->loadObject();
@@ -195,6 +201,8 @@ class AlternativakController extends JControllerLegacy {
     if ($this->model->getError() != '')
       $this->view->Msg = $this->model->getError();
     $this->view->set('Items',$items);
+	$this->view->set('igen',$igenNem->igen);
+	$this->view->set('nem',$igenNem->nem);
     $this->view->set('Temakor',$this->temakor);
     $this->view->set('Szulok',$this->temakorokHelper->getSzulok());
     $this->view->set('Szavazas',$this->szavazas);
@@ -814,6 +822,102 @@ class AlternativakController extends JControllerLegacy {
     $this->setMessage(JText::_('SZAVAZAS_VAGOLAPRA_MASOLVA'));
     $this->redirect();
   }
+  
+  /**
+    * user a szavazásra javaslom ikonra kattintott
+	* @JRequest integer szavazas
+	* @JRequest integer temakor
+	* @returb void
+	*/
+  public function igenclick() {
+	  $user = JFactory::getUser();
+	  $db = JFactory::getDBO();
+	  $szavazas_id = JRequest::getVar('szavazas');
+	  $temakor_id = JRequest::getVar('temakor');
+      $db->setQuery('select * from #__szavazasok where id='.$db->quote($szavazas_id));
+	  $szavazas = $db->loadObject();	
+      $db->setQuery('select * from #__temakorok where id='.$db->quote($temakor_id));
+	  $this->temakor = $db->loadObject();	
+	
+    // hozzáférés ellenörzés
+    if ($this->temakorokHelper->isAdmin($user) == false) {
+      if ((($this->temakor->lathatosag == 1) & ($user->id == 0)) |
+          (($this->temakor->lathatosag == 2) & ($this->temakorokHelper->userTag($this->temakor->id,$user) == false))
+         ) {  
+        // Redirect to login
+        $this->temakorokHelper->getLogin(JText::_('TEMAKOR_NEKED_NEM_ELERHETO'));
+      }
+    }
+
+ 	  if ($user->id > 0) {
+        $db->setQuery('select * from #__szavazasok where id='.$db->quote($szavazas_id));
+		$szavazas = $db->loadObject();	
+		if ($szavazas->vita1 == 1) {
+			$db->setQuery('select * from #__szavazasok_in where szavazas_id='.$db->quote($szavazas_id).' and user_id='.$user->id);
+			$res = $db->loadObject();
+			if ($res) {
+			  if ($res->igen != 1) {	
+  			    $db->setQuery('update #__szavazasok_in 
+			    set igen = igen + 1, nem = nem -1
+			    where szavazas_id='.$db->quote($szavazas_id).' and user_id='.$user->id);
+			    if ($db->query() == false) $db->sderr();
+			  }	
+			} else {
+			  $db->setQuery('insert into #__szavazasok_in
+			  values ('.$szavazas_id.','.$user->id.',1,0)');	
+ 		      if ($db->query() == false) $db->sderr();
+			}
+		}	
+	  }
+	  $this->browse();
+  }
+  
+  /**
+    * user a szavazásra javaslom ikonra kattintott
+	* @JRequest integer szavazas
+	* @JRequest integer temakor
+	* @returb void
+	*/
+  public function nemclick() {
+	  $user = JFactory::getUser();
+	  $db = JFactory::getDBO();
+	  $szavazas_id = JRequest::getVar('szavazas');
+	  $temakor_id = JRequest::getVar('temakor');
+      $db->setQuery('select * from #__szavazasok where id='.$db->quote($szavazas_id));
+	  $szavazas = $db->loadObject();	
+      $db->setQuery('select * from #__temakorok where id='.$db->quote($temakor_id));
+	  $this->temakor = $db->loadObject();	
+
+    // hozzáférés ellenörzés
+    if ($this->temakorokHelper->isAdmin($user) == false) {
+      if ((($this->temakor->lathatosag == 1) & ($user->id == 0)) |
+          (($this->temakor->lathatosag == 2) & ($this->temakorokHelper->userTag($this->temakor->id,$user) == false))
+         ) {  
+        // Redirect to login
+        $this->temakorokHelper->getLogin(JText::_('TEMAKOR_NEKED_NEM_ELERHETO'));
+      }
+    }
+	  
+	  if ($user->id > 0) {
+		if ($szavazas->vita1 == 1) {
+			$db->setQuery('select * from #__szavazasok_in where szavazas_id='.$db->quote($szavazas_id).' and user_id='.$user->id);
+			$res = $db->loadObject();
+			if ($res) {
+			  if ($res->nem != 1) {	
+    			$db->setQuery('update #__szavazasok_in 
+	   		    set igen = igen - 1, nem = nem + 1
+			    where szavazas_id='.$db->quote($szavazas_id).' and user_id='.$user->id);
+			    if ($db->query() == false) $db->sderr();
+			  }	
+			} else {
+			  $db->setQuery('insert into #__szavazasok_in
+			  values ('.$szavazas_id.','.$user->id.',0,1)');	
+			  if ($db->query() == false) $db->sderr();
+			}
+		}	
+	  }
+	  $this->browse();
+  } 
 }// class
   
 ?>

@@ -1,5 +1,7 @@
 <?php
 
+// Ha Jrequest temakor adott akkor ennek a témakörne a szavazásait listázza,
+// ha nem adott akkor az összes "aktiv" (nem lezárt) szavazást
 
 jimport('joomla.application.component.modellist');
 jimport('joomla.application.component.helper');
@@ -35,42 +37,47 @@ class SzavazasokModelSzavazasoklist extends JModelList
 	 * @return	object	A JDatabaseQuery object to retrieve the data set.
 	 */
 	protected function getListQuery()	{
-    $w = explode('|',urldecode(JRequest::getVar('filterStr','')));
-    $user = JFactory::getUser();
-    $filterStr = $w[0];
-    $filterAktiv = $w[1];
-    if ($filterAktiv==1)
-      $lezartLimit = 1;
-    else
-      $lezartLimit = 99;
+		$w = explode('|',urldecode(JRequest::getVar('filterStr','')));
+		$user = JFactory::getUser();
+		$filterStr = $w[0];
+		$filterAktiv = $w[1];
+		if ($filterAktiv==1)
+		  $lezartLimit = 1;
+		else
+		  $lezartLimit = 99;
 		$db		= $this->getDbo();
 		$query	= $db->getQuery(true);			
 		$catid = (int) $this->getState('authorlist.id', 1);		
 		$query = 'select sz.id, sz.megnevezes,
-                   if(sz.vita1>0,"X"," ") vita1,
-                   if(sz.vita2>0,"X"," ") vita2,
-                   if(sz.szavazas>0,"X"," ") szavazas,
-                   if(sz.lezart>0,"X"," ") lezart,
-                   sz.szavazas_vege,
-                   sz.titkos,
-                   szo.user_id,
-                   szo.kepviselo_id
-		         from #__szavazasok as sz 
-             left outer join #__szavazok as szo on szo.user_id = "'.$user->id.'" and szo.szavazas_id = sz.id 
-             ';
-    if ($filterStr=='')
-		   $query .= ' where sz.temakor_id="'.JRequest::getVar('temakor',0).'" and sz.lezart < '.$lezartLimit;
-    else
-		   $query .= ' where sz.temakor_id="'.JRequest::getVar('temakor',0).'" and
-       sz.megnevezes like "%'.$filterStr.'%" and sz.lezart < '.$lezartLimit;
-     
-    if (JRequest::getVar('order')=='')
-      $query .= ' order by 1 ASC, 6 DESC';
-    else if (JRequest::getVar('order','1')=='1')
-      $query .= ' order by '.JRequest::getVar('order','1').' ASC, 6 DESC';
-    else   
-      $query .= ' order by '.JRequest::getVar('order','1').' DESC, 6 DESC';
-    return $query;  
+					   if(sz.vita1>0,"X"," ") vita1,
+					   if(sz.vita2>0,"X"," ") vita2,
+					   if(sz.szavazas>0,"X"," ") szavazas,
+					   if(sz.lezart>0,"X"," ") lezart,
+					   sz.szavazas_vege,
+					   sz.titkos,
+					   szo.user_id,
+					   szo.kepviselo_id
+					 from #__szavazasok as sz 
+				 left outer join #__szavazok as szo on szo.user_id = "'.$user->id.'" and szo.szavazas_id = sz.id 
+		';
+		if (Jrequest::getVar('temakor') > 0)
+		    $query .= ' where sz.temakor_id="'.JRequest::getVar('temakor',0).'"';
+		else
+			$query .= ' where sz.temakor_id > 0 and sz.lezart=0 ';
+		if ($filterStr=='')
+			$query .= ' and sz.lezart < '.$lezartLimit;
+		else
+			$query .= ' and  sz.megnevezes like "%'.$filterStr.'%" and sz.lezart < '.$lezartLimit;
+		if (JRequest::getVar('order')=='')
+		  $query .= ' order by 1 DESC';
+		else if (JRequest::getVar('order','1')=='1')
+		  $query .= ' order by '.JRequest::getVar('order','1');
+		else   
+		  $query .= ' order by '.JRequest::getVar('order','1');
+	  
+	    //DBG echo $query;
+	  
+		return $query;  
 	}
   /**
    * get altémák
@@ -83,6 +90,9 @@ class SzavazasokModelSzavazasoklist extends JModelList
              WHERE t.szulo = "'.JRequest::getVar('temakor',0).'"';
     $db = JFactory::getDBO();
     $db->setQuery($sql1);
+	
+	//DBG echo $db->getQuery();
+	
     return $db->loadObjectList();
   }
 }

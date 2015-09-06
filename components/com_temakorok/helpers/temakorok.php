@@ -9,6 +9,9 @@
 
 // no direct access
 defined('_JEXEC') or die;
+
+define ('TEMAKOR_TREE_LIMIT',10);
+
 class TemakorokHelper {
   /** getConfig
    *  @return object $config
@@ -33,7 +36,9 @@ class TemakorokHelper {
       $result = JSON_decode('{
       "temakor_felvivok":1,
       "tobbszintu_atruhazas":1,
-      "atruhazas_lefele_titkos":0
+      "atruhazas_lefele_titkos":0,
+	  "kepviselet_engedelyezett":1,
+	  "temakor_tagsag_csakadmin":0
       }');
     }
     return $result;
@@ -82,10 +87,13 @@ class TemakorokHelper {
       } else {
         $res = array();
       }
+	  $i = 0;
       while ((count($res)==0) & 
              ($temakor_id > 0) &
              ($user->id > 0) &
-             ($orokolt)) {
+             ($orokolt) &
+			 ($i < TEMAKOR_TREE_LIMIT)
+			 ) {
         // nézzük meg a felsőbb szintek témaköreinek tagja-e?
         // ha igen, akkor itt is  tagnak tekintjük
         $db->setQuery('select t.*,te.szulo 
@@ -96,6 +104,7 @@ class TemakorokHelper {
           $temakor_id = $res->szulo;
         else
           $temakor_id = 0;  
+	    $i++;
       }
       return (count($res)>0);
   } 
@@ -145,18 +154,35 @@ class TemakorokHelper {
    */     
   public function setSzavazasAllapot() {
     $db = JFactory::getDBO();
+
+	/* szavazásra nem javasoltaknál határidő csusztatás */
+    $db->setQuery('update #__szavazasok sz, ekh_szavazasok_igennem w
+    set  vita1_vege = adddate(vita1_vege, 10),
+         vita2_vege = adddate(vita2_vege, 10),
+         szavazas_vege = adddate(szavazas_vege, 10) 	
+    where  w.szavazas_id = sz.id and 
+	  sz.vita1=1 and sz.vita1_vege < CURDATE() and w.nem > w.igen');
+    if ($db->query()==false) {
+      echo '<div class="errorMsg">'.$db->getErrorMsg().'</div>';
+    }
+	
+	/* vita1 vége */
     $db->setQuery('update #__szavazasok
     set vita1=0,vita2=1 
     where vita1=1 and vita1_vege < CURDATE()');
     if ($db->query()==false) {
       echo '<div class="errorMsg">'.$db->getErrorMsg().'</div>';
     }
+	
+	/* vita2 vége */
     $db->setQuery('update #__szavazasok
     set vita2=0,szavazas=1 
     where vita2=1 and vita2_vege < CURDATE()');
     if ($db->query()==false) {
       echo '<div class="errorMsg">'.$db->getErrorMsg().'</div>';
     }
+	
+	/* szavazas vége */
     $db->setQuery('update #__szavazasok
     set szavazas=0,lezart=1 
     where szavazas=1 and szavazas_vege < CURDATE()');
@@ -334,5 +360,43 @@ inner join #__szavazasok sz on sz.id = w.szavazas_id;
         $app = JFactory::getApplication();
         $app->redirect($loginUrl, $msg);        
     }           
+	/**
+	  * Témakör fa beolvasása
+	  * @param integer szülő témakör
+	  * @param string 'options' | 'ul'
+	  * @return string htm
+	*/  
+	public function getTemakorTree($szulo=0,$mod='options',$level=0,$selected=0) {
+		$result = '';
+		$levelStr = '';
+		for ($i=0; $i<$level; $i++) $levelStr .= '--'; 
+		$db = JFactory::getDBO();
+		$db->setQuery('select id, megnevezes, szulo
+		from #__temakorok
+		where szulo = '.$szulo.'
+		order by megnevezes'
+		);
+		$res = $db->loadObjectList();
+		if ($res) {
+			foreach ($res as $res1) {
+				if ($res1->id == $selected)
+					 $selectedAttr = ' selected="selected"';
+				 else
+					 $selectedAttr = '';
+				if ($mod == 'options')
+				  $result .= '<option value="'.$res1->id.'"'.$selectedAttr.'>'.
+			      $levelStr.
+			      $res1->megnevezes.'</option>'."\n";
+				else {
+				  $result .= '<li>'.
+			      $levelStr.
+			      $res1->megnevezes.'</li>'."\n";
+				}  
+				if ($level < TEMAKOR_TREE_LIMIT)
+				   $result .= $this->getTemakorTree($res1->id, $mod, (1+$level),$selected);
+			}
+		}
+		return $result;
+	}
 }   
 ?>

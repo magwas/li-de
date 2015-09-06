@@ -58,3 +58,4 @@
 2015-01-27T08:15:42+00:00	INFO ::1	gmailfailure	Sikertelen hitelesítés: Eredmény ismeretlen. A hozzáférés elutasítva.
 2015-01-27T08:16:00+00:00	INFO ::1	gmailfailure	Sikertelen hitelesítés: Eredmény ismeretlen. A hozzáférés elutasítva.
 2015-05-05T09:57:00+00:00	INFO 192.168.0.12	gmailfailure	Sikertelen hitelesítés: A cURL nem került telepítésre
+2015-07-17T08:26:19+00:00	INFO 192.168.0.12	gmailfailure	Sikertelen hitelesítés: A cURL nem került telepítésre

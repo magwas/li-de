@@ -198,7 +198,7 @@ else
             <a class="brand pull-left" href="<?php echo $this->baseurl; ?>">
 						<?php echo $logo;?> <?php if ($this->params->get('sitedescription')) { echo '<div class="site-description">'. htmlspecialchars($this->params->get('sitedescription')) .'</div>'; } ?>
 					  </a>
-            <div style="clear:both"><small>Nem az a szabadság hogy négy évente<br />megválasztjuk azt, hogy ki uralkodijon rajtunk.</small></div>
+            <div style="clear:both"><small>Nem az a szabadság, hogy négyévente<br />megválasztjuk azt, hogy ki uralkodjon rajtunk.</small></div>
           </div>  
           <div id="slideshow">
 						<jdoc:include type="modules" name="position-2" style="none" />
@@ -229,7 +229,7 @@ else
 					<jdoc:include type="modules" name="position-3" style="xhtml" />
 					<jdoc:include type="message" />
 					<jdoc:include type="component" />
-					<jdoc:include type="modules" name="position-2" style="none" />
+					<jdoc:include type="modules" name="position-5" style="xhtml" />
 					<!-- End Content -->
 
           <!-- megosztás gombok -->
@@ -259,6 +259,7 @@ else
 				</div>
 				<?php endif; ?>
 			</div>
+			<jdoc:include type="modules" name="position-4" style="xhtml" />
 		</div>
 	</div>
 

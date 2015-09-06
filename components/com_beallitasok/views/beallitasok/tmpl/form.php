@@ -25,7 +25,9 @@ Default:
 {
  "temakor_felvivok":1, // 1-regisztráltak, 2- adminok
  "tobbszintu_atruhazas":0,  // 0-nem, 1-igen
- "atruhazas_lefele_titkos":0  // 0-nem,  1-igen
+ "atruhazas_lefele_titkos":0,  // 0-nem,  1-igen
+ "kepviselet_engedelyezett":1, // 0-nem,  1-igen
+ "temakor_tagsag_csakadmin":0  // 0-nem,  1-igen
 }
 </code>
 <script type="text/javascript">

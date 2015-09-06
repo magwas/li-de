@@ -51,17 +51,13 @@ class SzavazasokModelSzavaztam extends JModelList {
 		$query = '
 /* szavazások ahol szavaztam */
 /* ========================================== */
-SELECT sz.*
+SELECT sz.megnevezes, sz.vita1, sz.vita2, sz.szavazas, sz.lezart, sz.szavazas_vege, sz.titkos, szk.user_id,
+  sz.id, sz.temakor_id
 FROM #__szavazasok sz
 INNER join #__temakorok te ON te.id = sz.temakor_id
 LEFT OUTER JOIN #__szavazok szk ON szk.szavazas_id = sz.id AND szk.user_id = '.$user->id.'
 WHERE szk.user_id="'.$user->id.'" '.$filterStr;
-    if (JRequest::getVar('order')=='')
-      $query .= ' order by 1 ASC, 6 DESC';
-    else if (JRequest::getVar('order','1')=='1')
-      $query .= ' order by '.JRequest::getVar('order','1').' ASC, 6 DESC';
-    else   
-      $query .= ' order by '.JRequest::getVar('order','1').' DESC, 6 DESC';
+    $query .= ' order by '.JRequest::getVar('order','6');
       
     //DBG echo '<hr>'.$query.'<hr>';  
       
@@ -74,6 +70,7 @@ WHERE szk.user_id="'.$user->id.'" '.$filterStr;
   public function getTotal($filterStr='') {
      $result = 0;
      $db = JFactory::getDBO();
+     $user = JFactory::getUser();
      $db->setQuery('
     /* szavazások ahol szavaztam */
 /* ==================================== */
@@ -82,11 +79,11 @@ SELECT sz.id
 FROM #__szavazasok sz
 INNER join #__temakorok te ON te.id = sz.temakor_id
 LEFT OUTER JOIN #__szavazok szk ON szk.szavazas_id = sz.id AND szk.user_id = '.$user->id.'
-WHERE sz.user_id = "'.$user->id.'" '.$filterStr);
+WHERE szk.user_id = "'.$user->id.'" '.$filterStr);
      
      //DBG echo '<hr>'.$db->getQuery().'<hr>';
      
-     $res = $db->loadObejctList();
+     $res = $db->loadObjectList();
      $result = count($res);
      return $result;
   }

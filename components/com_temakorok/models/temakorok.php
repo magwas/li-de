@@ -149,7 +149,7 @@ class TemakorokModelTemakorok  extends JModelItem {
            
            // tárolás a beallitasok táblába
            $db->setQuery('insert into #__beallitasok
-           values ((10+'.$table->id.'),"'.$item->json.'")');
+           values ((10+'.$table->id.'),'.$db->quote($item->json).')');
            $db->query();
            
            // usergroup létrehozása
@@ -195,7 +195,7 @@ class TemakorokModelTemakorok  extends JModelItem {
            $db->setQuery('delete from #__beallitasok where id=(10+'.$table->id.')');
            $db->query();
            $db->setQuery('insert into #__beallitasok
-           values ((10+'.$table->id.'),"'.$item->json.'")');
+           values ((10+'.$table->id.'),'.$db->quote($item->json).')');
            $db->query();
 
            // usergroup modositása
@@ -236,7 +236,7 @@ class TemakorokModelTemakorok  extends JModelItem {
          $this->storeArtycle($table->id, $item);
 
          // kunena fórum kategória létrehozása vagy módosítása
-         $this->storeKunenaCategory($table->id, $item);
+         //2015.05.17 nem generálunk kunena kategoriákat $this->storeKunenaCategory($table->id, $item);
 
          // jevents kategória létrehozása vagy módosítása
          $this->storeJeventsCategory($table->id, $item);
@@ -479,6 +479,7 @@ class TemakorokModelTemakorok  extends JModelItem {
    /**
     * a $item -ben adott temakor rekordhoz kapcsolodó cikk
     * létrehozása vagy modositása
+    * @param integer az új rekord id -je
     * @param mysql record object  $item 
     * @return boolean     
   */            
@@ -491,7 +492,7 @@ class TemakorokModelTemakorok  extends JModelItem {
      if ($res) {
            // kapcsolodó cikk rekord update
            $db->setQuery('update #__content
-           set title='.$db->quote($item->megnevezes).',
+           set title='.$db->quote($item->megnevezes.' (kommentek)').',
                introtext = '.$db->quote($item->leiras.$link).'
            where alias="t'.$item->id.'"    
            ');
@@ -500,7 +501,7 @@ class TemakorokModelTemakorok  extends JModelItem {
      } else {
            $artycleData = array(
             'catid' => 10, 
-            'title' => $item->megnevezes,
+            'title' => $item->megnevezes.' (kommentek)',
             'introtext' => $item->leiras.$link,
             'fulltext' => '',
             'alias' => 't'.$newId,

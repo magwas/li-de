@@ -61,7 +61,11 @@ class Condorcet {
       }
 
       private function getCandidates() {
-          $candidates_sql = "select megnevezes,id from #__alternativak where temakor_id=".$this->organization." and szavazas_id=".$this->poll;
+          $candidates_sql = "select megnevezes,id 
+		  from #__alternativak 
+		  where /* temakor_id=".$this->organization." and */ szavazas_id=".$this->poll;
+		  
+		  
           $db = $this->db;
           $db->setQuery($candidates_sql);
           $this->candidates=array();
@@ -151,17 +155,17 @@ class Condorcet {
                             #__szavazatok b, 
                             #__alternativak c1, 
                             #__alternativak c2  
-                       where a.temakor_id=".$this->organization." and 
+                       where /* a.temakor_id=".$this->organization." and */ 
                              a.szavazas_id=".$this->poll." and 
-                             b.temakor_id=a.temakor_id and 
+                             /* b.temakor_id=a.temakor_id and */
                              b.szavazas_id=a.szavazas_id and 
                              a.szavazo_id=b.szavazo_id and 
                              a.alternativa_id=c1.id and 
                              b.alternativa_id=c2.id and 
                              a.pozicio < b.pozicio and 
                              c1.id != c2.id and 
-                             c1.temakor_id=a.temakor_id and 
-                             c2.temakor_id=a.temakor_id and 
+                             /* c1.temakor_id=a.temakor_id and  */
+                             /* c2.temakor_id=a.temakor_id and */
                              c1.szavazas_id=a.szavazas_id and 
                              c2.szavazas_id=a.szavazas_id 
                        group by c1.id, c2.id";

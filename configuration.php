@@ -19,7 +19,7 @@ class JConfig {
 	public $debug = '0';
 	public $debug_lang = '0';
 	public $display_offline_message = '1';
-	public $editor = 'jce';
+	public $editor = 'tinymce';
 	public $error_reporting = 'simple';
 	public $feed_email = 'author';
 	public $feed_limit = '10';
@@ -32,7 +32,7 @@ class JConfig {
 	public $ftp_root = '';
 	public $ftp_user = '';
 	public $gzip = '0';
-	public $helpurl = 'http://help.joomla.org/proxy/index.php?option=com_help&keyref=Help{major}{minor}:{keyref}';
+	public $helpurl = 'https://help.joomla.org/proxy/index.php?option=com_help&keyref=Help{major}{minor}:{keyref}';
 	public $host = 'localhost';
 	public $lifetime = '120';
 	public $list_limit = '20';
@@ -85,4 +85,10 @@ class JConfig {
 	public $session_memcache_server_port = '11211';
 	public $session_memcached_server_host = 'localhost';
 	public $session_memcached_server_port = '11211';
+	public $redis_persist = '1';
+	public $redis_server_host = 'localhost';
+	public $redis_server_port = '6379';
+	public $redis_server_auth = '';
+	public $redis_server_db = '0';
+	public $massmailoff = '0';
 }

@@ -29,27 +29,32 @@ function thClass($col) {
 echo '
 <div class="componentheading'.$this->escape($this->params->get('pageclass_sfx')).'">
 <h3>'.$this->Temakor->megnevezes.'
-  <a href="javascript:infoClick()" class="akcioIkon btnInfo" title="Infó">&nbsp;</a>';
+  <a href="javascript:infoClick()" class="akcioIkon btnInfo" title="Infó" id="iconInfo" style="display:none">&nbsp;</a>';
   if ($this->Akciok['temakoredit'] != '') {  
       echo '<a href="'.$this->Akciok['temakoredit'].'" class="akcioIkon beallitasokGomb" title="'.JText::_('TEMAKORBEALLITASOK').'">&nbsp;</a>
       ';
   }
-  if ($this->Akciok['tagJelentkezes'] != '') {
+  $config = $this->temakorokHelper->getConfig($this->Temakor->id);
+  if ($config->temakor_tagsag_csakadmin != 1) {
+    if (($this->Akciok['tagJelentkezes'] != '') & ($this->Temakor->id > 0)) {
       echo '<a href="'.$this->Akciok['tagJelentkezes'].'" class="akcioIkon tagJelentkezoGomb" title="'.JText::_('TAGJELENTKEZES').'">&nbsp;</a>
       ';
+    }
   }
   if ($this->Temakor->allapot == 1) echo '('.JText::_('CLOSED').')';
-echo '  
-</h3>
-<div id="temakorInfo" style="display:none;">
-  <p style="text-align:right">
-    <button type="button" onclick="infoClose()"><b>X</b></button>
-  </p>
-  '.$this->Temakor->leiras.'
-</div>
-</div>
-<div class="kepviselo">
-';
+  if ($this->Temakor->leiras != '')
+		echo '  
+		</h3>
+		<div id="temakorInfo" style="display:block;">
+		  <p style="text-align:right">
+			<button type="button" onclick="infoClose()"><b>X</b></button>
+		  </p>
+		  '.$this->Temakor->leiras.'
+		</div>
+		</div>
+		<div class="kepviselo">
+		';
+  if ($config->kepviselet_engedelyezett != 0) {		
       if ($this->AltKepviselo['kepviselojeLink'] != '') {
         echo '<a class="btnKepviselo" href="'.$this->AltKepviselo['kepviselojeLink'].'">
              '.$this->AltKepviselo['image'].'
@@ -79,24 +84,12 @@ echo '
              </a>
              ';
       };
+  }	  
 echo '
 </div>
 <div class="clr"></div>
 ';
-if (count($this->AlTemak) > 0) {
-  echo '<div class="altemak">
-  <h3>'.JText::_('ALTEMAK').'</h3>
-  <ul>
-  ';
-  foreach ($this->AlTemak as $alTema) {
-    $alTemaLink = JURI::base().'/index.php?option=com_szavazasok&view=szavazasoklist&temakor='.$alTema->id;
-    echo '<li><a href="'.$alTemaLink.'">'.$alTema->megnevezes.'</a></li>
-    ';
-  }
-  echo '</ul>
-  </div>
-  ';
-}
+
 echo '<div class="akciogombok">
 ';
     
@@ -142,44 +135,47 @@ echo '
   <tr>
     <th rowspan="2" class="'.thClass(1).'">
       <a href="'.$this->reorderLink.'&order=1">
+  		'.JText::_('ID').'
+      </a>  
+    </th>
+    <th rowspan="2" class="'.thClass(2).'">
+      <a href="'.$this->reorderLink.'&order=2">
   		'.JText::_('SZAVAZASMEGNEVEZES').'
       </a>  
     </th>
     <th colspan="4">'.JText::_('SZAVAZASALLAPOT').'</th>
-    <th rowspan="2" class="'.thClass(6).'">
-      <a href="'.$this->reorderLink.'&order=6">
-  		'.JText::_('SZAVAZAS_VEGE').' 
-      </a>  
-    </th>
     <th rowspan="2" class="'.thClass(7).'">
       <a href="'.$this->reorderLink.'&order=7">
-  		'.JText::_('TITKOSSAG').' 
+  		'.JText::_('SZAVAZAS_VEGE').' 
       </a>  
     </th>
     <th rowspan="2" class="'.thClass(8).'">
       <a href="'.$this->reorderLink.'&order=8">
-  		'.JText::_('SZAVAZTAL').' 
+  		'.JText::_('TITKOSSAG').' 
       </a>  
+    </th>
+    <th rowspan="2">
+  		'.JText::_('SZAVAZTAL').' 
     </th>
     
   </tr>
   <tr>
-    <th class="'.thClass(2).'">
-      <a href="'.$this->reorderLink.'&order=2">
+    <th class="'.thClass(3).'">
+      <a href="'.$this->reorderLink.'&order=3">
   		'.JText::_('SZAVAZASVITA1').' 
       </a>  
     </th>
-    <th class="'.thClass(3).'">
-      <a href="'.$this->reorderLink.'&order=3">
-  		'.JText::_('SZAVAZASVITA2').' 
-    </th>
     <th class="'.thClass(4).'">
       <a href="'.$this->reorderLink.'&order=4">
-  		'.JText::_('SZAVAZAS').' 
-      </a>  
+  		'.JText::_('SZAVAZASVITA2').' 
     </th>
     <th class="'.thClass(5).'">
       <a href="'.$this->reorderLink.'&order=5">
+  		'.JText::_('SZAVAZAS').' 
+      </a>  
+    </th>
+    <th class="'.thClass(6).'">
+      <a href="'.$this->reorderLink.'&order=6">
   		'.JText::_('LEZART').' 
       </a>  
     </th>
@@ -188,6 +184,21 @@ echo '
   </thead>
   <tbody>
   ';
+
+	if (count($this->AlTemak) > 0) {
+	  echo '<tr><td colspan="9"><div class="altemak">
+	  <ul>
+	  ';
+	  foreach ($this->AlTemak as $alTema) {
+		$alTemaLink = JURI::base().'/index.php?option=com_szavazasok&view=szavazasoklist&temakor='.$alTema->id;
+		echo '<li><a href="'.$alTemaLink.'">'.$alTema->megnevezes.' </a></li>
+		';
+	  }
+	  echo '</ul>
+	  </div></td></tr>
+	  ';
+	}
+	
   $rowClass = 'row0';
   foreach ($this->Items as $item) { 
       if (($item->user_id  == '') | ($item->kepviselo_id > 0))
@@ -202,7 +213,9 @@ echo '
       if ($item->titkos==0) $item->titkos = JText::_('NYILT');
       if ($item->titkos==1) $item->titkos = JText::_('TITKOS');
       if ($item->titkos==2) $item->titkos = JText::_('SZIGORUANTITKOS');
-     	echo '<td><a href="'.$link.'">'.$item->megnevezes.'</a></td>
+     	echo '
+        <td align="right">'.$item->id.'</td>
+        <td><a href="'.$link.'">'.$item->megnevezes.'</a></td>
         <td align="center">'.$item->vita1.'</td>
         <td align="center">'.$item->vita2.'</td>
         <td align="center">'.$item->szavazas.'</td>
@@ -224,9 +237,11 @@ echo '
 <script type="text/javascript">
   function infoClick() {
     document.getElementById("temakorInfo").style.display="block";
+    document.getElementById("iconInfo").style.display="none";
   }
   function infoClose() {
     document.getElementById("temakorInfo").style.display="none";
+    document.getElementById("iconInfo").style.display="inline-block";
   }
 </script>
 ';

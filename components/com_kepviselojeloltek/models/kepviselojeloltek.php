@@ -128,7 +128,7 @@ class KepviselojeloltekModelKepviselojeloltek  extends JModelItem {
     // kapcsolodó cikk létrehozása vagy módosítása
     $this->storeArtycle($item->user_id, $item);
     // kunena fórum kategória létrehozása vagy módosítása
-    $this->storeKunenaCategory($item->user_id, $item);
+    // nem generálunk kunen afórum kategoriákat $this->storeKunenaCategory($item->user_id, $item);
     return $result;
   }
    /**
@@ -217,7 +217,7 @@ class KepviselojeloltekModelKepviselojeloltek  extends JModelItem {
      if ($res) {
            // kapcsolodó cikk rekord update
            $db->setQuery('update #__content
-           set title="'.$db->quote($user->name).'",
+           set title="'.$db->quote($user->name.' (kommentek)').'",
                introtext = ""
            where alias="k'.$item->id.'"    
            ');
@@ -226,7 +226,7 @@ class KepviselojeloltekModelKepviselojeloltek  extends JModelItem {
      } else {
            $artycleData = array(
             'catid' => 10, 
-            'title' => $item->name,
+            'title' => $item->name.' (kommentek)',
             'introtext' => '',
             'fulltext' => '',
             'alias' => 'k'.$newId,

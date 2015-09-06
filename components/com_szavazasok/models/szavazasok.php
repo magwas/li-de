@@ -49,6 +49,38 @@ class SzavazasokModelSzavazasok  extends JModelItem {
 		$id	.= ':'.$this->getState('szavazasok.id');
 		return parent::getStoreId($id);
 	}
+
+	/**
+	  * értesitő email új szavazásról
+	  * @param string cimzett email
+	  * @param JTable az új szavazás rekordot tartalmazó JTable
+	  * @return void
+	  */
+	protected function ujSzavazasEmail($email, $table) {
+		$mailbody = '<h2>Új szavazás indult a li-de rendszerben<h2>
+		<h3>Adminoknak szoló értesités</h3>
+		<p><a href="'.JURI::base().'index.php'.
+		'?option=com_alternativak&task=browse'.
+		'&szavazas='.$table->id.
+		'&temakor='.$table->temakor_id.'">'.$table->megnevezes.'</a></p>
+		<div>'.$table->leiras.'</div>
+		<br /><br />
+		<p><a href="'.JURI::base().'index.php?option=com_alternativak&task=browse'.
+		'&szavazas='.$table->id.
+		'&temakor='.$table->temakor_id.'">Látogass el a szavazás oldalára!</a></p>
+		<br /><br />
+		';
+		$subject = 'Uj szavazas a li-de rendszerben';
+		$mail = JFactory::getmailer();
+ 	    $mail->clearAllRecipients();
+	    $mail->addRecipient($email);
+	    $mail->isHTML(true);
+	    $mail->setBody($mailbody);
+	    $mail->setSubject($subject);
+	    $mail->setSender('li-de@adatmagus.hu');
+	    $mail->send();
+		return true;
+	}
 	
 	/**
 	 * Method to get an ojbect.
@@ -266,6 +298,17 @@ class SzavazasokModelSzavazasok  extends JModelItem {
            }
          }
        }
+	   
+	   // email a joomla adminoknak ($table->id és a további mezők használhatóak)
+	   if ($ujfelvitel) {
+		   $db->setQuery('select distinct u.email 
+		   from #__users u,#__user_usergroup_map m
+		   where m.user_id = u.id and m.group_id = 8');
+		   $adminok = $db->loadObjectList();
+		   foreach ($adminok as $admin) {
+			  $this->ujSzavazasEmail($admin->email,$table);
+		   }
+	   }
 
        // jdownloader kategoria létrehozása vagy módosítása
        $this->storeJdownloadsCategory($table->id, $item);
@@ -274,8 +317,11 @@ class SzavazasokModelSzavazasok  extends JModelItem {
        $this->storeArtycle($table->id, $item);
 
        // kunena fórum kategória létrehozása vagy módosítása
-       $this->storeKunenaCategory($table->id, $item);
+       // 2015.05.17 nem generálunk kunena kategoriákat $this->storeKunenaCategory($table->id, $item);
        
+	   // icAgenda események létrehozása, karbantartása
+	   $this->storeEvent($table->id, $item);
+	   
      } else {
        $result = false;
      }
@@ -468,7 +514,7 @@ class SzavazasokModelSzavazasok  extends JModelItem {
      if ($res) {
            // kapcsolodó cikk rekord update
            $db->setQuery('update #__content
-           set title='.$db->quote($item->megnevezes).',
+           set title='.$db->quote($item->megnevezes.' (kommentek)').',
                introtext = '.$db->quote($item->leiras.$link).'
            where alias="sz'.$item->id.'"    
            ');
@@ -480,7 +526,7 @@ class SzavazasokModelSzavazasok  extends JModelItem {
      } else {
            $artycleData = array(
             'catid' => 10, 
-            'title' => $item->megnevezes,
+            'title' => $item->megnevezes.' (kommentek)',
             'introtext' => $item->leiras.$link,
             'fulltext' => '',
             'alias' => 'sz'.$newId,
@@ -576,6 +622,83 @@ class SzavazasokModelSzavazasok  extends JModelItem {
      
      return $result;
    }
-   
+   /**
+     * Új icagenda esemény létrehozása a szavazásokhoz
+   */
+   protected function createEvent($db, $user, $id, $datum, $szoveg) {
+	   $param = '{"statutReg":"1","accessReg":"","typeReg":"1","maxReg":"","maxRlistGlobal":"","maxRlist":"","RegButtonText":"","RegButtonLink":"","RegButtonLink_Article":"","RegButtonLink_Url":"","RegButtonTarget":"0","atevent":""}';
+	   $db->setQuery('INSERT INTO #__icagenda_events 
+		VALUES
+		(0, 
+		0, 
+		0, 
+		1, 
+		0, 
+		0, 
+		0, 
+		"0000-00-00", 
+		"'.$szoveg.'", 
+		"sz-'.$id.'-'.$szoveg.'", 
+		1, 
+		"*", 
+		"'.date('Y-m-d H:i:s').'", 
+		'.$user->id.', 
+		"'.$user->username.'", 
+		"'.$user->email.'", 
+		0, 
+		"", 
+		"'.$user->username.'", 
+		1, 
+		"", 
+		"", 
+		1, 
+		"", 
+		"", 
+		"'.$datum.' 08:00:00", 
+		"'.$datum.' 09:00:00", 
+		"a:1:{i:0;s:16:\"'.$datum.' 08:00\"}", 
+		"a:1:{i:0;s:16:\"0000-00-00 00:00\"}", 
+		"'.$datum.' 08:00:00", 
+		"", 
+		"", 
+		"", 
+		"", 
+		"", 
+		"", 
+		"", 
+		"", 
+		"", 
+		"", 
+		"0.0000000000000000", 
+		"0.0000000000000000", 
+		"", 
+		"", 
+		"", 
+		'.$db->quote($param).'
+		);
+	   ');
+	   if ($db->query() == false) {
+		   $db->sderr();
+		   return;
+	   }
+   } 
+  
+   /**
+     * icAgenda eseményeklétrehozása, karbantartása
+	 * alias = sz-id-szavazás megnevezése
+   */
+   protected function storeEvent($newId, $item) {
+	   $db = JFactory::getDBO();
+	   $user = JFactory::getUser();
+	   $db->setQuery('delete from #__icagenda_events where alias like "sz-'.$newId.'-%"');
+	   if ($db->query() == false) {
+		   $db->sderr();
+		   return;
+	   }
+	   $this->createEvent($db,$user,$newId,$item->vita1_vege,$item->megnevezes.' vita1 vége');
+	   $this->createEvent($db,$user,$newId,$item->vita2_vege,$item->megnevezes.' vita2 vége');
+	   $this->createEvent($db,$user,$newId,$item->szavazas_vege,$item->megnevezes.' szavazás vége');
+   }
+  
 } // class
 ?>

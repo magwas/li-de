@@ -25,7 +25,7 @@
  foreach ($res as $res1) {
    $email = $res1->cimzett_email;
    $targy = $res1->targy;
-   $szoveg = $res1->szoveg;
+   $szoveg = str_replace('{naplo_id}',$res1->id,$res1->szoveg);
 
    //+ TEST
    //$szoveg = 'TEST li-de.tk hírlevél orig to:'.$email.'<br />'.$szoveg;

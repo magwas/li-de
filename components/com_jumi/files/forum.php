@@ -3,8 +3,7 @@
    behív.  Célja a kunena, jcomment és jdownloader hívó gomb megjelenítése
    a temakor, szavazas, id JRequest paraméterek alapján és
    a $this->temakorGroupId alapján
-   A $temakor adatot sessionban is tárolja, mivel a behivott komponensek nem adják át ezt az adatot
-   a taskjaiknak, és a li-de illesztő patch-eknek erre sokszor szükségük van.
+   szükség esetén kreálja a kategoriákat 
     
 */
 
@@ -67,27 +66,23 @@ $db->setQuery('select id from #__categories where alias="'.$eventsAlias.'"');
 $res = $db->loadObject();
 if ($res) $jeventsCategoryId = $res->id; 
 
-$artycleUrl = JURI::base().'index.php?option=com_content&view=article&id='.$articleId.
-   '&temakor='.$temakor;
-$forumUrl = JURI::base().'index.php?option=com_kunena&view=category&catid='.$kunenaCategoryId.
-   '&temakor='.$temakor;
-$filesUrl = JURI::base().'index.php?option=com_jdownloads&view=category&catid='.$jdownloadCategoryId.
-   '&temakor='.$temakor;
-$eventsUrl = JURI::base().'index.php?option=com_jevents&catids='.$jeventsCategoryId.'&task=month.calendar&Itemid=999'.
-   '&temakor='.$temakor;
+$artycleUrl = JURI::base().'index.php?option=com_content&view=article&id='.$articleId;
+$forumUrl = JURI::base().'index.php?option=com_kunena&view=category&catid='.$kunenaCategoryId;
+$filesUrl = JURI::base().'index.php?option=com_jdownloads&view=category&catid='.$jdownloadCategoryId;
 
-$session = JFactory::getSession();
-$session->set('temakor',$temakor);   
-   
+//$eventsUrl = //JURI::base().'index.php?option=com_jevents&catids='.$jeventsCategoryId.'&task=month.calendar&Itemid=999';
+$eventsUrl = JURI::base().'esemenyek';
+
 if ($articleId != 0)
   echo '<a class="akcioGomb btnForum " href="'.$artycleUrl.'">'.JText::_('COMMENTS').'</a>&nbsp;
   ';
 
+/*
 if ($kunenaCategoryId != 0)
   echo  '<a class="akcioGomb btnForum" href="'.$forumUrl.'">'.JText::_('FORUM').'</a>&nbsp;
   ';
-
-if ($jdownloadCategoryId != 0)
+*/
+  if ($jdownloadCategoryId != 0)
   echo  '<a class="akcioGomb btnFiles" href="'.$filesUrl.'">'.JText::_('FILES').'</a>&nbsp;
   ';
 if ($jeventsCategoryId != 0)

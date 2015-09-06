@@ -60,7 +60,8 @@ class TemakorokController extends JControllerLegacy {
 	$this->view = $this->getView($this->_viewname,$viewType);
 	$this->model = $this->getModel($this->_mainmodel);
     $this->model->set('temakorokHelper',$this->temakorokHelper);
-	$this->view->setModel($this->model,true);		
+	$this->view->setModel($this->model,true);
+    $this->view->set('temakorokHelper',$this->temakorokHelper);
 	JRequest :: setVar('view', $this->_viewname);
     
     // automatikus szavazás állapot változtatás
@@ -312,7 +313,12 @@ class TemakorokController extends JControllerLegacy {
       $this->view->set('Item',$item);
       $this->view->set('Title', JText::_('TEMAKORMODOSITAS'));
       $this->view->set('Szulok', $this->temakorokHelper->getSzulok());
-      
+	  $temakorTree = $this->temakorokHelper->getTemakorTree(0,'options',1,$item->szulo);
+	  if ($item->szulo == 0)
+		  $temakorTree = '<option value="0" selected="selected">'.JText::_('TEMAKOR_TREE_ROOT').'</option>'.$temakorTree;
+	  else
+		  $temakorTree = '<option value="0">'.JText::_('TEMAKOR_TREE_ROOT').'</option>'.$temakorTree;
+      $this->view->set('temakorTree',$temakorTree);
       // akciok definiálása
       $akciok = array();
       $akciok['ok'] = JURI::base().'index.php?option=com_'.$this->NAME.'&view='.$this->NAME.'&task=save';
@@ -384,7 +390,60 @@ class TemakorokController extends JControllerLegacy {
 	JRequest :: checkToken() or jexit('Invalid Token');
     $user = JFactory::getUser();
     $db = JFactory::getDBO();
+    $item = $this->model->bind($_POST);
 
+	// a témakör fa hurkot mindenképpen meg kell akadályozni!
+	$i = 0;
+	$db->setQuery('select szulo from #__temakorok where id='.$db->quote($item->szulo));
+	$res = $db->loadObject();
+	while (($res) & ($i < TEMAKOR_TREE_LIMIT)) {
+		$i++;
+		$db->setQuery('select szulo from #__temakorok where id='.$db->quote($res->szulo));
+		$res = $db->loadObject();
+	}
+	if ($item->id == $item->szulo) $i = TEMAKOR_TREE_LIMIT;
+	if ($i >= TEMAKOR_TREE_LIMIT) {
+		$db->setQuery('select szulo from #__temakorok where id='.$db->quote($item-yid));
+		$res = $db->loadObject();
+		if ($res)
+			$item->szulo = $res->szulo;
+		else
+			$item->szulo = 0;	
+		$this->view->setModel($this->model,true);
+        $this->view->Msg = JText::_('TEMAKOR_TREE_LOOP');
+        $this->view->set('Item',$item);
+        if ($item->id == 0) {
+           $this->view->set('Title', JText::_('UJTEMAKOR'));
+        } else {
+           $this->view->set('Title', JText::_('TEMAKORMODOSITAS'));
+        } 
+		$temakorTree = $this->temakorokHelper->getTemakorTree(0,'options',1,$item->szulo);
+	    if ($item->szulo == 0)
+		  $temakorTree = '<option value="0" selected="selected">'.JText::_('TEMAKOR_TREE_ROOT').'</option>'.$temakorTree;
+	    else
+		  $temakorTree = '<option value="0">'.JText::_('TEMAKOR_TREE_ROOT').'</option>'.$temakorTree;
+		$this->view->set('temakorTree',$temakorTree);	
+        // akciok definiálása
+        $akciok = array();
+        $akciok['ok'] = JURI::base().'index.php?option=com_'.$this->NAME.'&view='.$this->NAME.'&task=save';
+        if (JRequest::getVar('szulo',0) > 0)
+          $akciok['cancel'] = JURI::base().'index.php?option=com_szavazasok&view=szavazasoklist&temakor='.JRequest::getVar('szulo',0);
+        else
+          $akciok['cancel'] = JURI::base().'index.php?option=com_'.$this->NAME.'&view='.$this->NAME.'list';
+        if ($item->id == 0)
+          $akciok['sugo'] = JURI::base().'index.php?option=com_content&view=article'.
+                            '&id='.JText::_('UJTEMAKOR_SUGO').'&Itemid=435&tmpl=component'; 
+        else
+          $akciok['sugo'] = JURI::base().'index.php?option=com_content&view=article'.
+                            '&id='.JText::_('TEMAKORMODOSITAS_SUGO').'&Itemid=435&tmpl=component'; 
+        $this->view->set('Akciok',$akciok);
+      
+        // form megjelenités
+        $this->view->setLayout('form');
+        $this->view->display();
+		return;
+	}
+	
     // kik a témakor felvivők?
     $temakor_felvivo = $this->temakor_felvivo();
 
@@ -394,7 +453,6 @@ class TemakorokController extends JControllerLegacy {
         (($temakor_felvivo == 1) & ($user->id > 0) & (JRequest::getVar('id') == 0)) |
         (($this->temakorokHelper->temakorAdmin(JRequest::getVar('id'),$user)) & (JRequest::getVar('id') > 0))
         ) {
-      $item = $this->model->bind($_POST);
   		if ($this->model->store($item)) {
         if (JRequest::getVar('szulo',0) > 0)
           $link = JURI::base().'index.php?option=com_szavazasok&view=szavazasoklist&temakor='.JRequest::getVar('szulo',0);
@@ -409,7 +467,7 @@ class TemakorokController extends JControllerLegacy {
         $this->setRedirect($link);
         $this->redirect();
       } else {
-    		$this->view->setModel($this->model,true);
+   		$this->view->setModel($this->model,true);
         $this->view->Msg = $this->model->getError();
         $this->view->set('Item',$item);
         if ($item->id == 0) {
@@ -417,6 +475,12 @@ class TemakorokController extends JControllerLegacy {
         } else {
            $this->view->set('Title', JText::_('TEMAKORMODOSITAS'));
         }   
+		$temakorTree = $this->temakorokHelper->getTemakorTree(0,'options',1,$item->szulo);
+	    if ($item->szulo == 0)
+		  $temakorTree = '<option value="0" selected="selected">'.JText::_('TEMAKOR_TREE_ROOT').'</option>'.$temakorTree;
+	    else
+		  $temakorTree = '<option value="0">'.JText::_('TEMAKOR_TREE_ROOT').'</option>'.$temakorTree;
+		$this->view->set('temakorTree',$temakorTree);	
         // akciok definiálása
         $akciok = array();
         $akciok['ok'] = JURI::base().'index.php?option=com_'.$this->NAME.'&view='.$this->NAME.'&task=save';

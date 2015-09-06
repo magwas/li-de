@@ -29,7 +29,8 @@
       $db->setQuery('SELECT id,megnevezes,szulo FROM #__temakorok WHERE id="'.$temakor->szulo.'"');
       $temakor = $db->loadObject();
     }
- } else {
+    $utvonal = '<a href="index.php?option=com_temakorok&view=temakoroklist">'.JText::_('TEMAKOROK').'</a>&nbsp;&gt;&nbsp;'.$utvonal;
+} else {
    $temakor = JRequest::getVar('temakor',0);
    if ($temakor != 0) {
       // ha JRequest 'temakor' érkezik akkor ebből épiti fel az utvonalat
@@ -49,6 +50,7 @@
         $db->setQuery('SELECT id,megnevezes,szulo FROM #__temakorok WHERE id="'.$temakor->szulo.'"');
         $temakor = $db->loadObject();
       }
+      $utvonal = '<a href="index.php?option=com_temakorok&view=temakoroklist">'.JText::_('TEMAKOROK').'</a>&nbsp;&gt;&nbsp;'.$utvonal;
    } else { 
       // ha a fentiek egyike sem érkezik akkor a sessionból hozza fel az ott lévő tárolt utvonalat
       if (JRequest::getVar('option') != 'com_temakorok')
@@ -63,6 +65,7 @@
  else 
      $session->set('utvonal',$utvonal.'&nbsp;&gt;&nbsp;'.$utvonalEnd);
  // megjelenít
- echo '<div class="utvonal">'.$utvonal.'</div>';
+ if ($utvonal != '') 
+    echo '<div class="utvonal">'.JText::_('Útvonal:').' '.$utvonal.'</div>';
      
 ?>

@@ -4,7 +4,7 @@
  * bemenet:
  * $this->Items
  *      ->temakor
- *      ->szavazas   
+ *      ->Szavazas   
  *      ->Akciok      [name=>link,...]
  *      ->Kepviselo   [kepviselojeLink=>link, kepviselojeloltLink=>link,.....]
  *      ->altKepviselo
@@ -31,6 +31,7 @@ function thClass($col) {
 //$szuser = JFactory::getUser($this->Szavazas->letrehozo);
 // $szuser->load($this->Szavazas->letrehozo);
 $db = JFactory::getDBO();
+$user = JFactory::getUser();
 $db->setQuery('SELECT email,name from #__users WHERE id="'.$this->Szavazas->letrehozo.'"');
 $szuser = $db->loadObject();
 if ($szuser) 
@@ -68,14 +69,37 @@ echo '
   <img src="'.$grav_url.'" width="50" /><br />'.$szuser->name.'
   </div>
   '.$this->Szavazas->leiras.'
-  <p>Létrehozva/módosítva:'.$this->Szavazas->letrehozva.
-    ' Vita1 vége:'.$this->Szavazas->vita1_vege.
-    ' Vita2 vége:'.$this->Szavazas->vita2_vege.
-    ' Szavazás vége:'.$this->Szavazas->szavazas_vege.'</p>
+  <p><br /><b>Létrehozva/módosítva: </b>'.str_replace('-','.',$this->Szavazas->letrehozva).
+    '<br /><b>Alternatíva javaslat vita vége: </b>'.str_replace('-','.',$this->Szavazas->vita1_vege).
+    '<br /><b>Vita vége: </b>'.str_replace('-','.',$this->Szavazas->vita2_vege).
+    '<br /><b>Szavazás vége: </b>'.str_replace('-','.',$this->Szavazas->szavazas_vege).'</p>
 </div>
 ';
-
-
+if (($this->Szavazas->vita1==1) & ($user->id > 0)) {
+	if ($this->igen == '') $this->igen = 0;
+	if ($this->nem == '') $this->nem = 0;
+	echo '<div class="szavazas_in">
+	   Szavazásra javaslom 
+	   <button type="button" onclick="igenClick()" title="Igen">
+	   <div class="iconIgen" style="display:inline-block">&nbsp;</div>
+	   </button>
+	   '.$this->igen.'
+	   <button type="button" onclick="nemClick()" title="Nem">
+	   <div class="iconNem" style="display:inline-block">&nbsp;</div>
+	   </button>
+	   '.$this->nem.'
+	</div>
+	';
+} else if (($this->igen > 0) | ($this->nem > 0)) {
+	echo '<div class="szavazas_in">
+	   Szavazásra javasolták 
+	   <div class="iconIgen" style="display:inline-block">&nbsp;</div>
+	   '.$this->igen.'
+	   <div class="iconNem" style="display:inline-block">&nbsp;</div>
+	   '.$this->nem.'
+	</div>
+	';
+}
 echo '
 <div class="kepviselo">
 ';
@@ -149,12 +173,15 @@ echo '
       if ($this->itemLink != '') {  
         $link = $this->itemLink.'&alternativa='. $item->id;
         //+ 2014.09.10 Az alternativa név csak akkor link ha jogosult módosítani
+        /*
         if ($this->isAdmin | 
             $this->temakor_admin |
             ($item->letrehozo == $this->user->id)
            ) {
+        */       
+        if ($this->Akciok['szavazasedit'] != '') {  
        	  echo '<tr class="'.$rowClass.'">
-          <td> * <a class="alternativaNev" href="'.$link.'">'.$item->megnevezes.'</a>
+          <td> * '.$item->megnevezes.' <a class="alternativaNev" href="'.$link.'">[Edit]</a>
               <blockquote class="alternativaInfo">'.$item->leiras.'</blockquote>
           </td>
           </tr>
@@ -209,6 +236,15 @@ echo '
   function turelemAnimacio() {
     // esetleg itt lehet valami animáció
     d = document.getElementById("divTurelem");
+  }
+  
+  function igenClick() {
+	 location = "index.php?option=com_alternativak&view=alternativaklist&task=igenclick"+
+	   "&szavazas='.$this->Szavazas->id.'&temakor='.$this->Szavazas->temakor.'"; 
+  }
+  function nemClick() {
+	 location = "index.php?option=com_alternativak&view=alternativaklist&task=nemclick"+
+	   "&szavazas='.$this->Szavazas->id.'&temakor='.$this->Szavazas->temakor.'"; 
   }
   
 </script>

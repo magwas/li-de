@@ -7424,7 +7424,7 @@ code {
 .akcioIkon:hover {text-decoration:none}            
 
 .akcioGomb {display:inline-block; min-width:32px; width:auto; height:24px; padding:10px 2px 2px 36px; text-align:left;
-            border-style:none; border-width:0px; border-radius:3px; border-color:#66B1E2;
+            border-style:none; border-width:1px; border-radius:10px; border-color:#66B1E2;
             background-position:2px 2px; background-color:transparent;
             margin:2px 5px 2px 2px }
 .akcioGomb a {text-decoration:none; color:blue;}
@@ -7523,7 +7523,12 @@ table.pollResult th {background-color:#66B1E2 }
 .posttext a {text-decoration:underline }
 .altemak {border-style:solid; border-color: #67b1e2; border-width:3px;}
 .altemak h3 {margin:0px; background-color: #67b1e2; color: white; font-weight:bold; }
+.altemak li {list-style:none;}
+.altemak a {font-weight:bold; font-size:14px; 
+    background-image:url('../images/arrow.png'); background-repeat:no-repeat; background-position:4px 4px;
+	padding-left:15px;}
 #formEmailes textarea {width:600px;}
+
 #SL_balloon_obj {display:none}
 
 /* fõmenü és keresõ doboz */
@@ -7537,3 +7542,46 @@ table.pollResult th {background-color:#66B1E2 }
 #Kunena span.kavatar img.kavatar {width:80px;}
 #Kunena .kblocktable .kthead-child {display:none}
 #Kunena #jumpto .inputbox {max-width:600px;}
+
+#Kunena td.kcol-ktopicreplies {width:10px}
+#Kunena td.kcol-ktopicicon {width:10px}
+#Kunena td.kcol-ktopictitle {width:250px;}
+#Kunena td.kcol-ktopicviews {width:20px}
+#Kunena td.kcol-ktopiclastpost {width:200px}
+
+#kbbcode-bold-button {background-position: 0px 0px;}
+#kbbcode-italic-button {background-position: -18px 0px;}
+#kbbcode-underline-button {background-position: -36px 0px;}
+#kbbcode-strike-button {background-position: -54px 0px;}
+#kbbcode-sub-button {background-position: -72px 0px;}
+#kbbcode-sup-button {background-position: -90px 0px;}
+#kbbcode-size-button {background-position: -108px 0px;}
+#kbbcode-color-button {background-position: -126px 0px;}
+#kbbcode-ulist-button {background-position: -180px 0px;}
+#kbbcode-olist-button {background-position: -198px 0px;}
+#kbbcode-list-button {background-position: -216px 0px;}
+#kbbcode-left-button {background-position: -234px 0px;}
+#kbbcode-center-button {background-position: -250px 0px;}
+#kbbcode-right-button {background-position: -268px 0px;}
+#kbbcode-quote-button {background-position: -286px 0px;}
+#kbbcode-code-button {background-position: -304px 0px;}
+#kbbcode-table-button {background-position: 0px -18px;}
+#kbbcode-spoiler-button {background-position: -322px 0px;}
+#kbbcode-hide-button {background-position: -216px -18px;}
+#kbbcode-image-button {background-position: -72px -18px;}
+#kbbcode-link-button {background-position: -340px 0px;}
+#kbbcode-ebay-button {background-position: -358px 0px;}
+#kbbcode-video-button {background-position: -376px 0px;}
+#kbbcode-map-button {background-position: -54px -18px;}
+#kbbcode-help-button {background-position: -394px -18px;}
+
+
+
+#jform_profile_tos label {float:left}
+#login-form big {font-size:16px; color:#2C5B97; font-weight:bold;}
+
+.iconIgen {width:32px; height:32px;
+background-image:url(../images/like.jpg); background-position:0px 0px}
+.iconNem {width:32px; height:32px;
+background-image:url(../images/unlike.jpg); background-position:0px 0px}
+
