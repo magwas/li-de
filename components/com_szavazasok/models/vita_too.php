@@ -56,7 +56,16 @@ class SzavazasokModelVita_too extends JModelList {
 SELECT sz.megnevezes, sz.vita1, sz.vita2, sz.szavazas, sz.lezart, sz.szavazas_vege, sz.titkos, sz.vita2_vege,
   sz.id, sz.temakor_id
 FROM #__szavazasok sz
+left outer join #__temakorok as t 
+   on t.id = sz.temakor_id	
+left outer join #__tagok ta
+   on ta.temakor_id = sz.temakor_id and ta.user_id = "'.$user->id.'"			 
 WHERE (sz.vita2=1) '.$filterStr;
+	// aktuális user láthatja ezt a szavazást?
+	$query .= ' and ((t.lathatosag = 0) or
+	                 (t.lathatosag = 1 and "'.$user->id.'" > 0) or
+					 (ta.user_id is not null)
+					)';
     $query .= ' order by '.JRequest::getVar('order','6');
     return $query;  
 	}
@@ -66,13 +75,22 @@ WHERE (sz.vita2=1) '.$filterStr;
    * @return integer   
    */      
   public function getTotal($filterStr='') {
+     $user = JFactory::getUser();
      $result = 0;
      $db = JFactory::getDBO();
      $db->setQuery('
 /* szavazások amik vita1 statuszban vannak */
 SELECT sz.id
 FROM #__szavazasok sz
-WHERE (sz.vita2=1) '.$filterStr);
+left outer join #__temakorok as t 
+   on t.id = sz.temakor_id	
+left outer join #__tagok ta
+   on ta.temakor_id = sz.temakor_id and ta.user_id = "'.$user->id.'"			 
+WHERE (sz.vita2=1) '.$filterStr.'
+	and ((t.lathatosag = 0) or
+	     (t.lathatosag = 1 and "'.$user->id.'" > 0) or
+		 (ta.user_id is not null)
+		)');
      $res = $db->loadObjectList();
      $result = count($res);
      return $result;

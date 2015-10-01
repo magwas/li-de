@@ -171,6 +171,49 @@ else
     if ((evt.keyCode == 13) && (node.type=="text"))  {return false;}
   } 
   document.onkeypress = stopRKey; 
+  
+  /**
+    * Menü kibontása
+  */	
+  function menuIconClick() {
+	var ul = null;
+	var li = null;
+	var ul2 = null;
+	var n = document.getElementsByTagName('NAV');
+	n = n[0];
+	if (n.kibontott == 1) {
+		location.reload();
+	} else {
+		n.kibontott = 1;
+		ul = n.firstChild;
+		while (ul) {
+			if (ul.tagName == 'SPAN') {
+				ul.title = 'Menü összecsukása';
+			}
+			if (ul.tagName == 'UL') {
+				li = ul.firstChild;
+				while (li) {
+					if (li.tagName == 'LI') {
+						li.style.display='block';
+						li.style.float='none';
+						ul2 = li.firstChild;
+						while (ul2) {
+							if (ul2.tagName == 'UL') {
+								ul2.style.display='block';
+								ul2.style.position="relative";
+								ul2.style.float='none';
+							}
+							ul2 = ul2.nextSibling;
+						}
+					}
+					li = li.nextSibling;
+				}
+			}
+			ul = ul.nextSibling;
+		}
+	}	
+  }
+  
   </script>
 
   <script src="https://apis.google.com/js/platform.js" async defer>
@@ -209,7 +252,10 @@ else
 				</div>
 			</header>
 			<?php if ($this->countModules('position-1')) : ?>
-			<nav class="navigation" role="navigation">
+			<nav class="navigation" role="navigation" style="display:inline-block">
+			    <span class="menuIcon" title="Menü kibontása" onclick="menuIconClick()">
+				  [+]
+				</span>
 				<jdoc:include type="modules" name="position-1" style="none" />
 			</nav>
 			<?php endif; ?>

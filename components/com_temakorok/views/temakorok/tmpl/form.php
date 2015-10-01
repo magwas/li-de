@@ -1,6 +1,10 @@
 <?php
 JHTML::_('behavior.modal'); 
-$form = JForm::getInstance('beallitasok',JPATH_ADMINISTRATOR.DS.'components'.DS.'com_temakorok'.DS.'models'.DS.'forms'.DS.'temakorok.xml');
+
+$form = JForm::getInstance('temakorok',JPATH_ADMINISTRATOR.DS.'components'.DS.'com_temakorok'.DS.'models'.DS.'forms'.DS.'temakorok.xml');
+
+// beállítások kezelő form
+$form2 = JForm::getInstance('beallitasok',JPATH_ADMINISTRATOR.DS.'components'.DS.'com_beallitasok'.DS.'models'.DS.'forms'.DS.'beallitasok.xml');
 
 
 $form->bind($this->Item);
@@ -84,9 +88,48 @@ echo '
 				<?php echo $this->form->getLabel('lezarva'); ?>
 				<?php echo $this->form->getValue('lezarva');  ?>
 				<div class="clr"></div>
-				<?php echo $this->form->getLabel('json'); ?>
-				<?php echo $this->form->getInput('json'); ?>
-      </div>
+
+				<?php  
+				// json string szétbontása mezőkre
+				$jsonStr = $form->getValue('json');
+				if (($jsonStr == '') | 
+				    ($jsonStr == '{}')
+				   ) {
+				  $jsonStr = '{ "temakor_felvivok":1, 
+ "tobbszintu_atruhazas":0, 
+ "atruhazas_lefele_titkos":0, 
+ "kepviselet_engedelyezett":1,
+ "temakor_tagsag_csakadmin":0 
+}';	
+					
+				}
+				$jsonObj = JSON_decode($jsonStr);
+				// echo 'jsonStr='.$jsonStr.'<br>';
+				// foreach ($jsonObj as $fn => $fv) echo $fn.'='.$fv.'<br>';
+				$form2->setValue('temakor_felvivok', '', $jsonObj->temakor_felvivok);
+				$form2->setValue('tobbszintu_atruhazas', '', $jsonObj->tobbszintu_atruhazas);
+				$form2->setValue('atruhazas_lefele_titkos', '', $jsonObj->atruhazas_lefele_titkos);
+				$form2->setValue('kepviselet_engedelyezett', '', $jsonObj->kepviselet_engedelyezett);
+				$form2->setValue('temakor_tagsag_csakadmin', '', $jsonObj->temakor_tagsag_csakadmin);
+				echo '<br>
+				'.$form2->getLabel('temakor_tagsag_csakadmin').'
+				'.$form2->getInput('temakor_tagsag_csakadmin').'<br />
+				
+				'.$form2->getLabel('temakor_felvivok').'
+				'.$form2->getInput('temakor_felvivok').'<br />
+				
+				'.$form2->getLabel('kepviselet_engedelyezett').'
+				'.$form2->getInput('kepviselet_engedelyezett').'<br />
+				
+				'.$form2->getLabel('tobbszintu_atruhazas').'
+				'.$form2->getInput('tobbszintu_atruhazas').'<br />
+				
+				'.$form2->getLabel('atruhazas_lefele_titkos').'
+				'.$form2->getInput('atruhazas_lefele_titkos').'<br />
+				';
+				?>
+				
+				</div>
 			<div class="clr"></div>
       <div class="col <?php if(version_compare(JVERSION,'3.0','lt')):  ?>width-30  <?php endif; ?>span2 fltrgt"></div>
 		  <?php echo JHTML::_( 'form.token' ); ?>

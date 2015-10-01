@@ -56,8 +56,9 @@ class plgSearchLi_de extends JPlugin
      */
     public function onContentSearch($text, $phrase = '', $ordering = '', $areas = null)
     {
-        $result = array();
-        // jelenleg semmilyen paramétert nem veszek figyelembe és hozzáférés ellenörzés sincs.
+        $user = JFactory::getUser();
+		$result = array();
+        // jelenleg semmilyen paramétert nem veszek figyelembe 
         $db = Jfactory::getDBO();
         // témakorok
         $db->setQuery('select t.megnevezes as title,
@@ -67,7 +68,13 @@ class plgSearchLi_de extends JPlugin
           "" as `text`,
           t.letrehozva as created
           from #__temakorok t
-          where t.megnevezes like "%'.$text.'%"
+		  left outer join #__tagok ta 
+		    on ta.temakor_id = t.id and ta.user_id = "'.$user->id.'"
+          where t.megnevezes like "%'.$text.'%" and
+		    ((t.lathatosag = 0) or
+			 (t.lathatosag = 1 and "'.$user->id.'" > 0) or
+			 (ta.user_id is not null)
+			)
           order by t.id DESC');
         $res = $db->loadObjectList();
         foreach ($res as $res1) {
@@ -82,7 +89,14 @@ class plgSearchLi_de extends JPlugin
           "" as `text`,
           sz.letrehozva as created
           from #__szavazasok sz
-          where  sz.megnevezes like "%'.$text.'%"
+		  left outer join #__temakorok t on t.id = sz.temakor_id
+		  left outer join #__tagok ta 
+		    on ta.temakor_id = t.id and ta.user_id = "'.$user->id.'"
+          where  sz.megnevezes like "%'.$text.'%" and
+		    ((t.lathatosag = 0) or
+			 (t.lathatosag = 1 and "'.$user->id.'" > 0) or
+			 (ta.user_id is not null)
+			)
           order by sz.id DESC');
         $res = $db->loadObjectList();
         foreach ($res as $res1) {
@@ -96,8 +110,16 @@ class plgSearchLi_de extends JPlugin
           "'.JText::_('ALTERNATIVAK').'" as section,
           "" as `text`,
           sz.letrehozva as created
-          from #__szavazasok sz, #__alternativak a
-          where  a.szavazas_id = sz.id and a.megnevezes like "%'.$text.'%"
+          from #__szavazasok sz
+		  inner join #__alternativak a on a.szavazas_id = sz.id
+		  left outer join #__temakorok t on t.id = sz.temakor_id
+		  left outer join #__tagok ta 
+		    on ta.temakor_id = t.id and ta.user_id = "'.$user->id.'"
+          where  a.megnevezes like "%'.$text.'%" and
+		    ((t.lathatosag = 0) or
+			 (t.lathatosag = 1 and "'.$user->id.'" > 0) or
+			 (ta.user_id is not null)
+			)
           order by sz.id DESC');
         $res = $db->loadObjectList();
         foreach ($res as $res1) {

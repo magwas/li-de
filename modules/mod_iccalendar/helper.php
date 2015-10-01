@@ -182,7 +182,20 @@ class modiCcalendarHelper
     		->from($db->qn('#__icagenda_events').' AS e')
 			->leftJoin($db->qn('#__icagenda_category').' AS c ON '.$db->qn('c.id').' = '.$db->qn('e.catid'));
 
-		// Where Category is Published
+		//+FT li-de témakör láthatóság ellenörzés
+		$user = JFactory::getUser();
+		$query->leftJoin('#__szavazasok as lidesz on e.alias like concat("sz-", lidesz.id,"-%")');
+		$query->leftJoin('#__temakorok as lidet on lidet.id = lidesz.temakor_id');
+		$query->leftJoin('#__tagok as lideta on lideta.temakor_id = lidesz.temakor_id and lideta.user_id = "'.$user->id.'"');
+		$query->where('((lidet.lathatosag = 0) or
+		(lidet.lathatosag = 1 and "'.$user->id.'" > 0) or
+		(lidet.lathatosag = 2 and lideta.user_id is not null) 
+		)');
+		//+FT li-de témakör láthatóság ellenörzés
+
+
+
+			// Where Category is Published
 		$query->where('c.state = 1');
 
 		// Where State is Published
@@ -238,7 +251,7 @@ class modiCcalendarHelper
 		$sub_query->where('r.state > 0');
 		$sub_query->group('r.eventid');
 		$query->leftJoin('(' . (string) $sub_query . ') AS r ON e.id=r.eventid');
-
+		
 		// Run the query
 		$db->setQuery($query);
 

@@ -48,13 +48,13 @@ class BeallitasokController extends JControllerLegacy {
    * @return void
    */         
   public function form() {
-		$document =& JFactory::getDocument();
+	$document =& JFactory::getDocument();
   	$viewType	= $document->getType();
-		$view = & $this->getView($this->_viewname,$viewType);
-		$model = & $this->getModel($this->_mainmodel);
-		$view->setModel($model,true);
+	$view = & $this->getView($this->_viewname,$viewType);
+	$model = & $this->getModel($this->_mainmodel);
+	$view->setModel($model,true);
     $item = $model->getItem(1);
-		$form = JForm::getInstance('beallitasok',JPATH_ADMINISTRATOR.DS.'components'.DS.'com_beallitasok'.DS.'models'.DS.'forms'.DS.'beallitasok.xml');
+	$form = JForm::getInstance('beallitasok',JPATH_ADMINISTRATOR.DS.'components'.DS.'com_beallitasok'.DS.'models'.DS.'forms'.DS.'beallitasok.xml');
     $form->bind($item);
     $view->set('form',$form);
     $view->set('Item',$item);
@@ -71,14 +71,23 @@ class BeallitasokController extends JControllerLegacy {
    * @return void
    */         
   public function save() {
-		$document =& JFactory::getDocument();
-		$viewType	= $document->getType();
-		$view = & $this->getView($this->_viewname,$viewType);
-		$model = & $this->getModel($this->_mainmodel);
+	$document =& JFactory::getDocument();
+	$viewType	= $document->getType();
+	$view = & $this->getView($this->_viewname,$viewType);
+	$model = & $this->getModel($this->_mainmodel);
     $item = new stdclass();
     $item->id = 1;
-    $item->json = JRequest::getVar('json');
-		$view->setModel($model,true);
+
+    //$item->json = JRequest::getVar('json');
+	$jsonObj = new stdclass();
+	$jsonObj->temakor_felvivok = JRequest::getVar('temakor_felvivok',1);
+	$jsonObj->tobbszintu_atruhazas = JRequest::getVar('tobbszintu_atruhazas',0);
+	$jsonObj->atruhazas_lefele_titkos = JRequest::getVar('atruhazas_lefele_titkos',0);
+	$jsonObj->kepviselet_engedelyezett = JRequest::getVar('kepviselet_engedelyezett',1);
+	$jsonObj->temakor_tagsag_csakadmin = JRequest::getVar('temakor_tagsag_csakadmin',0);
+	$item->json = JSON_encode($jsonObj);
+	
+	$view->setModel($model,true);
     if ($model->save($item)) {
       $this->setMessage(JText::_('BEALLITASOKTAROLVA'));
       $this->setRedirect(JURI::root().'index.php?option=com_temakorok&view=temakoroklist');

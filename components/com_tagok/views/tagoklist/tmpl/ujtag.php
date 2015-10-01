@@ -42,7 +42,7 @@ echo '
 </div>
 <p>'.JText::_('UJTAGHELP1').'</p>
 <div class="szuroKepernyo">
-  <form action="'.$this->doFilterLink.'&task=browse" method="post">
+  <form action="'.$this->doFilterLink.'" method="post">
     <div class="szurourlap">
       '.JText::_('SZURES').'
       <input type="text" name="filterStr" size="40" value="'.JRequest::getVar('filterStr').'" />

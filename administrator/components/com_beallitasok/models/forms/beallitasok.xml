@@ -26,6 +26,68 @@
 			class="inputbox"
       rows="10"
       cols="60" />
+	  
+		<field
+			id="temakor_felvivok"
+			name="temakor_felvivok"
+			type="list"
+			required="false"
+			label="Altémakör felvivők"
+			description=""
+			class="inputbox">
+			<option value="1">Regisztrált felhasználók</option>
+			<option value="2">Csak a témakör adminisztrátorok</option>
+		</field>
+	  
+		<field
+			id="tobbszintu_atruhazas"
+			name="tobbszintu_atruhazas"
+			type="list"
+			required="false"
+			label="Többszintű szavazati jog átruházás megengedett?"
+			description=""
+			class="inputbox">
+			<option value="0">Nem</option>
+			<option value="1">Igen</option>
+		</field>
+	  
+		<field
+			id="atruhazas_lefele_titkos"
+			name="atruhazas_lefele_titkos"
+			type="list"
+			required="false"
+			label="A képviselők láthatják, hogy kik ruházták át rájuk a szavazati jogukat?"
+			description=""
+			class="inputbox">
+			<option value="0">Nem</option>
+			<option value="1">Igen</option>
+		</field>
+	  
+		<field
+			id="kepviselet_engedelyezett"
+			name="kepviselet_engedelyezett"
+			type="list"
+			required="false"
+			label="Demokrácia model"
+			description=""
+			class="inputbox">
+			<option value="0">Közvetlen demokrácia</option>
+			<option value="1">Likvid demokrácia</option>
+		</field>
+	  
+		<field
+			id="temakor_tagsag_csakadmin"
+			name="temakor_tagsag_csakadmin"
+			type="list"
+			required="false"
+			label="Témakör tagság módja"
+			description=""
+			class="inputbox">
+			<option value="0">Regisztrált tagok csatlakozhatnak</option>
+			<option value="1">Csak a témakör admink vehetnek fel tagokat</option>
+		</field>
+      
+	  
 								
 								
 	</fields>	

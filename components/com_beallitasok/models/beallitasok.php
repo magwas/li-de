@@ -21,9 +21,9 @@ class BeallitasokModelBeallitasok  extends JModelItem {
   /**
    * beolvas egy rekordot
    */      
-  public function getItem($id) {
+  public function getItem($id=1) {
     $db = JFactory::getDBO();
-    $db->setQuery('select * from #__beallitasok');
+    $db->setQuery('select * from #__beallitasok where id="'.$id.'"');
     $result = $db->loadObject();
     if (!$result) {
       $result = new stdclass();
@@ -62,7 +62,7 @@ class BeallitasokModelBeallitasok  extends JModelItem {
   public function save($item) {
     if ($this->check($item)) {
        $db = JFactory::getDBO();
-       $db->setQuery('delete from #__beallitasok');
+       $db->setQuery('delete from #__beallitasok where id="'.$item->id.'"');
        $db->query();
        $db->setQuery('insert into #__beallitasok (id,json) 
        values 

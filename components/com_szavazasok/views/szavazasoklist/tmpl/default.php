@@ -200,7 +200,9 @@ echo '
 	}
 	
   $rowClass = 'row0';
-  foreach ($this->Items as $item) { 
+  if (!is_array($this->Items)) $this->Items = Array();
+  if (count($this->Items) > 0) {
+    foreach ($this->Items as $item) { 
       if (($item->user_id  == '') | ($item->kepviselo_id > 0))
         $szavaztal = '';
       else
@@ -227,7 +229,11 @@ echo '
        '; 
        if ($rowClass == 'row0') $rowClass='row1'; else $rowClass='row0';
   } 
-echo '
+  } else {
+	  echo '<tr><td colspan="10" align="center">'.JTEXT::_('SZAVAZASOK_NO_DATA').'</td></tr>
+	  ';
+  }
+  echo '
 </tbody>
 </table>		
 <div class="lapozosor">

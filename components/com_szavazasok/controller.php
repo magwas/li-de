@@ -10,6 +10,7 @@
 // no direct access
 
 defined('_JEXEC') or die('Restricted access');
+define('DEFTEMAKOR',20); // default témakör
 
 jimport('joomla.application.component.controller');
 require_once(JPATH_ROOT . '/components/com_jcomments/jcomments.php');
@@ -108,6 +109,10 @@ class SzavazasokController extends JControllerLegacy {
 		if(isset($config['mainmodel'])) $this->_mainmodel = $config['mainmodel'];
 		if(isset($config['itemname'])) $this->_itemname = $config['itemname']; 
         $this->temakor_id = JRequest::getVar('temakor','0');
+		if (JRequest::getVar('task')=='save') {
+		  if ($this->temakor_id <= 0) $this->temakor_id = DEFTEMAKOR;
+		  if ($this->temakor_id == '') $this->temakor_id = DEFTEMAKOR;
+		}
         $db = JFactory::getDBO();
         $temakorModel = new TemakorokModelTemakorok;
         $this->temakor = $temakorModel->getItem($this->temakor_id);
@@ -687,6 +692,18 @@ class SzavazasokController extends JControllerLegacy {
     $user = JFactory::getUser();
     $db = JFactory::getDBO();
 
+	// 0 temakorrel a kod nem használható
+	// ezért a default témakört  vesszük ilyenkor
+	if ((JRequest::getVar('temakor')=='') or
+	    (JRequest::getVar('temakor')<=0)) {
+	  JRequest::setVar('temakor',DEFTEMAKOR);
+	}
+	if ((JRequest::getVar('temakor_id')=='') or
+	    (JRequest::getVar('temakor_id')<=0)) {
+	  JRequest::setVar('temakor',DEFTEMAKOR);		
+	}
+	
+	
     // kik a témakor felvivők?
     $szavazas_felvivo = $this->szavazas_felvivo();
 
@@ -714,11 +731,14 @@ class SzavazasokController extends JControllerLegacy {
           ($item->temakor_id == '') | 
           ($item->temakor_id == null)) {
       
-          echo '<p>$item->temakor_id is emtpy 
+          /*
+		  echo '<p>$item->temakor_id is emtpy 
                    <br />Jrequest(temakor)='.JRequest::getVar('temakor').'
                    <br />$this->temakor->id='.$this->temakor->id.'</p>';
                    
           exit();         
+		  */
+		  $item->temakor_id = DEFTEMAKOR;
       }
   		if ($this->model->store($item)) {
         $link =
@@ -1725,6 +1745,9 @@ class SzavazasokController extends JControllerLegacy {
 
     // adattábla tartalom elérése és átadása a view -nek
     $items = $this->model->getItems();
+	
+	echo 'count items = '.count(items);
+	
     //DBG echo 'lezart count='.count($items).'<br>';
     if ($this->model->getDBO()->getErrorNum() > 0) $this->model->getDBO()->stderr();
     if ($this->model->getError() != '')
