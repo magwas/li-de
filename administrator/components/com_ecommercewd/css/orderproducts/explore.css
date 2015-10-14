@@ -1,0 +1,71 @@
+table.adminlist tr .col_num {
+    width: 10px;
+    text-align: center;
+}
+
+table.adminlist tr .col_product_name {
+    text-align: left;
+}
+
+table.adminlist tr .col_product_image {
+    width: 100px;
+    height: 100px;
+}
+
+table.adminlist tr .col_product_image img {
+    max-width: 100px;
+    max-height: 100px;
+}
+
+table.adminlist tr .col_parameters {
+    width: 160px;
+}
+
+table.adminlist tr .col_parameters textarea {
+    width: 160px;
+    height: 100px;
+}
+
+table.adminlist tr .col_count {
+    width: 30px;
+}
+
+table.adminlist tr .col_count input {
+    width: 30px;
+}
+
+table.adminlist tr .col_price {
+    width: 40px;
+}
+
+table.adminlist tr .col_price input {
+    width: 40px;
+}
+
+table.adminlist tr .col_tax {
+    width: 60px;
+}
+
+table.adminlist tr .col_tax input {
+    width: 60px;
+}
+
+table.adminlist tr .col_shipping {
+    width: 60px;
+}
+
+table.adminlist tr .col_shipping input {
+    width: 60px;
+}
+
+table.adminlist tr .col_subtotal {
+    width: 80px;
+}
+
+table.adminlist tr .col_btns {
+    width: 80px;
+}
+
+table.adminlist tr .col_ctrls {
+    text-align: right;
+}

@@ -60,3 +60,6 @@
 2015-05-05T09:57:00+00:00	INFO 192.168.0.12	gmailfailure	Sikertelen hitelesítés: A cURL nem került telepítésre
 2015-07-17T08:26:19+00:00	INFO 192.168.0.12	gmailfailure	Sikertelen hitelesítés: A cURL nem került telepítésre
 2015-09-30T15:51:01+00:00	INFO 192.168.56.1	gmailfailure	Sikertelen hitelesítés: A cURL nem került telepítésre
+2015-10-02T08:35:56+00:00	INFO 192.168.56.1	gmailfailure	Sikertelen hitelesítés: A cURL nem került telepítésre
+2015-10-04T05:52:48+00:00	INFO 192.168.56.1	gmailfailure	Sikertelen hitelesítés: A cURL nem került telepítésre
+2015-10-10T13:54:54+00:00	INFO 192.168.56.1	joomlafailure	A felhasználónév és a jelszó nem egyezik, vagy Önnek nincs még fiókja.

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<metadata>
+    <layout title="Register">
+        <message>
+            <![CDATA[Register]]>
+        </message>
+    </layout>
+
+    <state>
+        <name>Register</name>
+        <description>Register page</description>
+        <url>
+        </url>
+        <params>
+        </params>
+        <advanced>
+        </advanced>
+
+    </state>
+</metadata>

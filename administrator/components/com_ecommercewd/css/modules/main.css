@@ -1,0 +1,12 @@
+.wdshop_mod_panel
+{
+	clear:both;
+	width:100%;
+	margin:10px 0;
+}
+
+#product_box .jf_module_box_cat_tree_last_child, #tag_box .jf_module_box_cat_tree_last_child
+{
+	color:#666666;
+	font-weight:normal;
+}

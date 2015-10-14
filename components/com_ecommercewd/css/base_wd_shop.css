@@ -1,0 +1,47 @@
+/* PRODUCT PANEL */
+.wd_shop_panel_product .panel-body {
+    padding: 10px;
+}
+
+.well {
+    padding: 14px;
+}
+
+.well > *:not(:last-child) {
+    padding-bottom: 14px;
+}
+
+/* OTHER */
+.wd_shop_header {
+    margin-top: 5px;
+    margin-bottom: 20px;
+    padding-bottom: 6px;
+    border-bottom-width: 2px;
+    border-bottom-style: solid;
+}
+
+.wd_shop_header_sm {
+    display: inline-block;
+    margin-top: 0;
+    margin-bottom: 10px;
+    padding-bottom: 3px;
+    /*padding-right: 80px;*/
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    min-width: 65%;
+}
+
+.wd_shop_tooltip_container {
+    position: absolute;
+    width: 100%;
+}
+
+.wd_shop_modal_tooltip_container {
+    position: absolute;
+    z-index: 1500;
+    width: 100%;
+}
+
+.wd_shop_tag:hover {
+    text-decoration: none;
+}

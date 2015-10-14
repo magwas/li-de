@@ -1,0 +1,14 @@
+.wd_shop_bar_pagination .pagination {
+    padding: 0;
+}
+
+.wd_shop_bar_pagination select {
+    display: inline-block;
+    width: 70px;
+}
+
+@media (max-width: 767px) {
+    .wd_shop_bar_pagination .pagination li:not(.active):not(:first-child):not(:last-child) {
+        display: none;
+    }
+}

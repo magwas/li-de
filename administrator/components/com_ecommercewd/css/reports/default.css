@@ -1,0 +1,81 @@
+.report-wrapper{
+	margin-bottom:45px;
+}
+
+.report-wrapper:after{
+	content:"";
+	display:table;
+	clear:both;
+}
+
+.reports{
+	width:300px ;
+	float:left;
+}
+
+.reports .adminlist tr td{
+	height:50px;
+}
+
+.date-range{
+	margin-bottom:25px;
+}
+
+input[name="start_date"], input[name="end_date"]{
+	margin:0 !important;
+}
+
+.type-color-sales{
+	border-left: 6px solid #0e639d !important;
+}
+.type-color-average{
+	border-left: 6px solid #4497CF !important;
+}
+
+.type-color-orders{
+	border-left: 6px solid #CBD8E0 !important;
+}
+
+.type-color-items{
+	border-left: 6px solid #DFE6EB !important;
+}
+
+.type-color-shipping{
+	border-left: 6px solid #1abc9c !important;
+}
+/*.wd_reports_row:hover{
+	color:#9c5d90;
+}
+.wd_reports_row:hover .type-color-sales, .wd_reports_row:hover .type-color-average,.wd_reports_row:hover .type-color-orders,.wd_reports_row:hover .type-color-items,.wd_reports_row:hover .type-color-shipping{
+	border-left: 6px solid #9c5d90;
+}*/
+
+#placeholder_wrapper{
+	display:inline-block;
+	margin-left:15px;
+	padding:13px;
+	border:1px solid #ccc;
+}
+#placeholder{
+	width:800px;
+	height:550px;
+}
+
+dl:after,.date-range:before{
+	content:'';
+	display:table;
+	clear:both;
+}
+
+.date-range .search_table{
+	width:58% !important;
+}
+
+.search_table img{
+	vertical-align: middle;
+}
+
+.input-append{
+	margin-bottom:0 !important;
+}
+

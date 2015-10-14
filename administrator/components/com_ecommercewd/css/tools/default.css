@@ -1,0 +1,20 @@
+.col_num
+{
+	width: 2%;
+}
+
+.col_checked , .col_id, .col_published
+{
+	width: 3%;
+}
+
+.col_description
+{
+	width:45%;
+}
+
+.col_published
+{
+	text-align:center;
+}
+

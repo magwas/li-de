@@ -1,0 +1,116 @@
+/* form #adminForm */
+form#adminForm fieldset {
+    margin: 10px auto;
+    padding: 5px;
+    border: 1px #ccc solid;
+    vertical-align: top;
+}
+
+form#adminForm fieldset legend {
+    display: initial;
+    margin-left: 2px;
+    margin-bottom: 0;
+    border-width: 0;
+    width: auto;
+    font-size: 14px;
+    font-weight: normal;
+    line-height: normal;
+}
+
+form#adminForm fieldset table {
+    margin-bottom: 0;
+}
+
+/* table .adminlist */
+table.adminlist > tbody > tr > th,
+table.adminlist > tbody > tr > td {
+    border-collapse: separate;
+    border-spacing: 1px;
+    vertical-align: middle;
+}
+
+table.adminlist > tbody > tr > td label {
+    display: initial;
+}
+
+table.adminlist > tbody > tr > td input,
+table.adminlist > tbody > tr > td select {
+    width: auto;
+    margin: 5px 0;
+}
+
+table.adminlist > tbody > tr > td img {
+    margin: 5px 0;
+}
+
+table.adminlist > tbody > tr > td.btns_container {
+    text-align: right;
+}
+
+table.adminlist.search_table {
+    width: auto;
+}
+
+table.adminlist.search_table > tbody > tr > td > label {
+    float: none;
+    display: block;
+}
+
+table.adminlist.search_table > tbody > tr > td input,
+table.adminlist.search_table > tbody > tr > td select {
+    width: 120px;
+}
+
+/* columns */
+table.adminlist tr .col_num {
+    width: 30px;
+    text-align: center;
+    font-weight: bold;
+}
+
+table.adminlist tr .col_checked {
+    width: 30px;
+    text-align: center;
+}
+
+table.adminlist tr .col_id {
+    width: 30px;
+    text-align: center;
+}
+
+table.adminlist tr .col_name, table.adminlist tr .col_title {
+    text-align: left;
+}
+
+table.adminlist tr .col_ordering {
+    width: 120px !important;
+    text-align: center;
+}
+
+table.adminlist tr .col_ordering .text-area-order {
+    width: 40px;
+}
+
+table.adminlist tr .col_default {
+    width: 80px;
+    text-align: center;
+}
+
+table.adminlist tr .col_required {
+    width: 80px;
+    text-align: center;
+}
+
+table.adminlist tr .col_published {
+    width: 80px;
+    text-align: center;
+}
+
+.hidden {
+    display: none;
+}
+
+/* modal backdrop */
+div#sbox-overlay {
+    position: fixed;
+}

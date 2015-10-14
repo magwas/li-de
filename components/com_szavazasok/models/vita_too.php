@@ -45,7 +45,7 @@ class SzavazasokModelVita_too extends JModelList {
     else
       $lezartLimit = 99;
     if ($filterStr != '') {
-      $filterStr = ' and sz.megnevezes like "%'.$filterStr.'%"';
+	  $filterStr = ' and (sz.megnevezes like "%'.$filterStr.'%" or sz.cimkek like "%'.$filterStr.'%") ';
     }  
 	$db		= $this->getDbo();
 	$query	= $db->getQuery(true);			

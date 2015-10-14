@@ -1,0 +1,97 @@
+<?php
+ /**
+ * @package E-Commerce WD
+ * @author Web-Dorado
+ * @copyright (C) 2014 Web-Dorado. All rights reserved.
+ * @license GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
+ **/
+defined('_JEXEC') || die('Access Denied');
+
+
+class WDFModuleHelper {
+    ////////////////////////////////////////////////////////////////////////////////////////
+    // Events                                                                             //
+    ////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////
+    // Constants                                                                          //
+    ////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////
+    // Variables                                                                          //
+    ////////////////////////////////////////////////////////////////////////////////////////
+    /**
+     * Module name.
+     *
+     * @var    string
+     */
+    private static $mod_name;
+
+    ////////////////////////////////////////////////////////////////////////////////////////
+    // Constructor & Destructor                                                           //
+    ////////////////////////////////////////////////////////////////////////////////////////
+    /**
+     * Init variables and require all files in framework
+     */
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////
+    // Public Methods                                                                     //
+    ////////////////////////////////////////////////////////////////////////////////////////
+
+	public static function get_module_name( $id )
+	{
+		$db = JFactory::getDbo();
+		$query = $db->getQuery(true);	
+		
+		$query->clear();
+		$query->select('module');
+		$query->from('#__modules');
+	
+		$query->where( "id = " . $id );
+
+		$db->setQuery($query);
+		$module_name = $db->loadResult();
+
+		if ($db->getErrorNum()) {
+			echo $db->getErrorMsg();
+			return false;
+		}
+		
+		return $module_name ? $module_name : false;
+
+	}
+	
+	public static function get_module_params( $name )
+	{		
+		$db = JFactory::getDbo();
+		$query = $db->getQuery(true);	
+		
+		$query->clear();
+		$query->select('params');
+		$query->from('#__modules');
+	
+		$query->where( "module = '" . $name . "'");
+
+		$db->setQuery($query);
+		$module_params = $db->loadResult();
+	
+		if ($db->getErrorNum()) {
+			echo $db->getErrorMsg();
+			return false;
+		}
+		return WDFJson::decode($module_params);
+	}
+
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////
+    // Getters & Setters                                                                  //
+    ////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////
+    // Private Methods                                                                    //
+    ////////////////////////////////////////////////////////////////////////////////////////
+  
+
+    ////////////////////////////////////////////////////////////////////////////////////////
+    // Listeners                                                                          //
+    ////////////////////////////////////////////////////////////////////////////////////////
+}

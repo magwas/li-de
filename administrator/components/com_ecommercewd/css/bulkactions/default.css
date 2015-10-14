@@ -1,0 +1,59 @@
+table.adminlist tr .col_category_name {
+    width: 120px;
+    text-align: center;
+}
+
+table.adminlist tr .col_image{
+	width:55px;
+}
+
+table.adminlist tr .col_manufacturer_name {
+    width: 120px;
+    text-align: center;
+}
+
+table.adminlist tr .col_price {
+    width: 100px;
+    text-align: center;
+}
+
+table.adminlist tr .col_amount_in_stock {
+    width: 120px;
+    text-align: center;
+}
+
+table.adminlist tr .col_label_name {
+    width: 100px;
+    text-align: center;
+}
+
+@font-face {
+  font-family: 'Glyphicons Halflings';
+  src: url('/spidershop/administrator/components/com_spidershop/bootstrap/fonts/fontsglyphicons-halflings-regular.eot');
+  src: url('/spidershop/administrator/components/com_spidershop/bootstrap/fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'), url('/spidershop/administrator/components/com_spidershop/bootstrap/fonts/glyphicons-halflings-regular.woff') format('woff'), url('/spidershop/administrator/components/com_spidershop/bootstrap/fonts/glyphicons-halflings-regular.ttf') format('truetype'), url('/spidershop/administrator/components/com_spidershop/bootstrap/fonts/glyphicons-halflings-regular.svg#glyphicons-halflingsregular') format('svg');
+}
+
+.glyphicon{
+
+	top: 1px;
+	display: inline-block;
+	font-family: 'Glyphicons Halflings';
+	-webkit-font-smoothing: antialiased;
+	font-style: normal;
+	font-weight: normal;
+	line-height: 1;
+	font-size: 32px;
+	opacity: 0.6;
+
+}
+
+.glyphicon-picture:before {
+  content: "\e060";
+}
+
+.no_image{
+	text-align:center;
+}
+.img_url:hover{
+	text-decoration:none;
+}

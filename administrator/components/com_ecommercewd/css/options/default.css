@@ -1,0 +1,9 @@
+dt.tabs a {
+    font-size: 1.1em;
+    font-weight: bold;
+}
+
+table.adminlist > tbody > tr > td img.img_social_btn {
+    margin: 0 10px 0 5px;
+    cursor: pointer;
+}

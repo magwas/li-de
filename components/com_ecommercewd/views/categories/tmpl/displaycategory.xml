@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<metadata>
+    <layout title="Category page">
+        <message>
+            <![CDATA[Category page]]>
+        </message>
+    </layout>
+
+    <state>
+        <name>Category page</name>
+        <description>Category page</description>
+        <config>
+            <fields name="params">
+                <fieldset name="Basic" label="Basic">
+                    <field addfieldpath="/administrator/components/com_ecommercewd/menu_form_fields"
+                           type="listcategory"
+                           name="category_id"
+                           default="0"
+                           label="Category"
+                           description="Select category">
+                    </field>
+
+                    <field type="radio"
+                           name="show_info"
+                           label="Show info"
+                           default="1"
+                           description="Show category info">
+                        <option value="0">No</option>
+                        <option value="1">Yes</option>
+                    </field>
+
+                    <field type="radio"
+                           name="show_products"
+                           label="Show products"
+                           default="1"
+                           description="Show category products">
+                        <option value="0">No</option>
+                        <option value="1">Yes</option>
+                    </field>
+
+                    <field type="text"
+                           name="products_count"
+                           label="Number of products"
+                           value="12"
+                           description="Number of products to show" />
+
+                    <field type="radio"
+                           name="show_subcategories"
+                           label="Show subcategories"
+                           default="1"
+                           description="Show category subcategories">
+                        <option value="0">No</option>
+                        <option value="1">Yes</option>
+                    </field>
+					<field type="radio"
+                           name="show_tree"
+                           label="Show category path"
+                           default="1"
+                           description="Show category path">
+                        <option value="0">No</option>
+                        <option value="1">Yes</option>
+                    </field>
+
+                    <field type="radio"
+                           name="subcategories_cols"
+                           label="Number of columns"
+                           default="2"
+                           description="Number of subcategories columns">
+                        <option value="1">4-3-1</option>
+                        <option value="2">3-2-1</option>
+                        <option value="3">2-1-1</option>
+                    </field>
+
+                    <!--<field addfieldpath="/administrator/components/com_ecommerce/menu_form_fields"
+                           type="listtheme"
+                           name="theme_id"
+                           default="0"
+                           label="Theme"
+                           description="Select theme for this page">
+                    </field>-->
+                </fieldset>
+            </fields>
+        </config>
+    </state>
+</metadata>

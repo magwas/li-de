@@ -1,0 +1,11 @@
+table.adminlist tr .col_parameter_value {
+    width: 200px;
+}
+
+.single_parameter_value_container .btn_remove_parameter_value {
+    display: none !important;
+}
+
+.template {
+    display: none;
+}

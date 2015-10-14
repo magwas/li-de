@@ -7590,3 +7590,18 @@ background-image:url(../images/unlike.jpg); background-position:0px 0px}
 .item-786 {padding:3px 3px 3px 20px; 
    background-image:url(../images/email.gif); background-repeat:no-repeat;
    background-color:silver; color; red; font-weight:bold;}
+   
+/* filekezelő */
+.jd-item-page button {background-color:silver; padding:4px; border-radius:3px;}   
+
+/* ecommercewd web shop */
+.wd_shop_btn_Cassa {float:right;}
+.productLiUnpublished {background-color:silver;}
+#wd_shop_container .productUnPublished {background-color:silver;}
+#addProductLink {float:right;}
+#categoryLink {float:left;}
+#editProductLink {text-align:right;}
+#productForm label {display:inline-block; width:250px; text-align:right;}
+#productForm input {height:30px;}
+#productForm .productImage {float:left; width:300px; height:auto; min-height:300px; border-style:solid; border-width:1px; margin:1px; padding:5px;}
+#productForm .productImage img {width:280px; max-height:200px;}

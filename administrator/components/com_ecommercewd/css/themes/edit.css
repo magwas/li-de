@@ -1,0 +1,95 @@
+form#adminForm fieldset {
+    width: auto;
+}
+
+table.adminlist {
+    width: 100% !important;
+}
+
+table.adminlist tr .col_value {
+    width: 600px;
+}
+
+ul.list_color_pickers {
+    margin-left: 0;
+    padding: 0;
+}
+
+ul.list_color_pickers li {
+    display: inline-block;
+    margin: 10px 10px 10px 0;
+}
+
+ul.list_inputs {
+    margin: 0;
+    list-style: none;
+}
+
+ul.list_inputs li label {
+    clear: both !important;
+}
+
+ul.list_inputs li h4 {
+    display: inline-block;
+    margin: 0;
+}
+
+/* preview components */
+table.adminlist tr .col_preview {
+    position: relative;
+    z-index: 0;
+}
+
+table.adminlist tr .col_preview .modal {
+    display: block !important;
+    position: relative !important;
+}
+
+table.adminlist tr .col_preview .modal .modal-backdrop {
+    position: absolute !important;
+    z-index: 0 !important;
+}
+
+table.adminlist tr .col_preview .modal .modal-dialog {
+    width: 300px !important;
+}
+
+.checkbox_rating_star {
+    margin: 8px 3px !important;
+}
+
+table.adminlist tr .col_preview .breadcrumb > li:before {
+    color: inherit !important;
+}
+
+/* preview product */
+.product_name {
+    margin: 0;
+}
+
+.product_prices_container {
+    margin-top: 5px;
+    margin-bottom: 20px;
+}
+
+.product_market_price {
+    font-size: 12px;
+}
+
+.product_price {
+    font-size: 20px;
+}
+
+.product_description {
+    font-size: 12px;
+}
+
+.product_views_data th:not(:first-child),
+.product_views_data td:not(:first-child) {
+    text-align: center;
+}
+
+.product_views_data th:not(:first-child) input[type=checkbox],
+.product_views_data td:not(:first-child) input[type=checkbox] {
+    float: none;
+}

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<metadata>
+    <layout title="User account">
+        <message>
+            <![CDATA[User account]]>
+        </message>
+    </layout>
+
+    <state>
+        <name>User account</name>
+        <description>User account page</description>
+
+    </state>
+</metadata>

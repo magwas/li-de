@@ -243,6 +243,8 @@ class SzavazasokController extends JControllerLegacy {
     $this->view->set('Szulok',$this->temakorokHelper->getSzulok());
     if (JRequest::getVar('temakor') > 0)
 	   $this->view->set('Title',JText::_('SZAVAZASOK'));
+    else if (JRequest::getVar('temakor') == -1)
+	   $this->view->set('Title',JText::_('SZAVAZASOK'));
     else
 	   $this->view->set('Title',JText::_('AKTIV_SZAVAZASOK'));
 	if ($this->temakor->lathatosag == 2)

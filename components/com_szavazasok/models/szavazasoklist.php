@@ -65,14 +65,19 @@ class SzavazasokModelSzavazasoklist extends JModelList
                     left outer join #__tagok ta
                         on ta.temakor_id = sz.temakor_id and ta.user_id = "'.$user->id.'"'		 
 		;
-		if (Jrequest::getVar('temakor') > 0)
+		if (JRequest::getVar('temakor') == '-1')
+			$query .= ' where sz.temakor_id > 0 ';
+		else if (Jrequest::getVar('temakor') > 0)
 		    $query .= ' where sz.temakor_id="'.JRequest::getVar('temakor',0).'"';
 		else
 			$query .= ' where sz.temakor_id > 0 and sz.lezart=0 ';
 		if ($filterStr=='')
 			$query .= ' and sz.lezart < '.$lezartLimit;
 		else
-			$query .= ' and  sz.megnevezes like "%'.$filterStr.'%" and sz.lezart < '.$lezartLimit;
+			$query .= ' and  (sz.megnevezes like "%'.$filterStr.'%" or 
+		                      sz.cimkek like "%'.$filterStr.'%" or
+							  sz.leiras like "%'.$filterStr.'%") and 
+		                     sz.lezart < '.$lezartLimit;
 		
 		// aktuális user láthatja ezt a szavazást?
 		$query .= ' and ((t.lathatosag = 0) or
@@ -86,9 +91,9 @@ class SzavazasokModelSzavazasoklist extends JModelList
 		  $query .= ' order by '.JRequest::getVar('order','1');
 		else   
 		  $query .= ' order by '.JRequest::getVar('order','1');
-	  
-	    // echo '<pre>'.$query.'</pre><br>';
-	  
+	    
+		//DBG echo '<pre>'.$query.'</pre>';
+		
 		return $query;  
 	}
   /**

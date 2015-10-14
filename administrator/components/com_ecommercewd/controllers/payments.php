@@ -1,0 +1,63 @@
+<?php
+ /**
+ * @package E-Commerce WD
+ * @author Web-Dorado
+ * @copyright (C) 2014 Web-Dorado. All rights reserved.
+ * @license GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
+ **/
+
+defined('_JEXEC') || die('Access Denied');
+
+
+class EcommercewdControllerPayments extends EcommercewdController {
+    ////////////////////////////////////////////////////////////////////////////////////////
+    // Events                                                                             //
+    ////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////
+    // Constants                                                                          //
+    ////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////
+    // Variables                                                                          //
+    ////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////
+    // Constructor & Destructor                                                           //
+    ////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////
+    // Public Methods                                                                     //
+    ////////////////////////////////////////////////////////////////////////////////////////	
+	
+	public function apply() {
+        $row = $this->store_input_in_row();
+		$model = WDFHelper::get_model();	
+		$selected_tools = $model->get_selected_tool_ids(WDFInput::get_checked_ids()); 
+		WDFDb::set_rows_data('tools', $selected_tools, 'published' ,WDFInput::get("published") );
+
+        WDFHelper::redirect('', 'edit', $row->id, 'type='.WDFInput::get("type"), WDFText::get('MSG_CHANGES_SAVED'));
+    }
+	
+	public function publish() {
+		WDFDb::set_checked_rows_data('payments', 'published', 1);
+		$model = WDFHelper::get_model();	
+		$selected_tools = $model->get_selected_tool_ids(WDFInput::get_checked_ids()); 
+
+		WDFDb::set_checked_rows_data('tools', 'published', 1,$selected_tools);
+		WDFHelper::redirect();
+	}
+	
+	public function unpublish() {
+		WDFDb::set_checked_rows_data('payments', 'published', 0);
+		$model = WDFHelper::get_model();	
+		$selected_tools = $model->get_selected_tool_ids(WDFInput::get_checked_ids()); 
+		WDFDb::set_checked_rows_data('tools', 'published', 0, $selected_tools);
+		WDFHelper::redirect();
+	}
+    ////////////////////////////////////////////////////////////////////////////////////////
+    // Getters & Setters                                                                  //
+    ////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////
+    // Private Methods                                                                    //
+    ////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////
+    // Listeners                                                                          //
+    ////////////////////////////////////////////////////////////////////////////////////////
+}

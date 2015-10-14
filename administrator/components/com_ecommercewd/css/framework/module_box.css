@@ -1,0 +1,55 @@
+.jf_module_box {
+    border: #cccccc dashed 1px;
+    padding: 2px;
+    min-height: 24px;
+	margin: 10px 0;
+}
+
+.jf_module_box_item {
+	display: block;
+	margin: 2px;
+	padding: 5px;
+	height: 14px;
+	color: #666666;
+}
+
+.jf_module_box_item.template {
+    display: none;
+}
+
+.jf_module_box_item_name {
+	display: inline-block;
+	color: #666666;
+	cursor: default;
+	width: 95%;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+
+.jf_module_box_item_btn {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    background-image: url("../../images/framework/tag_box/btn_remove_tag.png");
+    background-repeat: no-repeat;
+    cursor: pointer;
+}
+
+.jf_module_box_item_id{
+	display:none;
+}
+.jf_module_box_item_all{
+	display: block;
+	width: 100%;
+	text-align: center;
+	margin-top: 5px;
+	font-size: 19px;
+	color: rgb(202, 202, 202);
+}
+.jf_module_box_cat_tree_last_child
+{
+	color:#000;
+	font-weight:bold;
+}

@@ -196,6 +196,14 @@ class SzavazasokModelSzavazasok  extends JModelItem {
         $result->alternativak[$i] = array();
       }
     }  
+	
+	$result->cimkek = '';
+	for ($i=0; $i < 50; $i++) {
+		if (JRequest::getVar('cimke_'.$i) != '') {
+			$result->cimkek .= JRequest::getVar('cimke_'.$i).',';
+		}
+	}
+	
     return $result;
   }
   /**
@@ -260,7 +268,8 @@ class SzavazasokModelSzavazasok  extends JModelItem {
        }
        */
        
-       $table->temakor_id = JRequest::getVar('temakor_id','0');
+       $table->temakor_id = JRequest::getVar('temakor_id','20');
+	   if ($table->temakor_id == '') $table->temakor_id = 20;
        $table->id = JRequest::getVar('id','0');
        if ($table->id == 0) {
          $table->letrehozo = $user->id;
@@ -325,6 +334,20 @@ class SzavazasokModelSzavazasok  extends JModelItem {
      } else {
        $result = false;
      }
+	 
+	 if ($result) {
+		 $db->setQuery('DELETE FROM #__cimke_szavazasok where szavazas_id="'.$table->id.'"');
+		 $db->query();
+		 $w = explode(',',$item->cimkek);
+		 foreach ($w as $cimke) {
+			 if ($cimke != '') {
+				 $db->setQuery('INSERT INTO #__cimke_szavazasok
+				 value ("'.$cimke.'","'.$table->id.'")');
+				 $db->query();
+			 }
+		 }
+		 
+	 }
      return $result;
    } 
    /**

@@ -1,0 +1,77 @@
+/* TOOLBAR ICONS */
+
+table.adminlist tr .col_parameter_key {
+    width: 120px;
+    text-align: left;
+}
+
+table.adminlist tr .col_parameter_value {
+    width: 510px;
+}
+
+.single_parameter_value_container .btn_remove_parameter_value {
+    display: none;
+}
+
+table.adminlist tr td.col-ordering .icon-drag, .jf_thumb_box_items_container .icon-drag , .icon-drag{
+	background: url(../../images/draggable.png) no-repeat;
+	width: 16px;
+	height: 16px;
+	display: inline-block;
+	cursor: move;
+}
+
+#parameter_buttons_container, #tag_buttons_container {
+    float: right;
+}
+
+.col_key{
+	width: 20% !important;
+}
+ .col_value {
+	display:none;
+}
+
+.wd_shop_selected_products{
+	max-height:150px;
+	overflow:auto;
+	margin: 5px auto ;
+	width: 1236px ;
+}
+
+.delete_existing_data{
+	text-align:right;
+	color: #8d0000;
+}
+.delete_existing_data label{
+	font-weight:bold;
+}
+
+.price_sign {
+    width: auto !important;
+    float: none ;
+    margin-left: 5px !important;
+}
+
+.parameter_price {
+    width: 70px !important;
+    margin-left: 0px !important; ;
+}
+
+.col_values{
+    width: 145px;
+}
+.col_price{
+    width: 145px;
+}
+
+.col_type {
+    width: 110px;
+}
+
+.col_parameter_type {
+    text-align: center;
+}
+.price{
+	margin-left: 193px;
+}
