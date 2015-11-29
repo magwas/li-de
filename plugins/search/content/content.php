@@ -166,8 +166,6 @@ class PlgSearchContent extends JPlugin
 			$case_when1 .= ' ELSE ';
 			$case_when1 .= $c_id . ' END as catslug';
 
-			//+FT 2010.09.30 li-de specialitás a 10 kategria nem kell
-			
 			$query->select('a.title AS title, a.metadesc, a.metakey, a.created AS created, a.language, a.catid')
 				->select($query->concatenate(array('a.introtext', 'a.fulltext')) . ' AS text')
 				->select('c.title AS section, ' . $case_when . ',' . $case_when1 . ', ' . '\'2\' AS browsernav')
@@ -179,11 +177,9 @@ class PlgSearchContent extends JPlugin
 						. 'AND c.access IN (' . $groups . ') '
 						. 'AND (a.publish_up = ' . $db->quote($nullDate) . ' OR a.publish_up <= ' . $db->quote($now) . ') '
 						. 'AND (a.publish_down = ' . $db->quote($nullDate) . ' OR a.publish_down >= ' . $db->quote($now) . ')'
-						. 'AND (a.catid <> 10) '
 				)
 				->group('a.id, a.title, a.metadesc, a.metakey, a.created, a.introtext, a.fulltext, c.title, a.alias, c.alias, c.id')
 				->order($order);
-			//-FT 2010.09.30 li-de specialitás a 10 kategria nem kell
 
 			// Filter by language.
 			if ($app->isSite() && JLanguageMultilang::isEnabled())

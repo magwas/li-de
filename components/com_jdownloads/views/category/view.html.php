@@ -37,6 +37,8 @@ class JdownloadsViewCategory extends JViewLegacy
         
         $app	= JFactory::getApplication();
 		$user	= JFactory::getUser();
+        
+        $jd_user_settings = JDHelper::getUserRules();
 
 		// Get some data from the models
 		$state		= $this->get('State');
@@ -47,25 +49,26 @@ class JdownloadsViewCategory extends JViewLegacy
 		$parent		= $this->get('Parent');     // get the categories parent categories
 		$pagination = $this->get('Pagination');
         
-        // we must get all 'allowed' category IDs 
-        $this->authorised_cats = JDHelper::getAuthorisedJDCategories('core.create', $user);
-        $authorised = $user->authorise('core.create', 'com_jdownloads') || (count($this->authorised_cats));
-      
-        //+li-de illesztés
-        //DBG echo '<p>FBG category:'.$category->id.' authorized:'.$this->authorised_cats[0].'</p>';
-        if (count($this->authorised_cats) > 0) {
-          $authorised = in_array($category->id,$this->authorised_cats);  
-        }
-        //+li-de illesztés
+        // upload icon handling
+        $this->view_upload_button = false;
         
-
-      if ($authorised === true) {
-            // It exist a global permissions or at minimum a single category where the user has the permission to 'create'.
-            $this->view_upload_button = true;                
-        } else {
-            $this->view_upload_button = false;
+        if ($jd_user_settings->uploads_view_upload_icon){
+            // we must here check whether the user has the permissions to create new downloads 
+            // this can be defined in the components permissions but also in any category
+            // but the upload icon is only viewed when in the user groups settings is also activated the: 'display add/upload icon' option
+                
+            // 1. check the component permissions
+            if (!$user->authorise('core.create', 'com_jdownloads')){
+                // 2. not global permissions so we must check now every category (for a lot of categories can this be very slow)
+                $this->authorised_cats = JDHelper::getAuthorisedJDCategories('core.create', $user);
+                if (count($this->authorised_cats) > 0){
+                    $this->view_upload_button = true;
+                }
+            } else {
+                $this->view_upload_button = true;
+            }        
         }
-        
+                
         $this->ipad_user = false;
         
         // check whether we have an ipad/iphone user for flowplayer aso...
@@ -94,19 +97,21 @@ class JdownloadsViewCategory extends JViewLegacy
             }
         }             
         
+        $document->addScriptDeclaration('live_site = "'.JURI::base().'";');
+        
+        $document->addScriptDeclaration('function openWindow (url) {
+        fenster = window.open(url, "_blank", "width=550, height=480, STATUS=YES, DIRECTORIES=NO, MENUBAR=NO, SCROLLBARS=YES, RESIZABLE=NO");
+        fenster.focus();
+        }');
+        
         if ($jlistConfig['use.lightbox.function']){
+            JHtml::_('bootstrap.framework');
             $document->addScript(JURI::base().'components/com_jdownloads/assets/lightbox/lightbox.js');
             $document->addStyleSheet( JURI::base()."components/com_jdownloads/assets/lightbox/lightbox.css", 'text/css', null, array() );
         }
         
         // required only for subcategories pagination
         $document->addScript(JURI::base().'components/com_jdownloads/assets/pagination/jdpagination.js');
-
-        $document->addScriptDeclaration('var live_site = "'.JURI::base().'";');
-        $document->addScriptDeclaration('function openWindow (url) {
-                fenster = window.open(url, "_blank", "width=550, height=480, STATUS=YES, DIRECTORIES=NO, MENUBAR=NO, SCROLLBARS=YES, RESIZABLE=NO");
-                fenster.focus();
-                }');
 
         if ($jlistConfig['use.css.buttons.instead.icons']){
            $document->addStyleSheet( JURI::base()."components/com_jdownloads/assets/css/jdownloads_buttons.css", "text/css", null, array() ); 
@@ -135,6 +140,9 @@ class JdownloadsViewCategory extends JViewLegacy
 		$cparams = $category->getParams();
 		$category->params = clone($params);
 		$category->params->merge($cparams);
+        
+        $category->tags = new JHelperTags;
+        $category->tags->getItemTags('com_jdownloads.category', $category->id);        
 
 		// Check whether category access level allows access.
 		$user	= JFactory::getUser();
@@ -154,9 +162,12 @@ class JdownloadsViewCategory extends JViewLegacy
 				$item->parent_slug = null;
 			}
 
+            // required for some content plugins
+            $item->text = $item->description;
+            $item->id = $item->file_id; 
+
 			$item->event = new stdClass();
             
-            $item->text = ""; 
 			$dispatcher = JDispatcher::getInstance();
 
 			JPluginHelper::importPlugin('content');
@@ -170,7 +181,12 @@ class JdownloadsViewCategory extends JViewLegacy
 
 			$results = $dispatcher->trigger('onContentAfterDisplay', array('com_jdownloads.category', &$item, &$item->params, 0));
 			$item->event->afterDisplayContent = trim(implode("\n", $results));
-		}
+
+            // check the result from content plugins
+            if ($item->text != $item->description){
+                $item->description = $item->text; 
+            }             
+        }
 
 		// Check for layout override only if this is not the active menu item
 		// If it is the active menu item, then the view and category id will match
@@ -248,7 +264,7 @@ class JdownloadsViewCategory extends JViewLegacy
 			$category = $this->category->getParent();
 
 			while (($menu->query['option'] != 'com_jdownloads' || $menu->query['view'] == 'download' || $id != $category->id) && $category->id > 1){
-				$path[] = array('title' => $category->title, 'link' => JdownloadsHelperRoute::getCategoryRoute($category->id, false));
+				$path[] = array('title' => $category->title, 'link' => JdownloadsHelperRoute::getCategoryRoute($category->id, true));
 				$category = $category->getParent();
 			}
 

@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	4.8.1
+ * @version	4.9.3
  * @author	acyba.com
- * @copyright	(C) 2009-2014 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2015 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -31,7 +31,7 @@ class plgAcymailingTagcbuser extends JPlugin
 	 	$onePlugin->help = 'plugin-tagcbuser';
 
 	 	return $onePlugin;
-	 }
+	}
 
 	function onAcyDisplayFilters(&$type,$context="massactions"){
 
@@ -42,9 +42,30 @@ class plgAcymailingTagcbuser extends JPlugin
 		$fields = acymailing_getColumns('#__comprofiler');
 		if(empty($fields)) return;
 
+		$db->setQuery('SELECT name,title FROM #__comprofiler_fields WHERE `table` LIKE '.$db->Quote('#__comprofiler'));
+		$fieldTitles = $db->loadObjectList('name');
+
+		$languages = array();
+		if(file_exists(JPATH_SITE.DS.'components'.DS.'com_comprofiler'.DS.'plugin'.DS.'language'.DS.'default_language'.DS.'language.php')){
+			if(!defined('CBLIB')) include_once(JPATH_SITE.DS.'libraries/CBLib/CB/Application/CBApplication.php');
+			$languages = include_once JPATH_SITE.DS.'components'.DS.'com_comprofiler'.DS.'plugin'.DS.'language'.DS.'default_language'.DS.'language.php';
+		}elseif(file_exists(JPATH_SITE.DS.'components'.DS.'com_comprofiler'.DS.'plugin'.DS.'language'.DS.'default_language'.DS.'default_language.php')){
+			include_once JPATH_SITE.DS.'components'.DS.'com_comprofiler'.DS.'plugin'.DS.'language'.DS.'default_language'.DS.'default_language.php';
+		}
+
+		ksort($fields);
 		$cbfield = array();
 		foreach($fields as $oneField => $fieldType){
-			$cbfield[] = JHTML::_('select.option',$oneField,$oneField);
+			$text = $oneField;
+			if(!empty($fieldTitles[$oneField])){
+				if(!empty($languages[$fieldTitles[$oneField]->title])){
+					$text .= ' ('.$languages[$fieldTitles[$oneField]->title].')';
+				}else{
+					if(defined($fieldTitles[$oneField]->title)) $text .= ' ('.constant($fieldTitles[$oneField]->title).')';
+					else $text .= ' ('.$fieldTitles[$oneField]->title.')';
+				}
+			}
+			$cbfield[] = JHTML::_('select.option',$oneField,$text);
 		}
 		$type['cbfield'] = JText::_('CB_FIELD');
 
@@ -55,7 +76,7 @@ class plgAcymailingTagcbuser extends JPlugin
 		$return.= ' '.$operators->display("filter[__num__][cbfield][operator]").' <input onchange="countresults(__num__)" class="inputbox" type="text" name="filter[__num__][cbfield][value]" style="width:200px" value="" /></div>';
 
 	 	return $return;
-	 }
+	}
 
 	function onAcyProcessFilter_cbfield(&$query,$filter,$num){
 	 	$query->leftjoin['cbfield'] = '#__comprofiler AS cbfield ON cbfield.id = sub.userid';
@@ -118,7 +139,6 @@ class plgAcymailingTagcbuser extends JPlugin
 	 }
 
 	function acymailing_replaceusertags(&$email,&$user,$send = true){
-
 		$match = '#(?:{|%7B)cbtag:(.*)(?:}|%7D)#Ui';
 		$variables = array('subject','body','altbody');
 		$found = false;
@@ -136,6 +156,9 @@ class plgAcymailingTagcbuser extends JPlugin
 			$db->setQuery('SELECT * FROM '.acymailing_table('comprofiler',false).' WHERE user_id = '.$user->userid.' LIMIT 1');
 			$uservalues = $db->loadObject();
 		}
+
+		$db->setQuery('SELECT fieldid, `table`, name, type, params FROM #__comprofiler_fields');
+		$fieldObjects = $db->loadObjectList('name');
 
 		include_once( ACYMAILING_ROOT . 'administrator'.DS.'components'.DS.'com_comprofiler'.DS.'plugin.foundation.php' );
 		cbimport( 'cb.database' );
@@ -187,6 +210,19 @@ class plgAcymailingTagcbuser extends JPlugin
 					}elseif(!empty($user->userid)){
 						if(empty($currentCBUser))	$currentCBUser = CBuser::getInstance( $user->userid );
 						if(!empty($currentCBUser))	$values->$field = $currentCBUser->getField(substr($field,6),$mytag->default,'html', 'none', 'profile', 0, true);
+						if(empty($values->$field) && !empty($fieldObjects[substr($field,6)]) && $fieldObjects[substr($field,6)]->type == 'progress'){
+							$fieldObjects[substr($field,6)]->decodedParams = json_decode($fieldObjects[substr($field,6)]->params);
+							if(!empty($fieldObjects[substr($field,6)]->decodedParams->prg_fields)){
+								$requiredFields = explode('|*|', $fieldObjects[substr($field,6)]->decodedParams->prg_fields);
+								$filled_in = 0;
+								foreach($fieldObjects as $oneField){
+									if(!in_array($oneField->fieldid, $requiredFields) || !in_array($oneField->table, array('#__comprofiler', '#__users'))) continue;
+									$fieldName = $oneField->name;
+									if(!empty($currentCBUser->_cbuser->$fieldName)) $filled_in++;
+								}
+								$values->$field = intval(($filled_in*100)/count($requiredFields)).'%';
+							}
+						}
 					}
 				}
 

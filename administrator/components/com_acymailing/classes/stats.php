@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	4.8.1
+ * @version	5.0.1
  * @author	acyba.com
- * @copyright	(C) 2009-2014 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2015 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -24,6 +24,7 @@ class statsClass extends acymailingClass{
 		$subid = empty($this->subid) ? JRequest::getInt('subid') : $this->subid;
 		$mailid = empty($this->mailid) ? JRequest::getInt('mailid') : $this->mailid;
 		if(empty($subid) OR empty($mailid)) return false;
+		if(acymailing_isRobot()) return false;
 
 		$db = JFactory::getDBO();
 		$db->setQuery('SELECT `open` FROM '.acymailing_table('userstats').' WHERE `mailid` = '.intval($mailid).' AND `subid` = '.intval($subid).' LIMIT 1');

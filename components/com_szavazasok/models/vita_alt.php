@@ -45,7 +45,7 @@ class SzavazasokModelVita_alt extends JModelList {
     else
       $lezartLimit = 99;
     if ($filterStr != '') {
-	  $filterStr = ' and (sz.megnevezes like "%'.$filterStr.'%" or sz.cimkek like "%'.$filterStr.'%") ';
+      $filterStr = ' and sz.megnevezes like "%'.$filterStr.'%"';
     }  
 	$db		= $this->getDbo();
 	$query	= $db->getQuery(true);			
@@ -56,20 +56,8 @@ class SzavazasokModelVita_alt extends JModelList {
 SELECT sz.megnevezes, sz.vita1, sz.vita2, sz.szavazas, sz.lezart, sz.szavazas_vege, sz.titkos, sz.vita1_vege,
   sz.id, sz.temakor_id
 FROM #__szavazasok sz
-left outer join #__temakorok as t 
-   on t.id = sz.temakor_id	
-left outer join #__tagok ta
-   on ta.temakor_id = sz.temakor_id and ta.user_id = "'.$user->id.'"			 
 WHERE (sz.vita1=1) '.$filterStr;
-	// aktuális user láthatja ezt a szavazást?
-	$query .= ' and ((t.lathatosag = 0) or
-	                 (t.lathatosag = 1 and "'.$user->id.'" > 0) or
-					 (ta.user_id is not null)
-					)';
     $query .= ' order by '.JRequest::getVar('order','6');
-
-	// echo '<pre>'.$query.'</pre><br />';
-	
     return $query;  
 	}
 	
@@ -84,18 +72,7 @@ WHERE (sz.vita1=1) '.$filterStr;
 /* szavazások amik vita1 statuszban vannak */
 SELECT sz.id
 FROM #__szavazasok sz
-left outer join #__temakorok as t 
-   on t.id = sz.temakor_id	
-left outer join #__tagok ta
-   on ta.temakor_id = sz.temakor_id and ta.user_id = "'.$user->id.'"			 
 WHERE (sz.vita1=1) '.$filterStr);
-	// aktuális user láthatja ezt a szavazást?
-	$query .= ' and ((t.lathatosag = 0) or
-	                 (t.lathatosag = 1 and "'.$user->id.'" > 0) or
-					 (ta.user_id is not null)
-					)';
-    $query .= ' order by '.JRequest::getVar('order','6');
-
      $res = $db->loadObjectList();
      $result = count($res);
      return $result;

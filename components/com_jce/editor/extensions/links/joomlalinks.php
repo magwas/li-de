@@ -2,7 +2,7 @@
 
 /**
  * @package   	JCE
- * @copyright 	Copyright (c) 2009-2013 Ryan Demmer. All rights reserved.
+ * @copyright 	Copyright (c) 2009-2015 Ryan Demmer. All rights reserved.
  * @license   	GNU/GPL 2 or later - http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
  * JCE is free software. This version may have been modified pursuant
  * to the GNU General Public License, and as distributed it includes or
@@ -32,9 +32,20 @@ class WFLinkBrowser_Joomlalinks {
 
         if (!empty($files)) {
             foreach ($files as $file) {
+                $name = basename($file, '.php');
+                
+                // skip weblinks if it doesn't exist!
+                if ($name === "weblinks" && !is_file(JPATH_SITE . '/components/com_weblinks/helpers/route.php')) {
+                    continue;
+                }
+ 
                 require_once( $path . '/' . $file );
-                $classname = 'Joomlalinks' . ucfirst(basename($file, '.php'));
-                $this->_adapters[] = new $classname;
+
+                $classname = 'Joomlalinks' . ucfirst($name);
+
+                if (class_exists($classname)) {
+                    $this->_adapters[] = new $classname;
+                }
             }
         }
     }
@@ -73,6 +84,7 @@ class WFLinkBrowser_Joomlalinks {
             }
         }
     }
+
 }
 
 ?>

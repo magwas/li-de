@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	4.8.1
+ * @version	4.9.3
  * @author	acyba.com
- * @copyright	(C) 2009-2014 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2015 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -13,7 +13,7 @@ defined('_JEXEC') or die('Restricted access');
 	<div class="acymailing_mootoolsbutton">
 		<?php
 		 	$link = "rel=\"{handler: 'iframe', size: {x: ".$params->get('boxwidth',250).", y: ".$params->get('boxheight',200)."}}\" class=\"modal acymailing_togglemodule\"";
-		 	$href=acymailing_completeLink('sub&task=display&formid='.$module->id,true);
+		 	$href=acymailing_completeLink('sub&task=display&autofocus=1&formid='.$module->id,true);
 		?>
 		<p><a <?php echo $link; ?> id="acymailing_togglemodule_<?php echo $formName; ?>" href="<?php echo $href;?>"><?php echo $mootoolsButton ?></a></p>
 	</div>

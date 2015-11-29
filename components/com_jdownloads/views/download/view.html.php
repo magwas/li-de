@@ -35,6 +35,8 @@ class jdownloadsViewDownload extends JViewLegacy
 		$user		= JFactory::getUser();
 		$userId		= $user->get('id');
         
+        $jd_user_settings = JDHelper::getUserRules();        
+        
         // get jD User group settings and limitations
         $this->user_rules = JDHelper::getUserRules();
 
@@ -43,18 +45,29 @@ class jdownloadsViewDownload extends JViewLegacy
 		$this->item		 = $this->get('Item');
 		$this->state	 = $this->get('State');
 		$this->user		 = $user;
+        
+        // upload icon handling
+        $this->view_upload_button = false;
+        
+        if ($jd_user_settings->uploads_view_upload_icon){
+            // we must here check whether the user has the permissions to create new downloads 
+            // this can be defined in the components permissions but also in any category
+            // but the upload icon is only viewed when in the user groups settings is also activated the: 'display add/upload icon' option
+                
+            // 1. check the component permissions
+            if (!$user->authorise('core.create', 'com_jdownloads')){
+                // 2. not global permissions so we must check now every category (for a lot of categories can this be very slow)
+                $this->authorised_cats = JDHelper::getAuthorisedJDCategories('core.create', $user);
+                if (count($this->authorised_cats) > 0){
+                    $this->view_upload_button = true;
+                }
+            } else {
+                $this->view_upload_button = true;
+            }        
+        }
+
         $this->ipad_user = false;
-        
-        // we must get all 'allowed' category IDs 
-        $this->authorised_cats = JDHelper::getAuthorisedJDCategories('core.create', $user);
-        $authorised = $user->authorise('core.create', 'com_jdownloads') || (count($this->authorised_cats));
-        if ($authorised === true) {
-            // It exist a global permissions or at minimum a single category where the user has the permission to 'create'.
-            $this->view_upload_button = true;                
-        } else {
-            $this->view_upload_button = false;
-        }        
-        
+                                     
         // check whether we have an ipad/iphone user for flowplayer aso...
         if ((bool) strpos($_SERVER['HTTP_USER_AGENT'], 'iPad') || (bool) strpos($_SERVER['HTTP_USER_AGENT'], 'iPhone')){        
             $this->ipad_user = true;
@@ -82,6 +95,7 @@ class jdownloadsViewDownload extends JViewLegacy
         }    
 		
         if ($jlistConfig['use.lightbox.function']){
+            JHtml::_('bootstrap.framework');            
             $document->addScript(JURI::base().'components/com_jdownloads/assets/lightbox/lightbox.js');
             $document->addStyleSheet( JURI::base()."components/com_jdownloads/assets/lightbox/lightbox.css", 'text/css', null, array() );
         }
@@ -106,7 +120,8 @@ class jdownloadsViewDownload extends JViewLegacy
         $this->jd_image_path = JPATH_ROOT  . '/images/jdownloads';
         
         // Create a shortcut for $item.
-		$item = &$this->item;
+		$item = $this->item;
+        $item->tagLayout = new JLayoutFile('joomla.content.tags');
 
 		// Add router helpers.
 		$item->slug			= $item->file_alias ? ($item->file_id.':'.$item->file_alias) : $item->file_id;
@@ -161,12 +176,26 @@ class jdownloadsViewDownload extends JViewLegacy
             return;
 		}
 
+        $item->tags = new JHelperTags;
+        $item->tags->getItemTags('com_jdownloads.download', $this->item->file_id);
+
+        // required for some content plugins
+        if ($item->description_long != '')
+        {
+            $item->text = $item->description_long;
+            $long_used = true;
+        } else {
+            $item->text = $item->description;
+            $long_used = false;
+        }
+        $item->id = $item->file_id;
+        
 		// Process the content plugins.
 		JPluginHelper::importPlugin('content');
 
         // this is the event to modify the download data.
 		if ($jlistConfig['activate.general.plugin.support'] && !$jlistConfig['use.general.plugin.support.only.for.descriptions']) {
-            $results = $dispatcher->trigger('onContentPrepare', array ('com_jdownloads.download', &$item, &$this->params, $offset));
+            $dispatcher->trigger('onContentPrepare', array ('com_jdownloads.download', &$item, &$this->params, $offset)); 
         }
 
 		$item->event = new stdClass();
@@ -179,7 +208,18 @@ class jdownloadsViewDownload extends JViewLegacy
         $results = $dispatcher->trigger('onContentAfterDisplay', array('com_jdownloads.download', &$item, &$this->params, $offset));
 		$item->event->afterDisplayContent = trim(implode("\n", $results));
 
-		// Increment the views counter of the download
+		// we use a little trick to get always the changes from content plugins 
+        if ($long_used){
+            if ($item->text != $item->description_long){
+                $item->description_long = $item->text; 
+            }
+        } else {
+            if ($item->text != $item->description){
+                $item->description = $item->text; 
+            }            
+        }    
+        
+        // Increment the views counter of the download
         $model = $this->getModel();
 		$model->view();
 
@@ -217,8 +257,8 @@ class jdownloadsViewDownload extends JViewLegacy
 
 		$title = $this->params->get('page_title', '');
 
-        if (isset($menu->query['id'])){
-		    $id = (int) @$menu->query['id'];
+        if (isset($menu->query['catid'])){
+		    $id = (int) @$menu->query['catid'];
         } else {
             $id = 0;
         }    
@@ -236,7 +276,7 @@ class jdownloadsViewDownload extends JViewLegacy
             $category = JDCategories::getInstance('Download')->get($this->item->cat_id);
             while ($category && ($menu->query['option'] != 'com_jdownloads' || $menu->query['view'] == 'download' || $id != $category->id) && $category->id > 1)
             {
-                $path[] = array('title' => $category->title, 'link' => JdownloadsHelperRoute::getCategoryRoute($category->id, false));
+                $path[] = array('title' => $category->title, 'link' => JdownloadsHelperRoute::getCategoryRoute($category->id, true));
                 $category = $category->getParent();
             }
             $path = array_reverse($path);
@@ -269,7 +309,23 @@ class jdownloadsViewDownload extends JViewLegacy
 		{
 			$this->document->setDescription($this->params->get('menu-meta_description'));
 		}
-
+        
+        // use the Downloads description when the metadesc is still empty
+        if (empty($this->item->metadesc)) 
+        {
+            $metadescription = strip_tags($this->item->description); 
+            
+            if (strlen($metadescription) >= 150)
+            { 
+               $metadescshort = substr($metadescription, 0, strpos($metadescription," ",150))." ...";  
+            } 
+            else
+            {
+               $metadescshort = $metadescription;
+            }
+            $this->document->setDescription($metadescshort);
+        }            
+        
 		if ($this->item->metakey)
 		{
 			$this->document->setMetadata('keywords', $this->item->metakey);

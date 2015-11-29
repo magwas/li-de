@@ -59,21 +59,13 @@ class jdownloadsControllerDownload extends JControllerForm
         
         // Initialise variables.
 		$user		= JFactory::getUser();
-		$categoryId = JArrayHelper::getValue($data, 'catid', $this->input->getInt('filter_category_id'), 'int');
-	
-        //+li-de illesztés
 		$categoryId = JArrayHelper::getValue($data, 'cat_id', $this->input->getInt('filter_category_id'), 'int');
-        //+li-de illesztés
-
-
-    	$allow		= null;
+		$allow		= null;
 
 		if ($categoryId) {
 			// If the category has been passed in the data or URL check it.
 			$allow	= $user->authorise('core.create', 'com_jdownloads.category.'.$categoryId);
 		}
-
-        //DBG echo '<p>allow:'.$allow.' category_id:'.$categoryId.'</p>';
 
 		if ($allow === null) {
 			// In the absense of better information, revert to the component permissions.
@@ -82,8 +74,6 @@ class jdownloadsControllerDownload extends JControllerForm
 		else {
 			return $allow;
 		}
-        
-        
 	}
 
 	/**
@@ -270,12 +260,12 @@ class jdownloadsControllerDownload extends JControllerForm
 	 *
 	 * @return	void
 	 */
-	protected function postSaveHook(JModelLegacy &$model, $validData)
+	protected function postSaveHook(JModelLegacy $model, $validData = array())
 	{
 		$task = $this->getTask();
 
 		if ($task == 'save') {
-			$this->setRedirect(JRoute::_('index.php?option=com_jdownloads&view=category&id='.$validData['catid'], false));
+			$this->setRedirect(JRoute::_('index.php?option=com_jdownloads&view=category&id='.$validData['cat_id'], false));
 		}
 	}
 
@@ -414,6 +404,8 @@ class jdownloadsControllerDownload extends JControllerForm
         $app     = JFactory::getApplication();
         $params  = $app->getParams();
         $user    = JFactory::getUser();
+        $groups  = implode (',', $user->getAuthorisedViewLevels());        
+
         $db      = JFactory::getDBO();
         
         $config = array('ignore_request' => true);        
@@ -509,17 +501,21 @@ class jdownloadsControllerDownload extends JControllerForm
             }
         }
 
-        //  access check
-        if ($cat_id) {
+        //  download action check (not for uncategorized)
+        if ($cat_id > 1) {
             // If the category has been passed in the data or URL check it.
             $allow = $user->authorise('download', 'com_jdownloads.category.'.$cat_id);
+            if ($file_id && $allow){
+                // If the category has been passed in the data or URL check it.
+                $allow = $user->authorise('download', 'com_jdownloads.download.'.$file_id);
+            }            
+        } else {
+            if ($file_id){
+                // If the category has been passed in the data or URL check it.
+                $allow = $user->authorise('download', 'com_jdownloads.download.'.$file_id);
+            }            
         }
         
-        if ($file_id){
-            // If the category has been passed in the data or URL check it.
-            $allow = $user->authorise('download', 'com_jdownloads.download.'.$file_id);
-        }
-                
         if (!$allow){
             // download stopped - user has not the right to download it
             $msg = JText::_('COM_JDOWNLOADS_DOWNLOAD_NOT_ALLOWED_MSG');
@@ -540,8 +536,8 @@ class jdownloadsControllerDownload extends JControllerForm
 
                 // get standard points value from AUP
                 $db->setQuery("SELECT points FROM #__alpha_userpoints_rules WHERE published = 1 AND plugin_function = 'plgaup_jdownloads_user_download'");
-                $aup_fix_points = (int)$db->loadResult();
-                $aup_fix_points = abs($aup_fix_points);
+                $aup_fix_points = floatval($db->loadResult());
+                //$aup_fix_points = JDHelper::strToNumber($aup_fix_points);
             }
         }    
 
@@ -567,11 +563,16 @@ class jdownloadsControllerDownload extends JControllerForm
         } else {
             $query->where('a.file_id = '.$db->Quote($file_id));
         }    
+
+        // Filter by access level so when we get not a result this user has not the access to view it
+        $query->where('a.access IN ('.$groups.')');
+        $query->where('c.access IN ('.$groups.')');
+        
         $db->setQuery($query);
         $files = $db->loadObjectList();
 
         if (!$files){
-            // invalid data ?
+            // invalid data or user has not really the access 
             $msg = JText::_('COM_JDOWNLOADS_DATA_NOT_FOUND');
             $app->redirect(JRoute::_($current_link), $msg, 'error');
         }            
@@ -592,7 +593,7 @@ class jdownloadsControllerDownload extends JControllerForm
                         if ($profile->points >= $sum_points){
                             foreach($files as $aup_data){
                                 $db->setQuery("SELECT price FROM #__jdownloads_files WHERE file_id = '$aup_data->file_id'");
-                                if ($price = (int)$db->loadResult()){
+                                if ($price = floatval($db->loadResult())){
                                     $can_download = JDHelper::setAUPPointsDownloads($user->id, $aup_data->file_title, $aup_data->file_id, $price, $profile);
                                 }                                                   
                             }
@@ -653,13 +654,45 @@ class jdownloadsControllerDownload extends JControllerForm
            if (!$mirror){
                if ($files[0]->url_download){
                    // build the complete category path
-                   if ($files[0]->category_cat_dir_parent != ''){
-                       $cat_dir = $files[0]->category_cat_dir_parent.'/'.$files[0]->category_cat_dir;
+                   if ($files[0]->cat_id > 1){
+                       // Download has a category
+                       if ($files[0]->category_cat_dir_parent != ''){
+                           $cat_dir = $files[0]->category_cat_dir_parent.'/'.$files[0]->category_cat_dir;
+                       } else {
+                           $cat_dir = $files[0]->category_cat_dir;
+                       }               
+                       $filename        = $jlistConfig['files.uploaddir'].'/'.$cat_dir.'/'.$files[0]->url_download;
+                       $filename_direct = $jlistConfig['files.uploaddir'].'/'.$cat_dir.'/'.$files[0]->url_download;        
                    } else {
-                       $cat_dir = $files[0]->category_cat_dir;
-                   }               
-                   $filename = $jlistConfig['files.uploaddir'].'/'.$cat_dir.'/'.$files[0]->url_download;
-                   $filename_direct = $jlistConfig['files.uploaddir'].'/'.$cat_dir.'/'.$files[0]->url_download;        
+                       // Download is 'uncategorized'
+                       $filename = $jlistConfig['files.uploaddir'].'/'.$jlistConfig['uncategorised.files.folder.name'].'/'.$files[0]->url_download;
+                   }    
+               } elseif ($files[0]->other_file_id) {
+                            // A file from another Download was assigned         
+                            $query = $db->getQuery(true);
+                            $query->select('a.*');
+                            $query->from('#__jdownloads_files AS a');
+                            // Join on category table.
+                            $query->select('c.id AS category_id, c.cat_dir AS category_cat_dir, c.cat_dir_parent AS category_cat_dir_parent');
+                            $query->join('LEFT', '#__jdownloads_categories AS c on c.id = a.cat_id');
+                            $query->where('a.published = '.$db->Quote('1'));
+                            $query->where('a.file_id = '.$db->Quote($files[0]->other_file_id));
+                            $query->where('a.access IN ('.$groups.')');
+                            $db->setQuery($query);
+                            $other_file_data = $db->loadObject();
+                            if ($other_file_data->cat_id > 1){
+                                // the assigned Download has a category
+                                if ($other_file_data->category_cat_dir_parent != ''){
+                                    $cat_dir = $other_file_data->category_cat_dir_parent.'/'.$other_file_data->category_cat_dir;
+                               } else {
+                                    $cat_dir = $other_file_data->category_cat_dir;
+                               }               
+                               $filename        = $jlistConfig['files.uploaddir'].'/'.$cat_dir.'/'.$other_file_data->url_download;
+                               $filename_direct = $jlistConfig['files.uploaddir'].'/'.$cat_dir.'/'.$other_file_data->url_download;
+                            } else {
+                               // Download is 'uncategorized'
+                               $filename = $jlistConfig['files.uploaddir'].'/'.$jlistConfig['uncategorised.files.folder.name'].'/'.$other_file_data->url_download;
+                            }                   
                } else {
                    $filename = $files[0]->extern_file; 
                    if ($files[0]->extern_site){
@@ -688,9 +721,9 @@ class jdownloadsControllerDownload extends JControllerForm
            // Is AUP rule or price option used - we need the price for it
            if ($aup_exist){
                if ($jlistConfig['use.alphauserpoints.with.price.field']){
-                   $price = (int)$files[0]->price;
+                   $price = floatval($files[0]->price);
                } else {
-                   $price = (int)$aup_fix_points;
+                   $price = $aup_fix_points;
                }        
            }    
             
@@ -710,8 +743,7 @@ class jdownloadsControllerDownload extends JControllerForm
         // load external plugins
         $dispatcher = JDispatcher::getInstance();
         JPluginHelper::importPlugin('jdownloads');
-        $results = $dispatcher->trigger('onBeforeDownloadIsSendJD', array($files, $can_download, $user_rules, $download_in_parts));  // 
-            
+        $results = $dispatcher->trigger('onBeforeDownloadIsSendJD', array(&$files, &$can_download, $user_rules, $download_in_parts));    
         
         if (!$can_download){
             $msg = JText::_('COM_JDOWNLOADS_BACKEND_SET_AUP_FE_MESSAGE_NO_DOWNLOAD');
@@ -727,7 +759,12 @@ class jdownloadsControllerDownload extends JControllerForm
 
                 // give uploader AUP points when is set on
                 if ($jlistConfig['use.alphauserpoints']){
-                    JDHelper::setAUPPointsDownloaderToUploader($files);  
+                    if ($jlistConfig['use.alphauserpoints.with.price.field']){
+                        JDHelper::setAUPPointsDownloaderToUploaderPrice($files);
+                    } else {    
+                        JDHelper::setAUPPointsDownloaderToUploader($files);
+                    }
+                      
                 }
 
                 // write data in log 
@@ -765,8 +802,8 @@ class jdownloadsControllerDownload extends JControllerForm
             
             // if set the option for direct link to the file
             if (!$jlistConfig['use.php.script.for.download']){
-                $root = rtrim($_SERVER["DOCUMENT_ROOT"], "/");
-                $root = rtrim($_SERVER["DOCUMENT_ROOT"], "\\");
+                $root = str_replace('\\', '/', $_SERVER["DOCUMENT_ROOT"]);
+                $root = rtrim($root, "/");               
                 $host = $_SERVER["HTTP_HOST"].'/';                
                 $filename_direct = str_replace($root, $host, $filename_direct);
                 $filename_direct = str_replace('//', '/', $filename_direct);

@@ -109,7 +109,6 @@ class jdownloadsViewForm extends JViewLegacy
             if (!found) add_new_image_file(field);
         }');         
         
-        
 		// Get model data.
 		$this->state		= $this->get('State');
 		$this->item			= $this->get('Item');
@@ -141,6 +140,7 @@ class jdownloadsViewForm extends JViewLegacy
             $this->form->setFieldAttribute( 'custom_field_14', 'cols', '60' );            
         }
         
+        // activate the 'required' state
         if ($user_rules->form_alias && $user_rules->form_alias_x)                               $this->form->setFieldAttribute( 'file_alias', 'required', 'true' ); 
         if ($user_rules->form_author_mail && $user_rules->form_author_mail_x)                   $this->form->setFieldAttribute( 'url_author', 'required', 'true' ); 
         if ($user_rules->form_author_name && $user_rules->form_author_name_x)                   $this->form->setFieldAttribute( 'author', 'required', 'true' ); 
@@ -172,13 +172,25 @@ class jdownloadsViewForm extends JViewLegacy
         if ($user_rules->form_extra_short_input_3 && $user_rules->form_extra_short_input_3_x)   $this->form->setFieldAttribute( 'custom_field_8', 'required', 'true' ); 
         if ($user_rules->form_extra_short_input_4 && $user_rules->form_extra_short_input_4_x)   $this->form->setFieldAttribute( 'custom_field_9', 'required', 'true' ); 
         if ($user_rules->form_extra_short_input_5 && $user_rules->form_extra_short_input_5_x)   $this->form->setFieldAttribute( 'custom_field_10', 'required', 'true' ); 
-        if ($user_rules->form_extra_date_1 && $user_rules->form_extra_extra_date_1_x)           $this->form->setFieldAttribute( 'custom_field_11', 'required', 'true' ); 
-        if ($user_rules->form_extra_date_2 && $user_rules->form_extra_extra_date_2_x)           $this->form->setFieldAttribute( 'custom_field_12', 'required', 'true' ); 
+        if ($user_rules->form_extra_date_1 && $user_rules->form_extra_date_1_x)                 $this->form->setFieldAttribute( 'custom_field_11', 'required', 'true' ); 
+        if ($user_rules->form_extra_date_2 && $user_rules->form_extra_date_2_x)                 $this->form->setFieldAttribute( 'custom_field_12', 'required', 'true' ); 
         if ($user_rules->form_extra_large_input_1 && $user_rules->form_extra_large_input_1_x)   $this->form->setFieldAttribute( 'custom_field_13', 'required', 'true' );         
         if ($user_rules->form_extra_large_input_2 && $user_rules->form_extra_large_input_2_x)   $this->form->setFieldAttribute( 'custom_field_14', 'required', 'true' );         
         
-        // Use this option only for edit page
+        // check the possibility to create new custom tags
+        if (!$user_rules->uploads_allow_custom_tags){
+            $this->form->setFieldAttribute( 'tags', 'custom', 'deny' );
+            //$this->form->setFieldAttribute( 'tags', 'mode', 'nested' );
+        }
+        
         if (!$this->item->file_id){
+            // new Download
+            // set default value for access in form when exist - use otherwise 1 for public access
+            if ($user_rules->uploads_default_access_level){
+                $this->form->setValue( 'access', null, (int)$user_rules->uploads_default_access_level );
+            }    
+
+            // Use this options only for 'creation' page (...why?)    
             if ($user_rules->form_select_main_file && $user_rules->form_select_main_file_x)         $this->form->setFieldAttribute( 'file_upload', 'required', 'true' );
             if ($user_rules->form_select_preview_file && $user_rules->form_select_preview_file_x)   $this->form->setFieldAttribute( 'preview_file_upload', 'required', 'true' );
         }    
@@ -237,6 +249,13 @@ class jdownloadsViewForm extends JViewLegacy
         
         $this->user_rules  = $user_rules;
         $this->user_limits = $user_limits;
+        
+        $this->item->tags = new JHelperTags;
+
+        if (!empty($this->item->file_id))
+        {
+            $this->item->tags->getItemTags('com_jdownloads.download.', $this->item->file_id);
+        }        
         
 		if (!empty($this->item) && isset($this->item->file_id)) {
 			$tmp = new stdClass;

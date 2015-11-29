@@ -3,18 +3,19 @@
 * @package jDownloads
 * @copyright (C) 2008 / 2014 www.jdownloads.com
 * @license http://www.gnu.org/copyleft/gpl.html GNU/GPL
-*   jdownloads-fe  jD32 V4H  2014-11-21 17:39
+*   jdownloads-fe  jD32 V4I  2015-02-05 
 */
 
-tr, td {
+.jd-item-page tr,
+.jd-item-page td {
     border: 0px !important;
 }
 
-table {
+.jd-item-page table {
 	border-collapse: separate !important;
 }
 
-jd_div {
+.jd_div {
         margin:0;
 }
 
@@ -29,8 +30,8 @@ jd_div {
         line-height:130%;
         text-align: justify;
         height:130%;
-        padding-left: 8px;
-        padding-right: 8px;
+        padding-left: 8px;
+        padding-right: 8px;
 }
 
 .jd_cat_title {
@@ -85,7 +86,7 @@ jd_div {
 }
 
 .jd_td_cat_files {
-        text-align: right;
+        text-align: right;
         padding-left:10px;
         padding-right:5px;
         padding-top: 0px;
@@ -284,8 +285,7 @@ jd_h3 {
     border:2px dotted #ddd !important;
 }
 .jd_fieldset_outer {
-    border:2px solid #ddd !important;
-    border: 2px solid #DDD !important;
+    /* border: 2px solid #ddd !important; */
     padding-bottom: 0px;
     margin: 0px;
     padding-top: 0px;
@@ -587,19 +587,24 @@ input.button_rename {
     z-index: 1;
 }   
 
- /* ++++++++++++++  .tooltip-inner for v3.x series ++++++++++++++ */
- /* ++++++++++++++  .tip for v2.5 series ++++++++++++++ */
+/* ++++++++++++++  .tooltip-inner for v3.x series ++++++++++++++ */
+/* ++++++++++++++  .tip for v2.5 series ++++++++++++++ */
 .tooltip-inner, .tip{
   /* optional styling  omit for tempate defaults*/
 	border: solid 1px #ccc !important;
 	background: #ededed !important;
 	color:#000333 !important;
+	-webkit-border-radius: 10px  !important;
+	-moz-border-radius: 10px  !important;
+	border-radius: 10px !important;
   /* +++ items below are essential */
-	width: auto;
-	position: absolute;
+	/*width: auto; */
+	min-width: 100%;
+	/*position: absolute;*/
         top: 3em;
-	z-index: 2;
+	z-index: 1040;
 }
+
 .tooltip.in, .tip-wrap{
   /* required to overcome opacity with tempate defaults*/
   opacity: 1 !important;
@@ -634,6 +639,7 @@ background-image:url('') !important;
        float:left;
        }
 .formelm60 label,
+.formelm_tags label,
 .formelm label {
        width: 11em;
        float: left;
@@ -643,6 +649,7 @@ background-image:url('') !important;
        margin-left: 5px;
        float:left;
        }
+.formelm_tags,
 .formelm {
        clear: both;
        }
@@ -658,6 +665,15 @@ background-image:url('') !important;
 }
 .formelm select, .formelm-area select {
       width: auto;
+}
+/*  width overrides in tags field in upload form */
+.formelm_tags #jform_tags_chzn ul, 
+.formelm_tags #jform_tags_chzn input[style],
+.formelm_tags div[style] {
+    width: 219px !important;
+}
+.formelm_tags {
+  padding-bottom: 9px;
 }      
 /* required to fix the search form in beez */
 fieldset.only label:before {
@@ -677,4 +693,4 @@ fieldset.only input[type="checkbox"] {
 /*  for compacted download details layout */
 .jdtable td {
     padding: 0px !important;
-}
+}

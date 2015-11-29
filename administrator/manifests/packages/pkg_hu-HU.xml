@@ -1,22 +1,22 @@
 ﻿<?xml version="1.0" encoding="UTF-8" ?>
-<extension type="package" version="3.2">
+<extension type="package" version="3.4" method="upgrade">
 	<name>Hungarian Language Pack (Formal)</name>
 	<packagename>hu-HU</packagename>
-	<version>3.2.3.1</version>
-	<creationDate>2014-02-25</creationDate>
-	<author>Joomla! User Association Hungary</author>
-	<authorEmail>info@joomla.org.hu</authorEmail>
-	<authorUrl>www.joomla.org.hu</authorUrl>
-    <copyright>Copyright (C) 2007 - 2014 Joomla! User Association Hungary. All rights reserved.</copyright>
+	<version>3.4.3.1</version>
+	<creationDate>2015-07-08</creationDate>
+	<author>Joomla! Hungary</author>
+	<authorEmail>szerk@joomlacms.hu</authorEmail>
+	<authorUrl>http://joomlacms.hu</authorUrl>
+    <copyright>Copyright (C) 2013 - 2015 Joomla! Hungary and Open Source Matters, Inc. All rights reserved.</copyright>
 	<license>http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL</license>
 	<url></url>
 	<packager>Joomla! Hungarian</packager>
-	<packagerurl>www.joomla.org.hu</packagerurl>
+	<packagerurl>joomlacms.hu</packagerurl>
 	<description>
 		<![CDATA[
 		<div style="text-align:left;">
-		<h3>Full Hungarian (hu-HU) Language Package in formal style for Joomla! 3.2.3 - Version 3.2.3v1</h3>
-		<h3>Teljes magyar (hu-HU) magázó stílusú nyelvi csomag Joomla! 3.2.3-hoz - Verzió: 3.2.3v1</h3>
+		<h3>Full Hungarian (hu-HU) Language Package in formal style for Joomla! 3.4.3 - Version 3.4.3v1</h3>
+		<h3>Teljes magyar (hu-HU) magázó stílusú nyelvi csomag Joomla! 3.4.3-hoz - Verzió: 3.4.3v1</h3>
 		</div>
 		]]>
 	</description>

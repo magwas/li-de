@@ -38,12 +38,14 @@
 //
 
 // If you would like to use a custom loading image or close button reference them in the next two lines.
-var loadingImage = 'components/com_jdownloads/assets/lightbox/loading.gif';		
-var closeButton = 'components/com_jdownloads/assets/lightbox/close.gif';		
-
-
-
-
+// The custom images are only loaded when also jQuery is loaded already   
+   if (jQuery) { 
+		var jsFileLocation = jQuery('script[src*=lightbox]').attr('src');  // the js file path
+		jsFileLocation = jsFileLocation.replace('lightbox.js', '');   // the js folder path   
+   
+		var loadingImage = jsFileLocation + 'loading.gif'; 		
+		var closeButton = jsFileLocation + 'close.gif'; 
+	}	
 
 //
 // getPageScroll()

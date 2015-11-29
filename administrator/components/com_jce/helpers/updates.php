@@ -3,7 +3,7 @@
 /**
  * @package    JCE
  * @copyright  Copyright (c) 2010-2013 Nicholas K. Dionysopoulos / AkeebaBackup.com
- * @copyright  Copyright (c) 2009-2013 Ryan Demmer. All rights reserved.
+ * @copyright  Copyright (c) 2009-2014 Ryan Demmer. All rights reserved.
  * @license    GNU LGPLv3 or later <http://www.gnu.org/copyleft/lesser.html>
  * 
  * Based on the LiveUpdateDownloadHelper class from Akeeba LiveUpdate
@@ -16,11 +16,15 @@ defined('_JEXEC') or die();
 class UpdatesHelper {
 
     private static function applyCACert(&$ch) {
-        $cacert = JPATH_LIBRARIES . '/joomla/http/transport/cacert.pem';
+        $cacert = dirname(__FILE__) . '/cacert.pem';
 
         if (file_exists($cacert)) {
             @curl_setopt($ch, CURLOPT_CAINFO, $cacert);
+            
+            return true;
         }
+        
+        return false;
     }
 
     /**
@@ -42,9 +46,8 @@ class UpdatesHelper {
             // Pretend we are Firefox, so that webservers play nice with us
             curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.2.14) Gecko/20110105 Firefox/3.6.14');
             curl_setopt($ch, CURLOPT_ENCODING, 'gzip');
-            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 30);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             // The @ sign allows the next line to fail if open_basedir is set or if safe mode is enabled
             @curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
             @curl_setopt($ch, CURLOPT_MAXREDIRS, 20);
@@ -59,7 +62,7 @@ class UpdatesHelper {
 
             // file download
             if ($result === false) {
-                return array('error' => 'CURL ERROR : ' . curl_error($ch));
+                return array('error' => 'CURL ERROR : ' . curl_errno($ch) . ' - ' . curl_error($ch));
             }
 
             curl_close($ch);
@@ -193,7 +196,7 @@ class UpdatesHelper {
             $result = function_exists('curl_init');
 
             if ($result) {
-                $cacert = JPATH_LIBRARIES . '/joomla/http/transport/cacert.pem';
+                $cacert = dirname(__FILE__) . '/cacert.pem';
 
                 // check for SSL support
                 $version = curl_version();
@@ -229,7 +232,6 @@ class UpdatesHelper {
             curl_setopt($ch, CURLOPT_FAILONERROR, true);
             curl_setopt($ch, CURLOPT_HEADER, true);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
             curl_setopt($ch, CURLOPT_TIMEOUT, 30);
 
@@ -263,7 +265,6 @@ class UpdatesHelper {
         curl_setopt($ch, CURLOPT_FAILONERROR, true);
         curl_setopt($ch, CURLOPT_HEADER, false);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
         curl_setopt($ch, CURLOPT_TIMEOUT, 30);
         // Pretend we are IE7, so that webservers play nice with us

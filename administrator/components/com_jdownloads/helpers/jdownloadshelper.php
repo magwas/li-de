@@ -155,16 +155,16 @@ class JDownloadsHelper
         $db->setQuery("SELECT COUNT(*) FROM #__jdownloads_categories WHERE published = 0");
         $sum_cats_unpublished = intval($db->loadResult());        
         $color = '#990000';
-        $stats = str_replace('#1', '<font color="'.$color.'"><b>'.$sum_files.'</b></font>', JText::_('COM_JDOWNLOADS_BACKEND_CP_STATS_TEXT'));
-        $stats = str_replace('#2', '<font color="'.$color.'"><b>'.$sum_cats.'</b></font>', $stats);
-        $stats = str_replace('#3', '<font color="'.$color.'"><b>'.$sum_downloads.'</b></font>', $stats);
-        $stats = str_replace('#4', '<font color="'.$color.'"><b>'.$sum_cats_unpublished.'</b></font>', $stats);
-        $stats = str_replace('#5', '<font color="'.$color.'"><b>'.$sum_files_unpublished.'</b></font>', $stats);
+        $stats = str_replace('#1', '<font color="'.$color.'"><b>'.self::strToNumber($sum_files).'</b></font>', JText::_('COM_JDOWNLOADS_BACKEND_CP_STATS_TEXT'));
+        $stats = str_replace('#2', '<font color="'.$color.'"><b>'.self::strToNumber($sum_cats).'</b></font>', $stats);
+        $stats = str_replace('#3', '<font color="'.$color.'"><b>'.self::strToNumber($sum_downloads).'</b></font>', $stats);
+        $stats = str_replace('#4', '<font color="'.$color.'"><b>'.self::strToNumber($sum_cats_unpublished).'</b></font>', $stats);
+        $stats = str_replace('#5', '<font color="'.$color.'"><b>'.self::strToNumber($sum_files_unpublished).'</b></font>', $stats);
         $data['stats'] = $stats;
-        $data['cats_public'] = $sum_cats - $sum_cats_unpublished;
-        $data['files_public'] = $sum_files - $sum_files_unpublished;
-        $data['cats_not_public'] = $sum_cats_unpublished;
-        $data['files_not_public'] = $sum_files_unpublished;
+        $data['cats_public'] = self::strToNumber($sum_cats - $sum_cats_unpublished);
+        $data['files_public'] = self::strToNumber($sum_files - $sum_files_unpublished);
+        $data['cats_not_public'] = self::strToNumber($sum_cats_unpublished);
+        $data['files_not_public'] = self::strToNumber($sum_files_unpublished);
         return $data;
     }
 
@@ -999,9 +999,12 @@ class JDownloadsHelper
         imagesavealpha($newpic,true);
         
         /* resize it */
-        imagecopyresized($newpic,$oldpic,0,0,0,0,$newwidth,$newheight,$width,$height); 
+        // imagecopyresized will copy and scale and image. This uses a fairly primitive algorithm that tends to yield more pixelated results.
+        //imagecopyresized($newpic,$oldpic,0,0,0,0,$newwidth,$newheight,$width,$height);
+        // imagecopyresampled will copy and scale and image, it uses a smoothing and pixel interpolating algorithm that will generally yield much better results then imagecopyresized at the cost of a little cpu usage.
+        imagecopyresampled($newpic,$oldpic,0,0,0,0,$newwidth,$newheight,$width,$height);  
         // store the image
-        switch($size[2]) {
+        switch($size[2]){
             case "1":    return imagegif($newpic, $thumbfilename);
             break;
             case "2":    return imagejpeg($newpic, $thumbfilename);
@@ -2234,7 +2237,7 @@ class JDownloadsHelper
                        
                        $new_cats_create++;
                        // copy index.html to the new folder
-                       $index_copied = JFile::copy($jlistConfig['files.uploaddir'].DS.'index.html', $jlistConfig['files.uploaddir'].DS.$searchdirs[$i].DS.'index.html');
+                       $index_copied = JFile::copy(JPATH_ROOT.DS.'administrator'.DS.'components'.DS.'com_jdownloads'.DS.'index.html', $jlistConfig['files.uploaddir'].DS.$searchdirs[$i].DS.'index.html');
                        $log_array[] = JText::_('COM_JDOWNLOADS_AUTO_CAT_CHECK_ADDED').' <b>'.$searchdirs[$i].'</b><br />';
                    }
 
@@ -2351,8 +2354,8 @@ class JDownloadsHelper
                                 $filename_new = self::getCleanFolderFileName( $only_name, true).'.'.$file_extension;                                
                                                          
                                 if ($only_name == ''){
-                                    echo "<script> alert('Error: Filename empty after cleaning!'); </script>\n";
-                                    exit();
+                                    $msgfile = $startdir.$only_dirs.'/'.$filename;
+                                    $log_array[] = "Error. Filename empty after cleaning! Location is: ".$only_dirs.'/'.$filename;
                                 }
                                  
                                 if ($filename_new != $filename){
@@ -2363,8 +2366,7 @@ class JDownloadsHelper
                                         $filename = $filename_new; 
                                     } else {
                                         // could not rename filename
-                                        echo "<script> alert('Error: Could not rename $filename'); </script>\n";
-                                        exit();
+                                        $log_array[] = "Error. Could not rename: $filename to: $filename_new";
                                     }
                                 }     
 
@@ -2384,8 +2386,9 @@ class JDownloadsHelper
                                 }    
                                      
                                 $date = JFactory::getDate();
-                                $date->setTimezone(JFactory::getApplication()->getCfg('offset'));
-
+                                $tz = JFactory::getConfig()->get( 'offset' );
+                                $date->setTimezone(new DateTimeZone($tz));
+                                
                                  $file_extension = JFile::getExt($filename);
                                 
                                  // set file size
@@ -2466,8 +2469,7 @@ class JDownloadsHelper
                                  $create_result = $model_download->createAutoDownload( $data );
                                  if (!$create_result){
                                     // error message
-                                    echo "<script> alert('Error: Could not add download for: $filename'); window.history.go(-1); </script>\n";
-                                    exit();
+                                    $log_array[] = "Error. Could not add download for: $filename";
                                  }
                                 
                                  $new_files++;
@@ -2520,7 +2522,7 @@ class JDownloadsHelper
            
               // save log
               if (count($log_array) > 0){
-                  array_unshift($log_array, date($jlistConfig['global.datetime']).':<br />');
+                  array_unshift($log_array, date(JText::_('DATE_FORMAT_LC2')).':<br />');
               }
               foreach ($log_array as $log) {
                    $log_message .= $log;
@@ -2619,5 +2621,77 @@ class JDownloadsHelper
         }        
 
     }
+    
+    /**
+    * Converts a string into Float while taking the given or locale number format into account
+    * Used as default the defined separator characters from the Joomla main language ini file (as example: en-GB.ini)  
+    * 
+    * @param mixed $str
+    * @param mixed $dec_point
+    * @param mixed $thousands_sep
+    * @param mixed $decimals
+    * @return mixed
+    */
+    public static function strToNumber( $str, $dec_point=null, $thousands_sep=null, $decimals = 0 )
+    {
+        if( is_null($dec_point) || is_null($thousands_sep) ) {
+            if( is_null($dec_point) ) {
+                $dec_point = JText::_('DECIMALS_SEPARATOR');
+            }
+            if( is_null($thousands_sep) ) {
+                $thousands_sep = JText::_('THOUSANDS_SEPARATOR');
+            }
+        }
+        // in this case use we as default the en-GB format
+        if (!$dec_point || $dec_point == 'DECIMALS_SEPARATOR') $dec_point = '.'; 
+        if (!$thousands_sep || $thousands_sep == 'THOUSANDS_SEPARATOR') $thousands_sep = ',';
+        
+        // we will not round a value so we must check it
+        if (is_numeric($str) && !is_int($str) && !is_double($str) && $decimals == 0){
+            $decimals = 2;
+        }         
+
+        $number = number_format($str, $decimals, $dec_point, $thousands_sep);
+        return $number;
+    }    
+    
+    /**
+    * Compute which date format shall be used for the output
+    * 
+    * @return mixed
+    */
+    public static function getDateFormat(){
+        
+        global $jlistConfig;
+        
+        $format = array();
+        
+        // check at first the long format 
+        // when defined get the format from the current language
+        if ($jlistConfig['global.datetime']){
+            $format['long'] = self::getOnlyLanguageSubstring($jlistConfig['global.datetime']);
+            if (!$format['long']){
+                $format['long'] = JText::_('DATE_FORMAT_LC2');
+            }
+        } else {
+            // format is not defined in configuration so we use a standard format from the language file (LC2)
+            $format['long'] = JText::_('DATE_FORMAT_LC2');
+        }
+
+        // check now the short format field
+        // when defined get the format from the current language
+        if ($jlistConfig['global.datetime.short']){
+            $format['short'] = self::getOnlyLanguageSubstring($jlistConfig['global.datetime.short']);
+            if (!$format['short']){
+                $format['short'] = JText::_('DATE_FORMAT_LC4');
+            }            
+        } else {
+            // format is not defined in configuration so we use a standard format from the language file (LC4)
+            $format['short'] = JText::_('DATE_FORMAT_LC4');
+        }
+
+        return $format;    
+    } 
+    
 }
 ?>

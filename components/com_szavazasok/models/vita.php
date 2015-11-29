@@ -43,11 +43,8 @@ class SzavazasokModelVita extends JModelList {
     else
       $lezartLimit = 99;
     if ($filterStr != '') {
-	  $filterW = ' and (sz.megnevezes like "%'.$filterStr.'%" or sz.cimkek like "%'.$filterStr.'%") ';
+      $filterStr = ' and sz.megnevezes like "%'.$filterStr.'%"';
     }  
-	
-	//DBG echo 'FILTERSTR='.$filterW.'<br />'; 
-	
 		$db		= $this->getDbo();
 		$query	= $db->getQuery(true);			
 		$catid = (int) $this->getState('authorlist.id', 1);		
@@ -59,26 +56,26 @@ SELECT sz.megnevezes, sz.vita1, sz.vita2, sz.szavazas, sz.lezart, sz.szavazas_ve
   sz.id, sz.temakor_id
 FROM #__szavazasok sz
 INNER join #__temakorok te ON te.id = sz.temakor_id
-LEFT OUTER JOIN #__szavazok szk ON szk.szavazas_id = sz.id AND szk.user_id = "'.$user->id.'"
-WHERE (sz.vita1=1 OR sz.vita2=1) '.$filterW.'
+LEFT OUTER JOIN #__szavazok szk ON szk.szavazas_id = sz.id AND szk.user_id = '.$user->id.'
+WHERE (sz.vita1=1 OR sz.vita2=1) '.$filterStr.'
 /* ahol a tagok szavazhatnak és én tag vagyok */
 UNION 
 SELECT sz.megnevezes, sz.vita1, sz.vita2, sz.szavazas, sz.lezart, sz.szavazas_vege, sz.titkos, szk.user_id,
   sz.id, sz.temakor_id
 FROM #__szavazasok sz
 INNER join #__temakorok te ON te.id = sz.temakor_id
-INNER JOIN #__tagok t ON t.temakor_id = sz.temakor_id AND t.user_id="'.$user->id.'"
-LEFT OUTER JOIN #__szavazok szk ON szk.szavazas_id = sz.id AND szk.user_id = "'.$user->id.'"
-WHERE (sz.vita1=1 OR sz.vita2=1) '.$filterW.'
+INNER JOIN #__tagok t ON t.temakor_id = sz.temakor_id AND t.user_id='.$user->id.'
+LEFT OUTER JOIN #__szavazok szk ON szk.szavazas_id = sz.id AND szk.user_id = '.$user->id.'
+WHERE (sz.vita1=1 OR sz.vita2=1) '.$filterStr.'
 /* ahol a felsöbb szintű témakör tagjai szavazhatnak és én ott tag vagyok   1 */
 UNION 
 SELECT sz.megnevezes, sz.vita1, sz.vita2, sz.szavazas, sz.lezart, sz.szavazas_vege, sz.titkos, szk.user_id,
   sz.id, sz.temakor_id
 FROM #__szavazasok sz
 INNER JOIN #__temakorok tk ON tk.id = sz.temakor_id
-INNER JOIN #__tagok t ON t.temakor_id = tk.szulo AND t.user_id="'.$user->id.'"
-LEFT OUTER JOIN #__szavazok szk ON szk.szavazas_id = sz.id AND szk.user_id = "'.$user->id.'"
-WHERE (sz.vita1=1 OR sz.vita2=1) '.$filterW.'
+INNER JOIN #__tagok t ON t.temakor_id = tk.szulo AND t.user_id='.$user->id.'
+LEFT OUTER JOIN #__szavazok szk ON szk.szavazas_id = sz.id AND szk.user_id = '.$user->id.'
+WHERE (sz.vita1=1 OR sz.vita2=1) '.$filterStr.'
 /* ahol a felsöbb szintű témakör tagjai szavazhatnak és én ott tag vagyok   2 */
 UNION 
 SELECT sz.megnevezes, sz.vita1, sz.vita2, sz.szavazas, sz.lezart, sz.szavazas_vege, sz.titkos, szk.user_id,
@@ -86,9 +83,9 @@ SELECT sz.megnevezes, sz.vita1, sz.vita2, sz.szavazas, sz.lezart, sz.szavazas_ve
 FROM #__szavazasok sz
 INNER JOIN #__temakorok tk ON tk.id = sz.temakor_id
 INNER JOIN #__temakorok tk1 ON tk1.id = tk.szulo
-INNER JOIN #__tagok t ON t.temakor_id = tk1.szulo AND t.user_id="'.$user->id.'"
-LEFT OUTER JOIN #__szavazok szk ON szk.szavazas_id = sz.id AND szk.user_id = "'.$user->id.'"
-WHERE (sz.vita1=1 OR sz.vita2=1) '.$filterW.'
+INNER JOIN #__tagok t ON t.temakor_id = tk1.szulo AND t.user_id='.$user->id.'
+LEFT OUTER JOIN #__szavazok szk ON szk.szavazas_id = sz.id AND szk.user_id = '.$user->id.'
+WHERE (sz.vita1=1 OR sz.vita2=1) '.$filterStr.'
 /* ahol a felsöbb szintű témakör tagjai szavazhatnak és én ott tag vagyok   3 */
 UNION 
 SELECT sz.megnevezes, sz.vita1, sz.vita2, sz.szavazas, sz.lezart, sz.szavazas_vege, sz.titkos, szk.user_id,
@@ -97,9 +94,9 @@ FROM #__szavazasok sz
 INNER JOIN #__temakorok tk ON tk.id = sz.temakor_id
 INNER JOIN #__temakorok tk1 ON tk1.id = tk.szulo
 INNER JOIN #__temakorok tk2 ON tk2.id = tk1.szulo
-INNER JOIN #__tagok t ON t.temakor_id = tk2.szulo AND t.user_id="'.$user->id.'"
-LEFT OUTER JOIN #__szavazok szk ON szk.szavazas_id = sz.id AND szk.user_id = "'.$user->id.'"
-WHERE (sz.vita1=1 OR sz.vita2=1) '.$filterW.'
+INNER JOIN #__tagok t ON t.temakor_id = tk2.szulo AND t.user_id='.$user->id.'
+LEFT OUTER JOIN #__szavazok szk ON szk.szavazas_id = sz.id AND szk.user_id = '.$user->id.'
+WHERE (sz.vita1=1 OR sz.vita2=1) '.$filterStr.'
 /* ahol a felsöbb szintű témakör tagjai szavazhatnak és én ott tag vagyok   4 */
 UNION 
 SELECT sz.megnevezes, sz.vita1, sz.vita2, sz.szavazas, sz.lezart, sz.szavazas_vege, sz.titkos, szk.user_id,
@@ -109,13 +106,13 @@ INNER JOIN #__temakorok tk ON tk.id = sz.temakor_id
 INNER JOIN #__temakorok tk1 ON tk1.id = tk.szulo
 INNER JOIN #__temakorok tk2 ON tk2.id = tk1.szulo
 INNER JOIN #__temakorok tk3 ON tk3.id = tk2.szulo
-INNER JOIN #__tagok t ON t.temakor_id = tk3.szulo AND t.user_id="'.$user->id.'"
-LEFT OUTER JOIN #__szavazok szk ON szk.szavazas_id = sz.id AND szk.user_id = "'.$user->id.'"
-WHERE (sz.vita1=1 OR sz.vita2=1) '.$filterW.'
+INNER JOIN #__tagok t ON t.temakor_id = tk3.szulo AND t.user_id='.$user->id.'
+LEFT OUTER JOIN #__szavazok szk ON szk.szavazas_id = sz.id AND szk.user_id = '.$user->id.'
+WHERE (sz.vita1=1 OR sz.vita2=1) '.$filterStr.'
 ';
     $query .= ' order by '.JRequest::getVar('order','6');
       
-    //DBG echo '<pre'.$query.'<pre>';  
+    //DBG echo '<hr>'.$query.'<hr>';  
       
     return $query;  
 	}
@@ -127,51 +124,40 @@ WHERE (sz.vita1=1 OR sz.vita2=1) '.$filterW.'
      $result = 0;
      $db = JFactory::getDBO();
 	 $user = JFactory::getUser();
-    $w = explode('|',urldecode(JRequest::getVar('filterStr','')));
-    $user = JFactory::getUser();
-    $filterStr = $w[0];
-    $filterAktiv = $w[1];
-    if ($filterAktiv==1)
-      $lezartLimit = 1;
-    else
-      $lezartLimit = 99;
-    if ($filterStr != '') {
-	  $filterW = ' and (sz.megnevezes like "%'.$filterStr.'%" or sz.cimkek like "%'.$filterStr.'%") ';
-    }  
-    $db->setQuery('
+     $db->setQuery('
     /* szavazások ahol jelenleg szavazhatok */
 /* ==================================== */
 /* ahol minden regisztrált szavazhat */
 SELECT sz.id
 FROM #__szavazasok sz
 INNER join #__temakorok te ON te.id = sz.temakor_id
-LEFT OUTER JOIN #__szavazok szk ON szk.szavazas_id = sz.id AND szk.user_id = "'.$user->id.'"
-WHERE (sz.vita1=1 OR sz.vita2=1) '.$filterW.'
+LEFT OUTER JOIN #__szavazok szk ON szk.szavazas_id = sz.id AND szk.user_id = '.$user->id.'
+WHERE (sz.vita1=1 OR sz.vita2=1) '.$filterStr.'
 /* ahol a tagok szavazhatnak és én tag vagyok */
 UNION 
 SELECT sz.id
 FROM #__szavazasok sz
 INNER join #__temakorok te ON te.id = sz.temakor_id
-INNER JOIN #__tagok t ON t.temakor_id = sz.temakor_id AND t.user_id="'.$user->id.'"
-LEFT OUTER JOIN #__szavazok szk ON szk.szavazas_id = sz.id AND szk.user_id = "'.$user->id.'"
-WHERE (sz.vita1=1 OR sz.vita2=1) '.$filterW.'
+INNER JOIN #__tagok t ON t.temakor_id = sz.temakor_id AND t.user_id='.$user->id.'
+LEFT OUTER JOIN #__szavazok szk ON szk.szavazas_id = sz.id AND szk.user_id = '.$user->id.'
+WHERE (sz.vita1=1 OR sz.vita2=1) '.$filterStr.'
 /* ahol a felsöbb szintű témakör tagjai szavazhatnak és én ott tag vagyok   1 */
 UNION 
 SELECT sz.id
 FROM #__szavazasok sz
 INNER JOIN #__temakorok tk ON tk.id = sz.temakor_id
-INNER JOIN #__tagok t ON t.temakor_id = tk.szulo AND t.user_id="'.$user->id.'"
-LEFT OUTER JOIN #__szavazok szk ON szk.szavazas_id = sz.id AND szk.user_id = "'.$user->id.'"
-WHERE (sz.vita1=1 OR sz.vita2=1) '.$filterW.'
+INNER JOIN #__tagok t ON t.temakor_id = tk.szulo AND t.user_id='.$user->id.'
+LEFT OUTER JOIN #__szavazok szk ON szk.szavazas_id = sz.id AND szk.user_id = '.$user->id.'
+WHERE (sz.vita1=1 OR sz.vita2=1) '.$filterStr.'
 /* ahol a felsöbb szintű témakör tagjai szavazhatnak és én ott tag vagyok   2 */
 UNION 
 SELECT sz.id
 FROM #__szavazasok sz
 INNER JOIN #__temakorok tk ON tk.id = sz.temakor_id
 INNER JOIN #__temakorok tk1 ON tk1.id = tk.szulo
-INNER JOIN #__tagok t ON t.temakor_id = tk1.szulo AND t.user_id="'.$user->id.'"
-LEFT OUTER JOIN #__szavazok szk ON szk.szavazas_id = sz.id AND szk.user_id = "'.$user->id.'"
-WHERE (sz.vita1=1 OR sz.vita2=1) '.$filterW.'
+INNER JOIN #__tagok t ON t.temakor_id = tk1.szulo AND t.user_id='.$user->id.'
+LEFT OUTER JOIN #__szavazok szk ON szk.szavazas_id = sz.id AND szk.user_id = '.$user->id.'
+WHERE (sz.vita1=1 OR sz.vita2=1) '.$filterStr.'
 /* ahol a felsöbb szintű témakör tagjai szavazhatnak és én ott tag vagyok   3 */
 UNION 
 SELECT sz.id
@@ -179,9 +165,9 @@ FROM #__szavazasok sz
 INNER JOIN #__temakorok tk ON tk.id = sz.temakor_id
 INNER JOIN #__temakorok tk1 ON tk1.id = tk.szulo
 INNER JOIN #__temakorok tk2 ON tk2.id = tk1.szulo
-INNER JOIN #__tagok t ON t.temakor_id = tk2.szulo AND t.user_id="'.$user->id.'"
-LEFT OUTER JOIN #__szavazok szk ON szk.szavazas_id = sz.id AND szk.user_id = "'.$user->id.'"
-WHERE (sz.vita1=1 OR sz.vita2=1) '.$filterW.'
+INNER JOIN #__tagok t ON t.temakor_id = tk2.szulo AND t.user_id='.$user->id.'
+LEFT OUTER JOIN #__szavazok szk ON szk.szavazas_id = sz.id AND szk.user_id = '.$user->id.'
+WHERE (sz.vita1=1 OR sz.vita2=1) '.$filterStr.'
 /* ahol a felsöbb szintű témakör tagjai szavazhatnak és én ott tag vagyok   4 */
 UNION 
 SELECT sz.id
@@ -190,9 +176,9 @@ INNER JOIN #__temakorok tk ON tk.id = sz.temakor_id
 INNER JOIN #__temakorok tk1 ON tk1.id = tk.szulo
 INNER JOIN #__temakorok tk2 ON tk2.id = tk1.szulo
 INNER JOIN #__temakorok tk3 ON tk3.id = tk2.szulo
-INNER JOIN #__tagok t ON t.temakor_id = tk3.szulo AND t.user_id="'.$user->id.'"
-LEFT OUTER JOIN #__szavazok szk ON szk.szavazas_id = sz.id AND szk.user_id = "'.$user->id.'"
-WHERE (sz.vita1=1 OR sz.vita2=1) '.$filterW.'
+INNER JOIN #__tagok t ON t.temakor_id = tk3.szulo AND t.user_id='.$user->id.'
+LEFT OUTER JOIN #__szavazok szk ON szk.szavazas_id = sz.id AND szk.user_id = '.$user->id.'
+WHERE (sz.vita1=1 OR sz.vita2=1) '.$filterStr.'
      '
      );
      

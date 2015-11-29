@@ -10,10 +10,11 @@
 // Protect from unauthorized access
 defined('_JEXEC') or die();
 
-JHtml::_('behavior.framework');
-
 $rootDirWarning = AkeebaHelperEscape::escapeJS(JText::_('CONFIG_UI_ROOTDIR'));
-JFactory::getDocument()->addScriptDeclaration(<<<ENDJS
+JFactory::getDocument()->addScriptDeclaration(<<<JS
+
+	;// This comment is intentionally put here to prevent badly written plugins from causing a Javascript error
+	// due to missing trailing semicolon and/or newline in their code.
 	function akeeba_browser_useThis()
 	{
 		var rawFolder = document.forms.adminForm.folderraw.value;
@@ -24,7 +25,8 @@ JFactory::getDocument()->addScriptDeclaration(<<<ENDJS
 		}
 		window.parent.akeeba_browser_callback( rawFolder );
 	}
-ENDJS
+
+JS
 , 'text/javascript');
 
 ?>
@@ -74,7 +76,7 @@ ENDJS
 			<ul class="breadcrumb">
 				<?php $i = 0 ?>
 				<?php foreach($this->breadcrumbs as $crumb):
-					$link = JURI::base()."index.php?option=com_akeeba&view=browser&tmpl=component&folder=".urlencode($crumb['folder']);
+					$link = JUri::base()."index.php?option=com_akeeba&view=browser&tmpl=component&folder=".urlencode($crumb['folder']);
 					$label = htmlentities($crumb['label']);
 					$i++;
 					$bull = $i < count($this->breadcrumbs) ? '&bull;' : '';
@@ -101,7 +103,7 @@ ENDJS
 			<table class="table table-striped">
 				<tr>
 					<td>
-						<?php $linkbase = JURI::base()."index.php?option=com_akeeba&view=browser&tmpl=component&folder="; ?>
+						<?php $linkbase = JUri::base()."index.php?option=com_akeeba&view=browser&tmpl=component&folder="; ?>
 						<a class="btn btn-mini btn-inverse" href="<?php echo $linkbase.urlencode($this->parent); ?>">
 							<i class="icon-arrow-up icon-white"></i>
 							<?php echo JText::_('BROWSER_LBL_GOPARENT') ?>
@@ -133,7 +135,7 @@ ENDJS
 			<table class="table table-striped">
 				<tr>
 					<td>
-						<?php $linkbase = JURI::base()."index.php?option=com_akeeba&view=browser&tmpl=component&folder="; ?>
+						<?php $linkbase = JUri::base()."index.php?option=com_akeeba&view=browser&tmpl=component&folder="; ?>
 						<a class="btn btn-mini btn-inverse" href="<?php echo $linkbase.urlencode($this->parent); ?>">
 							<i class="icon-arrow-up icon-white"></i>
 							<?php echo JText::_('BROWSER_LBL_GOPARENT') ?>

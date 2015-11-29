@@ -19,7 +19,7 @@ JModelLegacy::addIncludePath(JPATH_SITE . '/components/com_jdownloads/models', '
 
 class modJdownloadsLastUpdatedHelper
 {
-	static function getList(&$params)
+	static function getList($params)
 	{
         $db = JFactory::getDbo();
 
@@ -50,7 +50,7 @@ class modJdownloadsLastUpdatedHelper
         
         // Set the filter for date range
         $model->setState('filter.date_filtering', 'range');
-        $model->setState('filter.date_field', 'modified_date');
+        $model->setState('filter.date_field', 'a.modified_date');
         $model->setState('filter.start_date_range', $until);
         $model->setState('filter.end_date_range', date('Y-m-d H:m:s', strtotime('now')));
         
@@ -90,14 +90,12 @@ class modJdownloadsLastUpdatedHelper
             if ($access || in_array($item->access, $authorised))
             {
                 // We know that user has the privilege to view the download
-                $item->link = JRoute::_(JdownloadsHelperRoute::getDownloadRoute($item->slug, $item->catslug));
-            }
-            else
-            {
+                $item->link = '-';
+            } else {
                 $item->link = JRoute::_('index.php?option=com_users&view=login');
             }
         }
-        return $items;         
+        return $items;        
 	}
     
     /**

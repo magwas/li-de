@@ -7,6 +7,7 @@
  $db = JFactory::getDBO();
  $session = JFactory::getSession();
  $utvonal = '';
+ $utvonalEnd = '';
  $szavazas = JRequest::getVar('szavazas',0);
  $temakor = JRequest::getVar('temakor',0);
  // ha JRequest 'szavazas' érkezik akkor ebből épiti fel az utvonalat
@@ -62,10 +63,20 @@
      $session->set('utvonal',$utvonalEnd);
  else if (($utvonal != '') & ($utvonalEnd == ''))
      $session->set('utvonal',$utvonal);
- else 
-     $session->set('utvonal',$utvonal.'&nbsp;&gt;&nbsp;'.$utvonalEnd);
+ else if (($utvonal == '') & ($utvonalEnd == ''))
+     $session->set('utvonal','');
+ else {
+     if (substr($utvonal,-10) == '&gt;&nbsp;')
+       $session->set('utvonal',$utvonal.$utvonalEnd);
+     else    
+       $session->set('utvonal',$utvonal.'&nbsp;&gt;&nbsp;'.$utvonalEnd);
+ } 
+if ($utvonal == '')
+      $utvonal = '<a href="index.php?option=com_temakorok&view=temakoroklist">'.JText::_('TEMAKOROK').'</a>';
+     
+ 
  // megjelenít
- if ($utvonal != '') 
+ //if ($utvonal != '') 
     echo '<div class="utvonal">'.JText::_('Útvonal:').' '.$utvonal.'</div>';
      
 ?>

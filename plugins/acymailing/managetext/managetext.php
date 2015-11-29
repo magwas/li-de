@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	4.8.1
+ * @version	4.9.3
  * @author	acyba.com
- * @copyright	(C) 2009-2014 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2015 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -53,63 +53,51 @@ class plgAcymailingManagetext extends JPlugin
 	}
 
 	private function _replaceConstant(&$email){
-		$match = '#(?:{|%7B)(const|trans|config):(.*)(?:}|%7D)#Uis';
-		$variables = array('subject','body','altbody','fromname','fromemail','replyname','replyemail');
-		$found = false;
-		foreach($variables as $var){
-			if(empty($email->$var)) continue;
-			$found = preg_match_all($match,$email->$var,$results[$var]) || $found;
-		}
-
-		if(!$found) return;
+		$acypluginsHelper = acymailing_get('helper.acyplugins');
+		$tags = $acypluginsHelper->extractTags($email, '(?:const|trans|config)');
+		if(empty($tags)) return;
 
 		$jconfig = JFactory::getConfig();
 
-		$tags = array();
-		foreach($results as $var => $allresults){
-			foreach($allresults[0] as $i => $oneTag){
-				$val = trim(strip_tags($allresults[2][$i]));
+		$tagsReplaced = array();
+		foreach($tags as $i => $oneTag){
+			$val = '';
+			$arrayVal = array();
+			foreach($oneTag as $valname => $oneValue){
+				if($valname == 'id'){
+					$val = trim(strip_tags($oneValue));
+				}elseif($valname != 'default'){
+					$arrayVal[] = '{'.$valname.'}';
+				}
+			}
 
-				$arrayVal = array();
-				if(strpos($val, '|') !== false){
-					$arrayVal = explode('|', $val);
-					$val = $arrayVal[0];
-					array_shift($arrayVal);
-					foreach($arrayVal as $k=>$aVal){
-						$arrayVal[$k] = '{'.$aVal.'}';
-					}
+			if(empty($val)) continue;
+			$tagValues = explode(':', $i);
+			$type = ltrim($tagValues[0], '{');
+			if($type == 'const'){
+				$tagsReplaced[$i] = defined($val) ? constant($val) : 'Constant not defined : '.$val;
+			}elseif($type == 'config'){
+				if($val == 'sitename'){
+					$tagsReplaced[$i] = ACYMAILING_J30 ? $jconfig->get($val) : $jconfig->getValue('config.'.$val);
+				}
+			}else{
+				static $done = false;
+				if(!$done && strpos($val,'COM_USERS') !== false){
+					$done = true;
+					$lang = JFactory::getLanguage();
+					$lang->load('com_users',JPATH_SITE);
+					$lang->load('com_users',JPATH_ADMINISTRATOR);
+				}
+				if(!empty($arrayVal)){
+					$tagsReplaced[$i] = nl2br(vsprintf(JText::_($val), $arrayVal));
+				} else{
+					$tagsReplaced[$i] = JText::_($val);
 				}
 
-				if(empty($val)) continue;
-				$type = strtolower(trim($allresults[1][$i]));
-				if($type == 'const'){
-					$tags[$oneTag] = defined($val) ? constant($val) : 'Constant not defined : '.$val;
-				}elseif($type == 'config'){
-					if($val == 'sitename'){
-						$tags[$oneTag] = ACYMAILING_J30 ? $jconfig->get($val) : $jconfig->getValue('config.'.$val);
-					}
-				}else{
-					static $done = false;
-					if(!$done && strpos($val,'COM_USERS') !== false){
-						$done = true;
-						$lang = JFactory::getLanguage();
-						$lang->load('com_users',JPATH_SITE);
-						$lang->load('com_users',JPATH_ADMINISTRATOR);
-					}
-					if(!empty($arrayVal)){
-						$tags[$oneTag] = nl2br(vsprintf(JText::_($val), $arrayVal));
-					} else{
-						$tags[$oneTag] = JText::_($val);
-					}
-
-				}
 			}
 		}
 
-		foreach($variables as $var){
-			if(empty($email->$var)) continue;
-			$email->$var = str_replace(array_keys($tags),$tags,$email->$var);
-		}
+		$acypluginsHelper->replaceTags($email, $tagsReplaced, true);
 	}
 
 	private function _replaceRandom(&$email){
@@ -291,8 +279,8 @@ class plgAcymailingManagetext extends JPlugin
 	}
 
 	function onAcyDisplayFilters(&$type,$context="massactions"){
-
-		if($this->params->get('displayfilter_'.$context,true) == false) return;
+		$app = JFactory::getApplication();
+		if($this->params->get('displayfilter_'.$context,true) == false || ($this->params->get('frontendaccess') == 'none' && !$app->isAdmin())) return;
 
 		$type['limitrand'] = JText::sprintf('ACY_RAND_LIMIT','X');
 

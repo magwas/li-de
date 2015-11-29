@@ -176,7 +176,8 @@ class jdownloadsModelReport extends jdownloadsModeldownload
         $message = str_replace('{name}', $name, $message);
         $message = str_replace('{mail}', $email, $message);
         $message = str_replace('{ip}', $ip, $message);
-        $message = str_replace('{date_time}', JHtml::date($input = 'now', $jlistConfig['global.datetime'], true), $message);
+        $date_format = JDHelper::getDateFormat();
+        $message = str_replace('{date_time}', JHtml::date($input = 'now', $date_format['long'], true), $message);
         $message = str_replace('{reason}', $reason_text, $message);
         $message = str_replace('{message}', $text, $message);
         

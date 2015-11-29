@@ -95,7 +95,7 @@ $root        = JURI::root();
                 </td>
                 
                 <td class="left">
-                    <?php echo $this->escape($item['date']) ?>
+                    <?php echo JHtml::_('date',$this->escape($item['date']), JText::_('DATE_FORMAT_LC4')); ?>
                 </td>
                     
                 <td class="left">

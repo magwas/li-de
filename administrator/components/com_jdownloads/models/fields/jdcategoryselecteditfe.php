@@ -30,14 +30,14 @@ JFormHelper::loadFieldClass('list');
 class JFormFieldjdCategorySelectEditFE extends JFormFieldList
 {
 	/**
-	 * The form field type.
+	 * A flexible category list that respects access controls.
 	 *
 	 * @var		string
 	 */
 	protected $type = 'jdCategorySelectEditFE';
 
 	/**
-	 * Method to get the field options.
+     * Method to get a list of categories that respects access controls and can be used for category assignment in edit screens.
 	 *
 	 * @return	array	The field option objects.
 	 */
@@ -55,7 +55,6 @@ class JFormFieldjdCategorySelectEditFE extends JFormFieldList
 		$db		= JFactory::getDbo();
 		$query	= $db->getQuery(true);
 
-        
 		$query->select('a.id AS value, a.title AS text, a.level');
 		$query->from('#__jdownloads_categories AS a');
         $query->join('LEFT', '`#__jdownloads_categories` AS b ON a.lft > b.lft AND a.rgt < b.rgt');

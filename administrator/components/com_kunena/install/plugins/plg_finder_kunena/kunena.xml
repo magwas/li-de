@@ -2,12 +2,12 @@
 <!DOCTYPE extension>
 <extension version="2.5" type="plugin" group="finder" method="upgrade">
 	<name>plg_finder_kunena</name>
-	<version>3.0.5</version>
-	<creationDate>2014-03-09</creationDate>
+	<version>3.0.6</version>
+	<creationDate>2014-07-28</creationDate>
 	<author>Kunena Team</author>
 	<authorEmail>Kunena@kunena.org</authorEmail>
 	<authorUrl>http://www.kunena.org</authorUrl>
-	<copyright>(C) 2008 - 2013 Kunena Team. All rights reserved.</copyright>
+	<copyright>(C) 2008 - 2014 Kunena Team. All rights reserved.</copyright>
 	<license>GNU/GPLv3 or later</license>
 	<description>PLG_FINDER_KUNENA_DESCRIPTION</description>
 	<files>

@@ -170,7 +170,7 @@ $saveOrder    = ($listOrder == 'a.lft' && $listDirn == 'asc');
                 
                 <td class="center">
                     <?php if ($item->pic != '') { ?>
-                        <img src="<?php echo JURI::root().JRoute::_( "/images/jdownloads/catimages/$item->pic" ); ?>" width="32px" height="32px" align="middle" border="0"/>
+                        <img src="<?php echo JURI::root().JRoute::_( "images/jdownloads/catimages/$item->pic" ); ?>" width="32px" height="32px" align="middle" border="0"/>
                     <?php } ?>
                 </td>
                     

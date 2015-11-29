@@ -45,30 +45,18 @@ class SzavazasokModelLezart extends JModelList {
 		else
 		  $lezartLimit = 99;
 		if ($filterStr != '') {
-		  $filterStr = ' and (sz.megnevezes like "%'.$filterStr.'%" or sz.cimkek like "%'.$filterStr.'%") ';
+		  $filterStr = ' and sz.megnevezes like "%'.$filterStr.'%"';
 		}  
 		$db		= $this->getDbo();
 		$query	= $db->getQuery(true);			
 		$catid = (int) $this->getState('authorlist.id', 1);		
 		$query = '
-	/* szavazások amik jelenleg lezártak */
-	/* ================================= */
+	/* szavazások amik jelenleg vita1 állapotban vannak */
+	/* ================================================ */
 	SELECT sz.megnevezes, sz.vita1, sz.vita2, sz.szavazas, sz.lezart, sz.szavazas_vege, sz.titkos, sz.vita2_vege,
 	  sz.id, sz.temakor_id
 	FROM #__szavazasok sz
-	left outer join #__temakorok as t
-          on t.id = sz.temakor_id	
-    left outer join #__tagok ta
-          on ta.temakor_id = sz.temakor_id and ta.user_id = "'.$user->id.'"			 
 	WHERE (sz.lezart=1) '.$filterStr;
-	
-	// aktuális user láthatja ezt a szavazást?
-	$query .= ' and ((t.lathatosag = 0) or
-	                 (t.lathatosag = 1 and "'.$user->id.'" > 0) or
-					 (ta.user_id is not null)
-					)';
-	
-	
 		$query .= ' order by '.JRequest::getVar('order','6').' DESC';
 		return $query;  
 	}
@@ -78,24 +66,13 @@ class SzavazasokModelLezart extends JModelList {
    * @return integer   
    */      
   public function getTotal($filterStr='') {
-     $user = JFactory::getUser();
      $result = 0;
      $db = JFactory::getDBO();
      $db->setQuery('
 /* szavazások amik lezártak */
 SELECT sz.id
 FROM #__szavazasok sz
-left outer join #__temakorok as t
-          on t.id = sz.temakor_id	
-left outer join #__tagok ta
-          on ta.temakor_id = sz.temakor_id and ta.user_id = "'.$user->id.'"			 
-WHERE (sz.lezart=1) '.$filterStr.'
-       and ((t.lathatosag = 0) or
-	        (t.lathatosag = 1 and "'.$user->id.'" > 0) or
-			(ta.user_id is not null)
-		    )
-');
-
+WHERE (sz.lezart=1) '.$filterStr);
      $res = $db->loadObjectList();
      $result = count($res);
      return $result;

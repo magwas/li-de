@@ -4,10 +4,9 @@
  * @package Kunena.Framework
  * @subpackage Integration
  *
- * @copyright (C) 2008 - 2013 Kunena Team. All rights reserved.
+ * @copyright (C) 2008 - 2014 Kunena Team. All rights reserved.
  * @license http://www.gnu.org/copyleft/gpl.html GNU/GPL
  * @link http://www.kunena.org
- //+ 2014.05.17 integrálás a hsuser rendszerhez
  **/
 defined ( '_JEXEC' ) or die ();
 
@@ -63,12 +62,6 @@ class KunenaAvatar {
 		return $result;
 	}
 
-  /**
-   * @param JUser $user
-   * @param string $class
-   * @param integer $sizex
-   * @param integer $sizey
-   */               
 	public function getLink($user, $class='', $sizex=90, $sizey=90)
 	{
 		$size = $this->getSize($sizex, $sizey);
@@ -79,23 +72,6 @@ class KunenaAvatar {
 		// Style is needed to resize avatar for JomSocial and other integration that do not have automatic resizing
 		if (!$this->resize) $style = 'style="max-width: '.$size->x.'px; max-height: '.$size->y.'px"';
 		else $style = '';
-
-    //+ 2014.11.22 integrálás a hsuser rendszerhez
-    $db = JFactory::getDBO();
-    $db->setQuery('select * from #__users_extended where user_id="'.$user->id.'"');
-    $res = $db->loadObject();
-    if ($res) {
-      if ($res->image_name != '') {
-        $avatar = JURI::base().'images'.DS.'hsu'.DS.$res->image_folder.DS.$res->image_name;
-      }
-    } else {
-      $db->setQuery('select photo_url 
-      from #__users_authentications
-      where user_id="'.$user->id.'"');
-      $res = $db->loadObject();
-      if ($res) $avatar = $res->photo_url;
-    }
-    //- 2014.11.22 integrálás a hsuser rendszerhez
 
 		$link = '<img'.$class.' src="'.$avatar.'" alt="'.JText::sprintf('COM_KUNENA_LIB_AVATAR_TITLE', $user->getName()).'" '.$style.' />';
 

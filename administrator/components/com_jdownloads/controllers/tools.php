@@ -76,7 +76,7 @@ class jdownloadsControllertools extends jdownloadsController
             $query->select('*');
             $query->from('#__assets');
             $query->where('name LIKE '.$db->Quote('%jdownloads.category%'));
-            $query->where('rules NOT LIKE '.$db->Quote('%download":[]%'));
+            //$query->where('rules NOT LIKE '.$db->Quote('%download":[]%'));
             $db->setQuery($query);
             $result = $db->loadColumn();            
             $count = count($result);
@@ -120,7 +120,7 @@ class jdownloadsControllertools extends jdownloadsController
             $query->select('*');
             $query->from('#__assets');
             $query->where('name LIKE '.$db->Quote('%jdownloads.download%'));
-            $query->where('rules NOT LIKE '.$db->Quote('%download":[]%'));
+            //$query->where('rules NOT LIKE '.$db->Quote('%download":[]%'));
             $db->setQuery($query);
             $result = $db->loadColumn();
             $count = count($result);            
@@ -789,9 +789,9 @@ class jdownloadsControllertools extends jdownloadsController
             $db->execute();            
                         
             foreach ($cats_old as $cat_old){
-               $note = '(imported from v.1.9.x)';
-               if (!isset($cat_old->description)){
-                   $cat_old->description = '';
+               $note = '';
+               if (!isset($cat_old->cat_description)){
+                   $cat_old->cat_description = '';
                }   
                
                // build cat and parent cat dir
@@ -820,7 +820,7 @@ class jdownloadsControllertools extends jdownloadsController
                         'title'             => $cat_old->cat_title,
                         'alias'             => $cat_old->cat_alias,
                         'notes'             => $note,
-                        'description'       => $cat_old->description,
+                        'description'       => $cat_old->cat_description,
                         'cat_dir'           => $cat_dir_value,
                         'cat_dir_parent'    => $cat_dir_parent_value,
                         'pic'               => $cat_old->cat_pic,
@@ -881,7 +881,7 @@ class jdownloadsControllertools extends jdownloadsController
                
                $images = array();
 
-               $note = '(imported from v.1.9.x)';
+               $note = '';
                
                if (!isset($file_old->description)){
                    $file_old->description = '';

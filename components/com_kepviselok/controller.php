@@ -12,7 +12,6 @@ defined('_JEXEC') or die('Restricted access');
 
 jimport('joomla.application.component.controller');
 require_once(JPATH_ROOT . '/components/com_jcomments/jcomments.php');
-require_once(JPATH_ROOT . '/components/com_temakorok/models/temakorok.php');
 
 /**
  * Variant Controller
@@ -128,8 +127,8 @@ class KepviselokController extends JControllerLegacy
     $item->kemail = $kuser->email;
     
     // témakör beolvasása
-    $temakorModel = new TemakorokModelTemakorok();
-    $temakor = $temakorModel->getItem($temakor_id);
+    $db->setQuery('select * from #__temakorok where id="'.$temakor_id.'"');
+    $temakor = $db->loadObject();
     if ($temakor == false) {
       $temakor = new stdclass();
       $temakor->id = 0;
@@ -311,7 +310,6 @@ class KepviselokController extends JControllerLegacy
       $brStatusStr = '{"limit":20,"limitstart":0,"order":1,"filterStr":""}';
     }
     $brStatus = JSON_decode($brStatus);
-    if (!$brStatus) $brStatus = new stdclass();
     
     $limitStart = JRequest::getVar('limitstart',$brStatus->limitstart);
     $limit = JRequest::getVar('limit',$brStatus->limit);
@@ -337,8 +335,8 @@ class KepviselokController extends JControllerLegacy
     $view->set('Items',$items);
 
     // témakör beolvasása
-    $temakorModel = new TemakorokModelTemakorok();
-    $view->Temakor = $temakorModel->getItem(JRequest::getVar('temakor',0));
+    $db->setQuery('select * from #__temakorok where id="'.JRequest::getVar('temakor',0).'"');
+    $view->Temakor = $db->loadObject();
     if ($view->Temakor == false) {
       $view->Temakor = new stdclass();
       $view->Temakor->megnevezes = JText::_('ALTALANOS');
@@ -455,8 +453,8 @@ class KepviselokController extends JControllerLegacy
     $view->set('Items',$items);
 
     // témakör beolvasása
-    $temakorModel = new TemakorokModelTemakorok();
-    $view->Temakor = $temakorModel->getItem(JRequest::getVar('temakor',0));
+    $db->setQuery('select * from #__temakorok where id="'.JRequest::getVar('temakor',0).'"');
+    $view->Temakor = $db->loadObject();
     if ($view->Temakor == false) {
       $view->Temakor = new stdclass();
       $view->Temakor->megnevezes = JText::_('ALTALANOSKEPVISELO');
@@ -522,8 +520,8 @@ class KepviselokController extends JControllerLegacy
     }
     
     // témakör beolvasása
-    $temakorModel = new TemakorokModelTemakorok();
-    $temakor = $temakorModel->getItem($temakor_id);
+    $db->setQuery('select * from #__temakorok where id="'.$temakor_id.'"');
+    $temakor = $db->loadObject();
     if ($temakor == false) {
       $temakor = new stdclass();
       $temakor->id = 0;
@@ -585,8 +583,8 @@ class KepviselokController extends JControllerLegacy
     }
     
     // témakör beolvasása
-    $temakorModel = new TemakorokModelTemakorok();
-    $temakor = $temakorModel->getItem($temakor_id);
+    $db->setQuery('select * from #__temakorok where id="'.$temakor_id.'"');
+    $temakor = $db->loadObject();
     if ($temakor == false) {
       $temakor = new stdclass();
       $temakor->id = 0;

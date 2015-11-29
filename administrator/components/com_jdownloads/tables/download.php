@@ -30,7 +30,9 @@ class jdownloadsTabledownload extends JTable
 	 */
 	function __construct(&$db) 
 	{
-		parent::__construct('#__jdownloads_files', 'file_id', $db);
+        parent::__construct('#__jdownloads_files', 'file_id', $db);
+        // we need also the 'tags' functionality
+        JTableObserverTags::createObserver($this, array('typeAlias' => 'com_jdownloads.download'));        
 	}
     
 /**
@@ -58,7 +60,9 @@ class jdownloadsTabledownload extends JTable
         $jFileInput = new JInput($_FILES);
         $files = $jFileInput->get('jform',array(),'array');
         
-        // get user rules when we have a new download creation or editing in frontend 
+        $default_access_value_used = false;
+        
+        // doing the next part only when we have a new download creation or an editing in frontend 
         if ($app->isSite() && !$auto_added){
             $user_rules = JDHelper::getUserRules();        
             
@@ -135,11 +139,27 @@ class jdownloadsTabledownload extends JTable
                      $this->setError(JText::_('COM_JDOWNLOADS_BACKEND_FILESEDIT_INVALID_FILE_SIZE'));
                      return false;  
                 }
-            }                    
+            }
+            
+            // check the access handling
+            if ($user_rules->form_access == 0){
+                // the access select field was not viewed so we use the default value when exist
+                if ($user_rules->uploads_default_access_level){
+                    $this->access = (int)$user_rules->uploads_default_access_level;
+                    $default_access_value_used = true;
+                }    
+            } else {
+                // the access select field was viewed
+                if ($this->access > 1){
+                    // user has selected a special access level so we do not use the access value from parent category
+                    $default_access_value_used = true;
+                }
+            }
         }
         
+        // this part is always used
         if ($this->cat_id > 1){
-            if ($isNew){
+            if ($isNew && !$default_access_value_used){
                 // set access level value from parent
                 $query = "SELECT * FROM #__jdownloads_categories WHERE id = '$this->cat_id'";
                 $db->setQuery( $query );
@@ -166,9 +186,13 @@ class jdownloadsTabledownload extends JTable
             $filename_renamed   = false;
             $filename_new_name  = '';
             $filename_old_name  = '';
+            $use_xml_for_file_info = 0;
+            $selected_updatefile = 0;
 
             // use xml install file to fill the file informations    
-            $use_xml_for_file_info = (int)$formdata['use_xml'];
+            if (isset($formdata['use_xml'])){
+                $use_xml_for_file_info = (int)$formdata['use_xml'];
+            }
             
             // marked cat id
             if (isset($formdata['cat_id'])){
@@ -199,18 +223,26 @@ class jdownloadsTabledownload extends JTable
                 $preview_filename_old_name = $preview_filename_org;
             }        
             
-            // get old date
-            $modified_date_old = $jinput->get('modified_date_old', '', 'string'); 
             // get selected file from server for update download?
-            $selected_updatefile = $formdata['update_file'];
+            if (isset($formdata['update_file'])){
+                $selected_updatefile = $formdata['update_file'];
+            }
 
             // When download is new created in frontend, we must do some other things... 
             if ($app->isSite() && !$auto_added){
                 if ($isNew){
                     $this->submitted_by   = $user->id;
-                    $this->set_aup_points = 1;
                     if ($user_rules->uploads_auto_publish == 1){
                         $this->published = 1;
+                    }
+                    if ($jlistConfig['use.alphauserpoints'] && $this->published == 1){
+                        // add the AUP points
+                        JDHelper::setAUPPointsUploads($this->submitted_by, $this->file_title);
+                    }
+                } else {
+                    if ($jlistConfig['use.alphauserpoints'] && $this->published == 1){
+                        // add the AUP points when an older download is published (maybe the first time)
+                        JDHelper::setAUPPointsUploads($this->submitted_by, $this->file_title);
                     }
                 }
             } else {    
@@ -241,9 +273,16 @@ class jdownloadsTabledownload extends JTable
                 // old download changed
                 // set user id in modified field
                 $this->modified_id = $user->id; 
+
                 // fill out modified date field
-                $this->modified_date = JFactory::getDate()->toSql();
-                // $this->modified_date = JHtml::_('date', '','Y-m-d H:i:s');
+                // get first the old date and compare it with the current value from the form
+                // when user has self changed the date value - so we do not change it here
+                // otherwise use we the current date and time 
+                $modified_date_old = $jinput->get('modified_date_old', '', 'string'); 
+                if ($modified_date_old == $this->modified_date){ 
+                    $this->modified_date = JFactory::getDate()->toSql();
+                }   
+                
                 if ($cat_dir_org != $marked_cat_id){
                       $file_cat_changed = true;
                       $this->cat_id = $marked_cat_id;
@@ -508,7 +547,11 @@ class jdownloadsTabledownload extends JTable
                    $update_dir = $jlistConfig['files.uploaddir'].DS;
                    
                    // todo: we must use here the new methode for this in next release 
-                   $update_filename = jdownloadsHelper::checkFileName($selected_updatefile);
+                   $only_name = JFile::stripExt($selected_updatefile);
+                   $file_extension = JFile::getExt($selected_updatefile);
+
+                   $update_filename = JDownloadsHelper::getCleanFolderFileName($only_name).'.'.$file_extension;
+                   
                    if ($update_filename != $selected_updatefile){
                        // rename file
                        jFile::move($update_dir.$selected_updatefile, $update_dir.$update_filename);
@@ -556,7 +599,40 @@ class jdownloadsTabledownload extends JTable
                            $this->file_title = $this->url_download;
                            $this->setError(JText::_('COM_JDOWNLOADS_BE_EDIT_FILES_USE_XML_RESULT_NO_FILE'));
                        }  
-                   }     
+                   }
+
+                   // create thumbs form pdf
+                   if ($jlistConfig['create.pdf.thumbs'] &&  strtolower($file_extension) == 'pdf'){
+                       $thumb_path = JPATH_SITE.'/images/jdownloads/screenshots/thumbnails/';
+                       $screenshot_path = JPATH_SITE.'/images/jdownloads/screenshots/';
+                       $pdf_thumb_name = jdownloadsHelper::create_new_pdf_thumb($target_path, JFile::stripExt($update_filename), $thumb_path, $screenshot_path);
+                       if ($pdf_thumb_name){
+                           $image_thumb_name = $pdf_thumb_name; 
+                           $thumb_created = TRUE;
+                       }    
+                   }
+                   
+                    // When file mime is an image type, make sure that we have not a fake pic
+                    $file_is_image = JDownloadsHelper::fileIsPicture($update_filename);
+                    
+                    if ($file_is_image && !JDownloadsHelper::imageFileIsValid($target_path)){
+                            $this->images = '';
+                            // error - user have tried to upload a not valid image file
+                            $this->setError(JText::_('COM_JDOWNLOADS_BACKEND_FILESEDIT_INVALID_IMAGE_FILE'));
+                            return false;                       
+                    }                   
+                   
+                   // create auto thumb when extension is a pic
+                   if ($jlistConfig['create.auto.thumbs.from.pics'] && $file_is_image){
+                      $thumb_created = jdownloadsHelper::create_new_thumb($target_path);       
+                      if ($thumb_created){
+                            $image_thumb_name = $update_filename;
+                            // create new big image for full view
+                            $image_created = jdownloadsHelper::create_new_image($target_path);
+                      }
+                   }                   
+                   
+                        
                } elseif ($this->other_file_id > 0){
                    // file from an other download is selected
                    // get mdh5 and sha1

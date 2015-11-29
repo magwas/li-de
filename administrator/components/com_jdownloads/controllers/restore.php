@@ -54,7 +54,17 @@ class jdownloadsControllerrestore extends jdownloadsController
         } else {       
         
             jimport('joomla.filesystem.file');
+            
+            $model_category = JModelLegacy::getInstance( 'Category', 'jdownloadsModel' );
+            $model_download = JModelLegacy::getInstance( 'Download', 'jdownloadsModel' );        
+        
             $db = JFactory::getDBO();
+            $user = JFactory::getUser();
+            
+            ini_set('max_execution_time', '600');
+            ignore_user_abort(true);
+            flush(); 
+            
             $target_prefix = JDownloadshelper::getCorrectDBPrefix();
             
             $app = JFactory::getApplication();
@@ -62,115 +72,20 @@ class jdownloadsControllerrestore extends jdownloadsController
             $original_upload_dir = $jlistConfig['files.uploaddir'];
             
             $output = '';
+            $log = '';
 
             // get restore file
             $file = JArrayHelper::getValue($_FILES,'restore_file',array('tmp_name'=>''));
             
             // save it in upload root
             $upload_path = $jlistConfig['files.uploaddir'].'/'.$file['name'];
-            if (!JFile::upload($file['tmp_name'], $upload_path)){
+            // since Joomla 3.4 we need additional params to allow unsafe file (backup file contains php content)
+            if (!JFile::upload($file['tmp_name'], $upload_path, false, true)){
                 $app->redirect(JRoute::_('index.php?option=com_jdownloads'),  JText::_('COM_JDOWNLOADS_RESTORE_MSG_STORE_ERROR'), 'error');
             }
             
             if($file['tmp_name']!= ''){
-           /*
-                $i = 0;
-                // check file
-                @$datei = fopen($upload_path,"r") or die ("Cannot open File!");
-                $muster = "/\bjd.version\b/i";
-                $backup_prefix = '';
-                $searchprefix_1 = '`';
-                $searchprefix_2 = '_jdownloads_config';
-                $vers = false;
-                
-                while (!feof($datei)) {
-                     $zeile = fgets($datei, 4096);
-                     if (preg_match($muster, $zeile)) {
-                        if ($pos = strpos($zeile, "jd.version'", 100)){
-                            // restore only from version 1.9 or newer
-                            $vers = floatval(substr($zeile, $pos+13, 3));
-                            if ($vers < 1.9){
-                                fclose($datei);   
-                                echo "<script> alert('".JText::_('COM_JDOWNLOADS_RESTORE_OLD_FILE')."'); window.history.go(-1); </script>\n";
-                                exit();
-                            } 
-                        }    
-                     }
-                     if (!$backup_prefix){
-                         if ($pos1 = strpos($zeile, $searchprefix_1)){
-                             if ($pos2 = strpos($zeile, $searchprefix_2)){
-                                 $pos3 = $pos2 - $pos1;
-                                 $backup_prefix = substr($zeile, $pos1 + 1, $pos3);
-                             }    
-                         }
-                     }
-                }
-               
-                fclose($datei);
-                
-                // check that the source and target database use the same db prefix - when not: exit
-                if ($backup_prefix != $target_prefix){
-                    $errmsg =  sprintf(JText::_('COM_JDOWNLOADS_RESTORE_MSG_WRONG_DB_PREFIX_ERROR'), $backup_prefix, $target_prefix);
-                    // JText::printf('COM_JDOWNLOADS_RESTORE_MSG_WRONG_DB_PREFIX_ERROR', $backup_prefix, $target_prefix);
-                    echo "<script> alert('".$errmsg."'); window.history.go(-1); </script>\n";
-                    exit();
-                } 
 
-                if (!$vers){
-                   // wrong file submitted
-                   $app->redirect(JRoute::_('index.php?option=com_jdownloads'),  JText::_('COM_JDOWNLOADS_RESTORE_MSG_WRONG_FILE_ERROR'), 'error'); 
-                }    
-                
-                // make the backup file compatible for 2.0 when it is from 1.9
-                if ($vers == 1.9){
-                    $search  = array();
-                    $replace = array();
-                    // jdownloads_cats
-                    $search[]  = '_cats';
-                    $replace[] = '_categories';
-                    $search[]  = 'cat_id`,`cat_dir';
-                    $replace[] = 'id`,`cat_dir';
-                    $search[]  = 'cat_title';
-                    $replace[] = 'title';
-                    $search[]  = 'cat_alias';
-                    $replace[] = 'alias';
-                    $search[]  = 'cat_description';
-                    $replace[] = 'description';                
-                    $search[]  = 'cat_pic';
-                    $replace[] = 'pic';
-                   // $search[]  = '`pic`,`cat_access`,`cat_group_access`';
-                   // $replace[] = '`pic`,`access`';                
-                    $search[]  = '`metadesc`,`jaccess`,`jlanguage`';
-                    $replace[] = '`metadesc`,`language`';                
-                    
-                    // jdownloads_files
-                    $search[]  = '`release`,`language`';
-                    $replace[] = '`release`,`file_language`';                 
-                    
-                    // jdownloads_license
-                    $search[]  = '_license';
-                    $replace[] = '_licenses';
-                    
-                    // general
-                    $search[]  = '`jaccess`,`jlanguage`';
-                    $replace[] = '`access`,`language`';
-
-                    // load the file
-                    $file_array = file ( $upload_path );
-
-                    for ( $x = 0; $x < count ( $file_array ); $x++){
-                         for ($i=0; $i < count($search); $i++){
-                            if (strpos( $file_array[$x], $search[$i])) {
-                                $file_array[$x] = str_replace($search[$i], $replace[$i], $file_array[$x]);     
-                            } 
-                         }
-                    }
-                    
-                    // write the changed data in the file
-                    if (!file_put_contents($upload_path, $file_array)) die ( 'Cannot write in backup file!' );
-                }    
-                
-                */
                 // write values in db tables
                 require_once($upload_path);
                 
@@ -183,20 +98,96 @@ class jdownloadsControllerrestore extends jdownloadsController
                 $db->setQuery("UPDATE #__jdownloads_config SET setting_value = '$original_upload_dir' WHERE setting_name = 'files.uploaddir'");
                 $db->execute();
                 $jlistConfig['files.uploaddir'] = $original_upload_dir;
+
+                // create for every category a data set in the assets table (added in 3.2.22)
+                // get at first all items
+                $query = $db->getQuery(true);
+                $query->select('*');
+                $query->from('#__jdownloads_categories');
+                $query->order('lft ASC');
+                $db->setQuery($query);
+                $cats = $db->loadObjectList();
+                // we need an array
+                $cats = json_decode(json_encode($cats), true);          
+                // sum of total categories (but compute not the root)
+                $cats_sum = count($cats) - 1;
                 
-                // check tables when backup file is from a older version - not possible n this version
-                //require_once(JPATH_SITE."/administrator/components/com_jdownloads/check.restore.jdownloads.php");
-                //$output = checkAfterRestore();
+                $sum_updated_cats = 0;
                 
-                //$output = JDownloadsHelper::checkAfterRestore();
-                //$log_messages = checkFiles($task);
+                if ($cats_sum){
+                    
+                    foreach ($cats as $cat){
+                        
+                        if ($cat['id'] > 1){
+                            // add the new rules array
+                            $cat['rules'] = array(
+                                    'core.create' => array(),
+                                    'core.delete' => array(),
+                                    'core.edit' => array(),
+                                    'core.edit.state' => array(),
+                                    'core.edit.own' => array(),
+                                    'download' => array(),
+                            );
+                            // save now the category with the new rules
+                            $update_result = $model_category->save( $cat, true );
+                            if (!$update_result){
+                                // error message
+                                $log .= 'Category Results: Can not create new asset rules for category ID '.$cat['id'].'<br />';
+                            } else {
+                                $sum_updated_cats ++;                        
+                            }              
+
+                        }
+                    }
+                    $log .= "New data sets created in 'assets' db table for categories: ".$sum_updated_cats.'<br />';
+                }                
+                
+                // create for every Download a data set in the assets table (added in 3.2.22)
+                // get at first all items
+                $query = $db->getQuery(true);
+                $query->select('*');
+                $query->from('#__jdownloads_files');
+                $query->order('file_id ASC');
+                $db->setQuery($query);
+                $files = $db->loadObjectList();
+                // we need an array
+                $files = json_decode(json_encode($files), true);          
+                // sum of total Downloads
+                $files_sum = count($files);
+                
+                $sum_updated_files = 0;
+                
+                if ($files_sum){
+                    
+                    foreach ($files as $file){
+                        
+                            // add the new rules array
+                            $file['rules'] = array(
+                                    'core.create' => array(),
+                                    'core.delete' => array(),
+                                    'core.edit' => array(),
+                                    'core.edit.state' => array(),
+                                    'core.edit.own' => array(),
+                                    'download' => array(),
+                            );
+                            // save now the download with the new rules
+                            $update_result = $model_download->save( $file, true, false, true );
+                            if (!$update_result){
+                                // error message
+                                $log .= 'Downloads Results: Can not create new asset rules for download ID '.$file['file_id'].'<br />';
+                            } else {
+                                $sum_updated_files ++;                        
+                            }              
+                    }
+                    $log .= "New data sets created in 'assets' db table for downloads: ".$sum_updated_files.'<br />';
+                }                
                 
                 $sum = '<font color="green"><b>'.sprintf(JText::_('COM_JDOWNLOADS_RESTORE_MSG'),(int)$i).'</b></font>';
                 
-                if ($log_messages){
-                    $output = addslashes($sum.'<br />'.$output.'<br />'.JText::_('COM_JDOWNLOADS_AFTER_RESTORE_TITLE_3').'<br />'.$log_messages.'<br />'.JText::_('COM_JDOWNLOADS_CHECK_FINISH').'');
+                if ($log){
+                    $output = $db->escape($sum.'<br />'.$output.'<br />'.JText::_('COM_JDOWNLOADS_AFTER_RESTORE_TITLE_3').'<br />'.$log.'<br />'.JText::_('COM_JDOWNLOADS_CHECK_FINISH').'');
                 } else {   
-                    $output = addslashes($sum.'<br />'.$output.'<br />'.JText::_('COM_JDOWNLOADS_CHECK_FINISH').'');
+                    $output = $db->escape($sum.'<br />'.$output.'<br />'.JText::_('COM_JDOWNLOADS_CHECK_FINISH').'');
                 }    
                 $db->setQuery("UPDATE #__jdownloads_config SET setting_value = '$output' WHERE setting_name = 'last.restore.log'");
                 $db->execute();

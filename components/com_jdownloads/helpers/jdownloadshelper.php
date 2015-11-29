@@ -838,7 +838,11 @@ class JDHelper
         $db->setQuery( $query );
         $src_for_url_list = $db->loadObjectList();
 
-        $max_cat_id = $src_for_url_list[count($src_for_url_list)-1]->id;
+        if ($src_for_url_list){
+            $max_cat_id = $src_for_url_list[count($src_for_url_list)-1]->id;
+        } else {
+            $max_cat_id = 0;
+        }    
         $x = 0;
         
         // create array with all sef url's for listbox
@@ -1134,13 +1138,13 @@ class JDHelper
     public static function getID3v2Tags($file,$blnAllFrames=0)
     {
         if (is_file($file)){
-            $arrTag[_file]=$file;
+            $arrTag['_file']=$file;
             $fp=fopen($file,"rb");
             if($fp){
                 $id3v2=fread($fp,3);
                 if($id3v2=="ID3"){// a ID3v2 tag always starts with 'ID3'
-                    $arrTag[_ID3v2]=1;
-                    $arrTag[_version]=ord(fread($fp,1)).".".ord(fread($fp,1));// = version.revision
+                    $arrTag['_ID3v2']=1;
+                    $arrTag['_version']=ord(fread($fp,1)).".".ord(fread($fp,1));// = version.revision
                     fseek($fp,6);// skip 1 'flag' byte, because i don't need it :)
                     unset($tagSize);
                     for($i=0;$i<4;$i++){
@@ -1148,7 +1152,7 @@ class JDHelper
                     }
                     $tagSize=hexdec($tagSize);
                     if($tagSize>filesize($file)){
-                        $arrTag[_error]=4;// = tag is bigger than file
+                        $arrTag['_error']=4;// = tag is bigger than file
                     }
                     fseek($fp,10);
                     while(preg_match("/^[A-Z][A-Z0-9]{3}$/",$frameName=fread($fp,4))){
@@ -1158,12 +1162,12 @@ class JDHelper
                         }
                         $frameSize=hexdec($frameSize);
                         if($frameSize>$tagSize){
-                            $arrTag[_error]=5;// = frame is bigger than tag
+                            $arrTag['_error']=5;// = frame is bigger than tag
                             break;
                         }
                         fseek($fp,ftell($fp)+2);// skip 2 'flag' bytes, because i don't need them :)
                         if($frameSize<1){
-                            $arrTag[_error]=6;// = frame size is smaller then 1
+                            $arrTag['_error']=6;// = frame size is smaller then 1
                             break;
                         }
                         if($blnAllFrames==0){
@@ -1177,37 +1181,45 @@ class JDHelper
                         if(!$arrTag[$frameName]){
                             $arrTag[$frameName]=trim(utf8_encode($frameContent));// the frame content (always?) starts with 0, so it's better to remove it
                         }
-                        else{// if there is more than one frame with the same name
+                        else{
                             $arrTag[$frameName]=$arrTag[$frameName]."~".trim($frameContent);
                         }
-                    }// while(ereg("^[A-Z0-9]{4}$",fread($fp,4)))
-                }// if($id3v2=="ID3")
+                    }
+                }
                 else{
-                    $arrTag[_ID3v2]=0;// = no ID3v2 tag found
-                    $arrTag[_error]=3;// = no ID3v2 tag found
+                    $arrTag['_ID3v2']   =   0;// = no ID3v2 tag found
+                    $arrTag['_error']   =   3;// = no ID3v2 tag found
+                    $arrTag['_version'] =   0;
+                    $arrTag['TLEN']     =   '';
+                    $arrTag['TALB']     =   '';
+                    $arrTag['TPE1']     =   '';
+                    $arrTag['TCON']     =   '';
+                    $arrTag['TYER']     =   '';
                 }
             }// if($fp)
             else{
-                $arrTag[_error]=2;// can't open file
+                $arrTag['_error'] = 2;  // can't open file
             }
             fclose($fp);
-        }// if(is_file($file) and eregi(".mp3$",$file)){
+        }
         else{
-            $arrTag[_error]=1;// = file doesn't exists or isn't a mp3
+            $arrTag['_error'] = 1;  // = file doesn't exists or isn't a mp3
         }
         // convert lenght
-        if ($arrTag[TLEN] > 0){
-            $arrTag[TLEN] = round(($arrTag[TLEN] / 1000)/60,2);
+        if ($arrTag['TLEN'] > 0){
+            $arrTag['TLEN'] = round(($arrTag['TLEN'] / 1000)/60,2);
         }    
        
         return $arrTag;
     }
     
-    /* Place the thumbs in the layout  
-     * 
-     * 
+    /* Place the thumbnails in the layout  
+    *
+    * @param mixed $body
+    * @param mixed $images
+    * @param mixed $type
     */
-    public static function placeThumbs($body, $images)
+    public static function placeThumbs($body, $images, $type = 'list')
     {
         global $jlistConfig;
         
@@ -1237,16 +1249,26 @@ class JDHelper
             }
             
         } else {
-            if ($jlistConfig["thumbnail.view.placeholder.in.lists"]) {
-                $thumbnail = JUri::base().'images/jdownloads/screenshots/thumbnails/no_pic.gif';
-                $screenshot = JUri::base().'images/jdownloads/screenshots/no_pic.gif';
-                $body = str_replace("{screenshot_end$x}", '', $body);
-                $body = str_replace("{screenshot_begin$x}", '', $body);    
-                $body = str_replace("{screenshot_end$x}", '', $body);
-                $body = str_replace("{screenshot_begin$x}", '', $body);
-                $x ++;                
-            }            
-            
+            $thumbnail = JUri::base().'images/jdownloads/screenshots/thumbnails/no_pic.gif';
+            $screenshot = JUri::base().'images/jdownloads/screenshots/no_pic.gif';
+            if ($type == 'list'){
+                if ($jlistConfig["thumbnail.view.placeholder.in.lists"]) {
+                    $body = str_replace("{thumbnail$x}", $thumbnail, $body);
+                    $body = str_replace("{screenshot$x}", $screenshot, $body);
+                    $body = str_replace("{screenshot_end$x}", '', $body);
+                    $body = str_replace("{screenshot_begin$x}", '', $body);
+                    $x ++;                
+                }
+            } else {
+                // type must be 'detail' (page)
+                if ($jlistConfig["thumbnail.view.placeholder"]) {
+                    $body = str_replace("{thumbnail$x}", $thumbnail, $body);
+                    $body = str_replace("{screenshot$x}", $screenshot, $body);
+                    $body = str_replace("{screenshot_end$x}", '', $body);
+                    $body = str_replace("{screenshot_begin$x}", '', $body);
+                    $x ++;                
+                }
+            }
         }  
         
         // remove now all not used image placeholders from layout
@@ -1686,34 +1708,36 @@ class JDHelper
             
             // get standard points value from AUP jDownloads rule
             $db->setQuery("SELECT points FROM #__alpha_userpoints_rules WHERE published = 1 AND plugin_function = 'plgaup_jdownloads_user_download'");
-            $aup_fix_points = (int)$db->loadResult();
-            $aup_fix_points = abs($aup_fix_points);
-
+            $aup_fix_points = floatval($db->loadResult());
+            //$aup_fix_points = strToNumber($aup_fix_points);
+            
             if ($jlistConfig['use.alphauserpoints.with.price.field']){
                 $sum_aup_points = $sum_aup_price_points;
             } else {
                 // fis points for every download are used
-                $sum_aup_points = abs(($aup_fix_points * count($marked_files_id)));
-            }    
+                $sum_aup_points = ($aup_fix_points * count($marked_files_id));
+                // we need a positive value
+                if ($sum_aup_points < 0) $sum_aup_points = -$sum_aup_points;
+            }
             
             if ($profil){
                 // we have a member
                 if ($jlistConfig['user.can.download.file.when.zero.points']){
                         // he can download it after all
-                        $aup_result['points_info']  = sprintf( JText::_('COM_JDOWNLOADS_FE_VIEW_AUP_SUM_POINTS'), $sum_aup_points, $profil->points);
+                        $aup_result['points_info']  = sprintf( str_replace('%d', '%s', JText::_('COM_JDOWNLOADS_FE_VIEW_AUP_SUM_POINTS')), self::strToNumber($sum_aup_points), self::strToNumber($profil->points));
                         $aup_result['may_download'] = true;                        
                 } elseif ($sum_aup_points > 0 && $sum_aup_points <= $profil->points){
                         // view it only when we have a result and user may download it
-                        $aup_result['points_info']  = sprintf( JText::_('COM_JDOWNLOADS_FE_VIEW_AUP_SUM_POINTS'), $sum_aup_points, $profil->points);
+                        $aup_result['points_info']  = sprintf( str_replace('%d', '%s', JText::_('COM_JDOWNLOADS_FE_VIEW_AUP_SUM_POINTS')), self::strToNumber($sum_aup_points), self::strToNumber($profil->points));
                         $aup_result['may_download'] = true;
                 } elseif ($sum_aup_points > 0 && $sum_aup_points > $profil->points) {
                         // user may not download
                           $aup_result['points_info'] = '<div style="text-align:center" class="jd_div_aup_message">'.stripslashes(self::getOnlyLanguageSubstring($jlistConfig['user.message.when.zero.points'])).'</div>'. 
-                                                       '<div style="text-align:center" class="jd_div_aup_message">'.JText::_('COM_JDOWNLOADS_FE_SUMMARY_YOUR_POINTS').' '.(int)$profil->points.'<br />'.JText::_('COM_JDOWNLOADS_FE_SUMMARY_NEEDED_POINTS').' '.JText::_($sum_aup_points).'</div>';
+                                                       '<div style="text-align:center" class="jd_div_aup_message">'.JText::_('COM_JDOWNLOADS_FE_SUMMARY_YOUR_POINTS').' '.self::strToNumber($profil->points).'<br />'.JText::_('COM_JDOWNLOADS_FE_SUMMARY_NEEDED_POINTS').' '.self::strToNumber($sum_aup_points).'</div>';
                           $aup_result['may_download'] = false;
                 } else {    
                         // this download is free but we create still the user info, so the user can read that he costs nothing!    
-                        $aup_result['points_info']  = sprintf( JText::_('COM_JDOWNLOADS_FE_VIEW_AUP_SUM_POINTS'), abs(($aup_fix_points * count($marked_files_id))), $profil->points);
+                        $aup_result['points_info']  = sprintf( str_replace('%d', '%s', JText::_('COM_JDOWNLOADS_FE_VIEW_AUP_SUM_POINTS')), abs(($aup_fix_points * count($marked_files_id))), self::strToNumber($profil->points));
                         $aup_result['may_download'] = true;                        
                 }    
             } else {
@@ -1722,11 +1746,11 @@ class JDHelper
                     // but we have here an unregistered visitor - he can not have aup points! 
                     if ($jlistConfig['user.can.download.file.when.zero.points']){
                         // he can download it after all
-                        $aup_result['points_info']  = sprintf( JText::_('COM_JDOWNLOADS_FE_VIEW_AUP_SUM_POINTS'), $sum_aup_points, 0);
+                        $aup_result['points_info']  = sprintf( str_replace('%d', '%s', JText::_('COM_JDOWNLOADS_FE_VIEW_AUP_SUM_POINTS')), self::strToNumber($sum_aup_points), 0);
                         $aup_result['may_download'] = true;                        
                     } else {
                         // now way to doenload it
-                        $aup_result['points_info']  = sprintf( JText::_('COM_JDOWNLOADS_FE_VIEW_AUP_SUM_POINTS_FOR_VISITOR'), $sum_aup_points, 0);
+                        $aup_result['points_info']  = sprintf( str_replace('%d', '%s', JText::_('COM_JDOWNLOADS_FE_VIEW_AUP_SUM_POINTS_FOR_VISITOR')), self::strToNumber($sum_aup_points), 0);
                         $aup_result['may_download'] = false;
                     }    
                 } else {
@@ -2517,58 +2541,129 @@ class JDHelper
     }
 
     /**
-    * Assign points to the file uploader when a user download this file from jDownloads
+    * Assign points to the file uploader when a user download his file
     * 
-    * @param mixed $fileid
     * @param mixed $files
     */
     public static function setAUPPointsDownloaderToUploader($files)
     {
         $api_AUP = JPATH_SITE.DS.'components'.DS.'com_alphauserpoints'.DS.'helper.php';
+
         if (file_exists($api_AUP)){
             require_once ($api_AUP);
 
             foreach ($files as $file){  
                 if ($file->submitted_by){
-                    $aupid = AlphaUserPointsHelper::getAnyUserReferreID( (int)$file->submitted_by );
-                    if ($aupid){
-                        $text = JText::_('COM_JDOWNLOADS_BACKEND_SET_AUP_DOWNLOADER_TO_UPLOADER_TEXT');
-                        $text = sprintf($text, $file_title);
-                        AlphaUserPointsHelper::newpoints( 'plgaup_jdownloads_downloader_to_uploader', $aupid);
-                    }     
+                    $referreid = AlphaUserPointsHelper::getAnyUserReferreID( (int)$file->submitted_by );
+                    if ($referreid){
+                        $key_reference = AlphaUserPointsHelper::buildKeyreference( 'plgaup_jdownloads_downloader_to_uploader', $file->file_id, (int)$file->submitted_by );
+                        $rule_id = AlphaUserPointsHelper::getRuleID('plgaup_jdownloads_downloader_to_uploader');
+                        $check_aup_reference = AlphaUserPointsHelper::checkReference($referreid, $key_reference, $rule_id);
+                        // check the method when a prior download process is found
+                        if ($check_aup_reference > 0){
+                             $method = (int)AlphaUserPointsHelper::getMethod('plgaup_jdownloads_downloader_to_uploader');
+                             switch ($method){
+                                case 1: // ONCE PER USER
+                                    // has already payed 
+                                    return;
+                                    break;
+                                case '2':        // ONCE PER DAY AND PER USER'        
+                                    return;
+                                    break;
+                                case '3':        // ONCE A DAY FOR A SINGLE USER ON ALL USERS
+                                    return;
+                                    break;
+                                case '5':       // ONCE PER USER PER WEEK
+                                    return;
+                                    break;
+                                case '6':       // ONCE PER USER PER MONTH
+                                    return;
+                                    break;
+                                case '7':       // ONCE PER USER PER YEAR
+                                    return;
+                                    break;
+                                /*
+                                case '4':       // WHENEVER
+                                case '0':
+                                default:                            
+                                    // points must be payed always
+                                */    
+                             }
+                        }                
+                                
+                        $text = JText::_('COM_JDOWNLOADS_BACKEND_SET_AUP_DOWNLOAD_TEXT');
+                        $text = sprintf($text, $file->file_title);
+                        
+                        AlphaUserPointsHelper::newpoints( 'plgaup_jdownloads_downloader_to_uploader', $referreid, $key_reference, $text, $price, $text);
+                   }                             
                 }
             }
         }        
     }
+
+    /**
+    * Assign points to the file uploader when a user download his file and use the price field  
+    * 
+    * @param mixed $files
+    */
     
-	public static function setAUPPointsDownloaderToUploaderPrice($files, $user_id, $file_title, $file_id, $price)
-    {
-        $session = JFactory::getSession();
-        $session_data = $session->get('jd_aup_session');
-        if (isset($session_data) && $session_data[id] == $user_id && $session_data[file_id] == $file_id){ 
-            return true;
-        }
+	public static function setAUPPointsDownloaderToUploaderPrice($files)
+    {
+        $api_AUP = JPATH_SITE.DS.'components'.DS.'com_alphauserpoints'.DS.'helper.php';
 
-        $api_AUP = JPATH_SITE.DS.'components'.DS.'com_alphauserpoints'.DS.'helper.php';
+        if (file_exists($api_AUP)){
+            require_once ($api_AUP);
 
-        if (file_exists($api_AUP)){
-            require_once ($api_AUP);
-
-            foreach ($files as $file){  
-                if ($file->submitted_by){
-                    $aupid = AlphaUserPointsHelper::getAnyUserReferreID( (int)$file->submitted_by );
-                    if ($aupid){
-                        $text = JText::_('COM_JDOWNLOADS_BACKEND_SET_AUP_DOWNLOAD_TEXT');
-						$text = sprintf($text, $file_title); 
-						AlphaUserPointsHelper::newpoints( 'plgaup_jdownloads_downloader_to_uploader_use_price', $aupid, '', $text, '+'.$price, $text);
-                        $session_data = array('id' => $user_id, 'file_id' => $file_id);
-                        $session->set('jd_aup_session', $session_data);
-				   } 							
-                }
-            }
-        }        
-    }
-
+            foreach ($files as $file){  
+                if ($file->submitted_by){
+                    $referreid = AlphaUserPointsHelper::getAnyUserReferreID( (int)$file->submitted_by );
+                    if ($referreid){
+                        $key_reference = AlphaUserPointsHelper::buildKeyreference( 'plgaup_jdownloads_downloader_to_uploader_use_price', $file->file_id, (int)$file->submitted_by );
+                        $rule_id = AlphaUserPointsHelper::getRuleID('plgaup_jdownloads_downloader_to_uploader_use_price');
+                        $check_aup_reference = AlphaUserPointsHelper::checkReference($referreid, $key_reference, $rule_id);
+                        // check the method when a prior download process is found
+                        if ($check_aup_reference > 0){
+                             $method = (int)AlphaUserPointsHelper::getMethod('plgaup_jdownloads_downloader_to_uploader_use_price');
+                             switch ($method){
+                                case 1: // ONCE PER USER
+                                    // has already payed 
+                                    return;
+                                    break;
+                                case '2':        // ONCE PER DAY AND PER USER'        
+                                    return;
+                                    break;
+                                case '3':        // ONCE A DAY FOR A SINGLE USER ON ALL USERS
+                                    return;
+                                    break;
+                                case '5':       // ONCE PER USER PER WEEK
+                                    return;
+                                    break;
+                                case '6':       // ONCE PER USER PER MONTH
+                                    return;
+                                    break;
+                                case '7':       // ONCE PER USER PER YEAR
+                                    return;
+                                    break;
+                                /*
+                                case '4':       // WHENEVER
+                                case '0':
+                                default:                            
+                                    // points must be payed always
+                                */    
+                             }
+                        }                
+                                
+                        $text = JText::_('COM_JDOWNLOADS_BACKEND_SET_AUP_DOWNLOAD_TEXT');
+						$text = sprintf($text, $file->file_title);
+                        
+                        $price = floatval($file->price); 
+						AlphaUserPointsHelper::newpoints( 'plgaup_jdownloads_downloader_to_uploader_use_price', $referreid, $key_reference, $text, '+'.$price, $text);
+				   } 							
+                }
+            }
+        }        
+    }
+
     /**
     * Send  after download an e-mail to the selected addresses
     * 
@@ -2601,7 +2696,8 @@ class JDHelper
 
         // date and time
         $timestamp = time();
-        $date_time = date($jlistConfig['global.datetime'], $timestamp);
+        $date_format = self::getDateFormat();
+        $date_time = date($date_format['long'], $timestamp);
 
         $user_downloads = '<br />';
 
@@ -2690,7 +2786,8 @@ class JDHelper
 
         // date and time
         $timestamp = time();
-        $date_time = date($jlistConfig['global.datetime'], $timestamp);
+        $date_format = self::getDateFormat();
+        $date_time = date($date_format['long'], $timestamp);
 
         $user_downloads = '<br />';
 
@@ -2730,7 +2827,7 @@ class JDHelper
         $text = str_replace('{name}', $user_name, $text);
         $text = str_replace('{date}', $date_time, $text);
         $text = str_replace('{mail}', $user_email, $text);
-        if (!$jlistConfig['send.mailto.html,upload']){
+        if (!$jlistConfig['send.mailto.html.upload']){
             $html_format = false;
             $text = strip_tags($text);
         }
@@ -2943,20 +3040,26 @@ class JDHelper
      */
     public static function getAuthorisedJDCategories($action, $user)
     {
-        // Brute force method: get all published category rows for the component and check each one
-        // TODO: Modify the way permissions are stored in the db to allow for faster implementation and better scaling
-        $db = JFactory::getDbo();
-        $query = $db->getQuery(true)->select('c.id AS id, a.name AS asset_name')->from('#__jdownloads_categories AS c')
-            ->innerJoin('#__assets AS a ON c.asset_id = a.id')->where('c.published = 1');
-        $db->setQuery($query);
-        $allCategories = $db->loadObjectList('id');
-        $allowedCategories = array();
-        foreach ($allCategories as $category)
-        {
-            if ($user->authorise($action, $category->asset_name))
+        $session = JFactory::getSession();
+        $allowedCategories = $session->get('jd_allowed_create_categories', '');
+            
+        if (!$allowedCategories){
+            // Brute force method: get all published category rows for the component and check each one
+            // TODO: Modify the way permissions are stored in the db to allow for faster implementation and better scaling
+            $db = JFactory::getDbo();
+            $query = $db->getQuery(true)->select('c.id AS id, a.name AS asset_name')->from('#__jdownloads_categories AS c')
+                ->innerJoin('#__assets AS a ON c.asset_id = a.id')->where('c.published = 1');
+            $db->setQuery($query);
+            $allCategories = $db->loadObjectList('id');
+            $allowedCategories = array();
+            foreach ($allCategories as $category)
             {
-                $allowedCategories[] = (int) $category->id;
+                if ($user->authorise($action, $category->asset_name))
+                {
+                    $allowedCategories[] = (int) $category->id;
+                }
             }
+            $session->set('jd_allowed_create_categories', $allowedCategories);
         }
         return $allowedCategories;
     }        
@@ -3017,7 +3120,78 @@ class JDHelper
             }
             return $orderby;
         }            
-    }
+    } 
+    
+    /**
+    * Converts a string into Float while taking the given or locale number format into account
+    * Used as default the defined separator characters from the Joomla main language ini file (as example: en-GB.ini)  
+    * 
+    * @param mixed $str
+    * @param mixed $dec_point
+    * @param mixed $thousands_sep
+    * @param mixed $decimals
+    * @return mixed
+    */
+    public static function strToNumber( $str, $dec_point=null, $thousands_sep=null, $decimals = 0 )
+    {
+        if( is_null($dec_point) || is_null($thousands_sep) ) {
+            if( is_null($dec_point) ) {
+                $dec_point = JText::_('DECIMALS_SEPARATOR');
+            }
+            if( is_null($thousands_sep) ) {
+                $thousands_sep = JText::_('THOUSANDS_SEPARATOR');
+            }
+        }
+        // in this case use we as default the en-GB format
+        if (!$dec_point) $dec_point = '.'; 
+        if (!$thousands_sep) $thousands_sep = ','; 
+
+        // we will not round a value so we must check it
+        if (is_numeric($str) && !is_int($str) && !is_double($str) && $decimals == 0){
+            $decimals = 2;
+        }
+        
+        $number = number_format($str, $decimals, $dec_point, $thousands_sep);
+        return $number;
+    }        
+ 
+    /**
+    * Compute which date format shall be used for the output
+    * 
+    * @return mixed
+    */
+    public static function getDateFormat(){
+        
+        global $jlistConfig;
+        
+        $format = array();
+        
+        // check at first the long format 
+        // when defined get the format from the current language
+        if ($jlistConfig['global.datetime']){
+            $format['long'] = self::getOnlyLanguageSubstring($jlistConfig['global.datetime']);
+            if (!$format['long']){
+                $format['long'] = JText::_('DATE_FORMAT_LC2');
+            }
+        } else {
+            // format is not defined in configuration so we use a standard format from the language file (LC2)
+            $format['long'] = JText::_('DATE_FORMAT_LC2');
+        }
+
+        // check now the short format field
+        // when defined get the format from the current language
+        if ($jlistConfig['global.datetime.short']){
+            $format['short'] = self::getOnlyLanguageSubstring($jlistConfig['global.datetime.short']);
+            if (!$format['short']){
+                $format['short'] = JText::_('DATE_FORMAT_LC4');
+            }
+        } else {
+            // format is not defined in configuration so we use a standard format from the language file (LC4)
+            $format['short'] = JText::_('DATE_FORMAT_LC4');
+        }
+
+        return $format;    
+    } 
       
 }    
     

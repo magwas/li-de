@@ -3,7 +3,7 @@
  * The modular PHP5 site backup software solution
  * This file contains the jQuery-based client-side user interface logic
  * @package akeebaui
- * @copyright Copyright (c)2009-2014 Nicholas K. Dionysopoulos
+ * @copyright Copyright (c)2009-2015 Nicholas K. Dionysopoulos
  * @license GNU GPL version 3 or, at your option, any later version
  * @version $Id$
  **/
@@ -21,11 +21,20 @@ if(typeof(akeeba.jQuery) == 'undefined') {
 /** @var Root URI for theme files */
 var akeeba_ui_theme_root = "";
 
+/** @var URL for the icon used in notifications */
+var akeeba_notification_icon_url = "";
+
 /** @var The AJAX proxy URL */
 var akeeba_ajax_url = "";
 
+/** @var The log viewer URL */
+var akeeba_logview_url = "";
+
 /** @var Current backup job's tag */
 var akeeba_backup_tag = 'backend';
+
+/** @var Current backup job's unique ID */
+var akeeba_backup_id = null;
 
 /** @var The callback function to call on error */
 var akeeba_error_callback = dummy_error_handler;
@@ -33,11 +42,19 @@ var akeeba_error_callback = dummy_error_handler;
 /** @var A URL to return to upon successful backup */
 var akeeba_return_url = '';
 
-/** @var Is this the Site Transfer Wizard? If so, we'll ask before redirecting */
-var akeeba_is_stw = false;
+/** @var Should I auto resume backups with AJAX errors? */
+var akeeba_autoresume_enabled = true;
 
-/** @var System restore point setup information */
-var akeeba_srp_info = {};
+/** @var Tiemout before automatically resuming the backup after an error */
+var akeeba_autoresume_timeout = 10;
+
+/** @var Maximum auto-resume attempts */
+var akeeba_autoresume_maxretries = 3;
+
+/** @var Current auto-retry attempt */
+var akeeba_autoresume_try = 0;
+
+var akeeba_config_passwordfields = {};
 
 /** @var The translation strings used in the GUI */
 var akeeba_translations = new Array();
@@ -46,7 +63,6 @@ akeeba_translations['UI-CONFIG'] = 'Configure...';
 akeeba_translations['UI-LASTRESPONSE'] = 'Last server response %ss ago';
 akeeba_translations['UI-ROOT'] = '&lt;root&gt;';
 akeeba_translations['UI-ERROR-FILTER'] = 'An error occured while applying the filter for "%s"';
-akeeba_translations['UI-STW-CONTINUE'] = 'Transfer of your site is almost complete. Click on the OK button to go to your new site, run the restoration script and finish the restoration of your database and site setup. Remember to click on the link to remove the installation directory on the last page of the restoration script.';
 
 /** @var Engine definitions array */
 var akeeba_engines = new Array();
@@ -217,10 +233,7 @@ function doAjax(data, successCallback, errorCallback, useCaching, timeout)
 	if(useCaching == null) useCaching = true;
 
 	if(!useCaching) {
-		var now = new Date().getTime() / 1000;
-		var s = parseInt(now, 10);
-		var microtime = Math.round((now - s) * 1000) / 1000;
-		data._utterUselessCrapRequiredByStupidBrowsersToStopCachingXHR = microtime;
+		data.xhrcachebust = new Date().getTime();
 	}
 
 	if(timeout == null) timeout = 600000;
@@ -231,7 +244,7 @@ function doAjax(data, successCallback, errorCallback, useCaching, timeout)
 			url: akeeba_ajax_url,
 			cache: false,
 			data: data,
-			timeout: 600000,
+			timeout: timeout,
 			success: function(msg) {
 				// Initialize
 				var junk = null;
@@ -240,6 +253,7 @@ function doAjax(data, successCallback, errorCallback, useCaching, timeout)
 				// Get rid of junk before the data
 				var valid_pos = msg.indexOf('###');
 				if( valid_pos == -1 ) {
+					msg = sanitize_error_message(msg);
 					// Valid data not found in the response
 					msg = 'Invalid AJAX data: ' + msg;
 					if(errorCallback == null)
@@ -272,6 +286,7 @@ function doAjax(data, successCallback, errorCallback, useCaching, timeout)
 				try {
 					var data = JSON.parse(message);
 				} catch(err) {
+					message = sanitize_error_message(message);
 					var msg = err.message + "\n<br/>\n<pre>\n" + message + "\n</pre>";
 					if(errorCallback == null)
 					{
@@ -291,10 +306,11 @@ function doAjax(data, successCallback, errorCallback, useCaching, timeout)
 				successCallback(data);
 			},
 			error: function(Request, textStatus, errorThrown) {
+                var text = Request.responseText ? Request.responseText : '';
 				var message = '<strong>AJAX Loading Error</strong><br/>HTTP Status: '+Request.status+' ('+Request.statusText+')<br/>';
 				message = message + 'Internal status: '+textStatus+'<br/>';
 				message = message + 'XHR ReadyState: ' + Request.readyState + '<br/>';
-				message = message + 'Raw server response:<br/>'+Request.responseText;
+				message = message + 'Raw server response:<br/>' + sanitize_error_message(text);
 
 				if(errorCallback == null)
 				{
@@ -318,6 +334,26 @@ function doAjax(data, successCallback, errorCallback, useCaching, timeout)
 			$.ajax( structure );
 		}
 	})(akeeba.jQuery);
+}
+
+/**
+ * Sanitize a message before displaying it in an error dialog. Some servers return an HTML page with DOM modifying
+ * JavaScript when they block the backup script for any reason (usually with a 5xx HTTP error code). Displaying the
+ * raw response in the error dialog has the side-effect of killing our backup resumption JavaScript or even completely
+ * destroy the page, making backup restart impossible.
+ *
+ * @param {string} msg The message to sanitize
+ *
+ * @returns {string}
+ */
+function sanitize_error_message(msg)
+{
+	if (msg.indexOf("<script") > -1)
+	{
+		msg = "(HTML containing script tags)";
+	}
+
+	return msg;
 }
 
 //=============================================================================
@@ -558,6 +594,21 @@ function parse_config_gui_data(data, rootnode)
 									{$(this).val(old);}
 								}
 							});
+							// Enable popovers
+							engine_config_container.find('[rel="popover"]').popover({
+								trigger: 'manual',
+								animate: false,
+								html: true,
+								placement: 'bottom',
+								template: '<div class="popover akeeba-bootstrap-popover" onmouseover="akeeba.jQuery(this).mouseleave(function() {akeeba.jQuery(this).hide(); });"><div class="arrow"></div><div class="popover-inner"><h3 class="popover-title"></h3><div class="popover-content"><p></p></div></div></div>'
+							})
+								.click(function(e) {
+									e.preventDefault();
+								})
+								.mouseenter(function(e) {
+									akeeba.jQuery('div.popover').remove();
+									akeeba.jQuery(this).popover('show');
+								});
 						});
 
 						// Add a configuration show/hide button
@@ -713,6 +764,8 @@ function parse_config_gui_data(data, rootnode)
 
 					// A simple single-line, unvalidated password box
 					case 'password':
+						akeeba_config_passwordfields[current_id] = defdata['default'];
+
 						var editor = $(document.createElement('input')).attr({
 							type:			'password',
 							id:				current_id,
@@ -879,18 +932,28 @@ function parse_config_gui_data(data, rootnode)
 //Akeeba Backup -- Backup Now page
 //=============================================================================
 
-function set_ajax_timer()
+function set_ajax_timer(waitTime)
 {
-	setTimeout('akeeba_ajax_timer_tick()', 10);
+	if (waitTime <= 0)
+	{
+		waitTime = 10;
+	}
+
+	setTimeout('akeeba_ajax_timer_tick()', waitTime);
 }
 
 function akeeba_ajax_timer_tick()
 {
+	// Reset the timer
+	reset_timeout_bar();
+	start_timeout_bar(akeeba_max_execution_time, akeeba_time_bias);
+
 	(function($){
 		doAjax({
 			// Data to send to AJAX
 			'ajax'	: 'step',
-			'tag'	: akeeba_backup_tag
+			'tag'	: akeeba_backup_tag,
+			'backupid' : akeeba_backup_id
 		}, backup_step, backup_error, false );
 	})(akeeba.jQuery);
 }
@@ -925,6 +988,31 @@ function reset_timeout_bar()
 	})(akeeba.jQuery);
 }
 
+function start_retry_timeout()
+{
+	(function($) {
+		var remainingSeconds = akeeba_autoresume_timeout;
+		$('#akeeba-retry-timeout').everyTime(1000, 'retryTimeout', function() {
+			remainingSeconds--;
+			$('#akeeba-retry-timeout').html(remainingSeconds.toFixed(0));
+
+			if (remainingSeconds == 0)
+			{
+				$('#akeeba-retry-timeout').stopTime();
+				akeeba_resume_backup();
+			}
+		});
+	})(akeeba.jQuery);
+}
+
+function reset_retry_timeout()
+{
+	(function($){
+		$('#akeeba-retry-timeout').stopTime();
+		$('#akeeba-retry-timeout').html(akeeba_autoresume_timeout.toFixed(0));
+	})(akeeba.jQuery);
+}
+
 function render_backup_steps(active_step)
 {
 	(function($){
@@ -951,6 +1039,52 @@ function render_backup_steps(active_step)
 			step.addClass(this_class);
 		});
 	})(akeeba.jQuery);
+}
+
+/**
+ * Checks if the user has granted us the permission to display notification. If no decision is made, ask for permission.
+ */
+function akeebaBackup_notifications_askPermission()
+{
+    if (window.Notification == undefined)
+    {
+        return;
+    }
+
+    if (window.Notification.permission == 'default')
+    {
+        window.Notification.requestPermission();
+    }
+}
+
+function akeebaBackup_notifications_notify(title, body)
+{
+    if (window.Notification == undefined)
+    {
+        return;
+    }
+
+    if (window.Notification.permission != 'granted')
+    {
+        return;
+    }
+
+    if (body == undefined)
+    {
+        body = '';
+    }
+
+    var n = new window.Notification(title, {
+        'body': body,
+        'icon': akeeba_notification_icon_url
+    });
+
+    setTimeout(function(notification) {
+        return function()
+        {
+            notification.close();
+        }
+    }(n), 5000);
 }
 
 function backup_start()
@@ -994,30 +1128,35 @@ function backup_start()
         }
 
 		// Initialise Piecon
-		Piecon.setOptions({
-			color: '#333333',
-			background: '#e0e0e0',
-			shadow: '#000000',
-			fallback: 'force'
-		});
+		try {
+			Piecon.setOptions({
+				color: '#333333',
+				background: '#e0e0e0',
+				shadow: '#000000',
+				fallback: 'force'
+			});
+		} catch (e)
+		{};
+
+        var rightNow = new Date();
+        akeebaBackup_notifications_notify(akeeba_translations['UI-BACKUPSTARTED'] + ' ' + rightNow.toLocaleString());
 
 		// Initialize steps
 		render_backup_steps('');
 		// Start the response timer
 		start_timeout_bar(akeeba_max_execution_time, akeeba_time_bias);
 		// Perform Ajax request
-		akeeba_backup_tag = akeeba_srp_info.tag;
+		akeeba_backup_id = null;
 
-                var ajax_request = {
-                    // Data to send to AJAX
-                    'ajax': 'start',
-                    description: $('#backup-description').val(),
-                    comment: $('#comment').val(),
-                    jpskey: jpskey,
-                    angiekey: angiekey
-                };
-
-                ajax_request = array_merge(ajax_request, akeeba_srp_info);
+		var ajax_request = {
+			// Data to send to AJAX
+			'ajax': 'start',
+			description: $('#backup-description').val(),
+			comment: $('#comment').val(),
+			jpskey: jpskey,
+			angiekey: angiekey,
+			tag: akeeba_backup_tag
+		};
 
 		doAjax(ajax_request, backup_step, backup_error, false );
 	})(akeeba.jQuery);
@@ -1032,7 +1171,6 @@ function backup_step(data)
 	}
 
 	// Update visual step progress from active domain data
-	reset_timeout_bar();
 	render_backup_steps(data.Domain);
 	(function($){
 		// Update percentage display
@@ -1042,14 +1180,17 @@ function backup_step(data)
 			'width':			data.Progress+'%'
 		});
 
-		if (data.Progress >= 100)
-		{
-			Piecon.setProgress(99);
+		try {
+			if (data.Progress >= 100)
+			{
+				Piecon.setProgress(99);
+			}
+			else
+			{
+				Piecon.setProgress(data.Progress);
+			}
 		}
-		else
-		{
-			Piecon.setProgress(data.Progress);
-		}
+		catch (e) {}
 
 		// Update step/substep display
 		$('#backup-step').html(data.Step);
@@ -1062,6 +1203,7 @@ function backup_step(data)
 				var newDiv = $(document.createElement('div'))
 					.html(warning)
 					.appendTo( $('#warnings-list') );
+                akeebaBackup_notifications_notify(akeeba_translations['UI-BACKUPWARNING'], warning);
 			});
 			if( $('#backup-warnings-panel').is(":hidden") )
 			{
@@ -1089,13 +1231,25 @@ function backup_step(data)
 			}
 			else
 			{
-				// No. Set the backup tag
-				akeeba_backup_tag = akeeba_backup_tag;
+				// No. Reset the backup retries.
+				akeeba_autoresume_try = 0;
+
+				// Set the backup ID
+				akeeba_backup_id = data.backupid;
 				if(empty(akeeba_backup_tag)) akeeba_backup_tag = 'backend';
-				// Start the response timer...
-				start_timeout_bar(akeeba_max_execution_time, akeeba_time_bias);
-				// ...and send an AJAX command
-				set_ajax_timer();
+
+				// Reset the retries
+				akeeba_autoresume_try = 0;
+
+				// How much time do I have to wait?
+				var waitTime = 10;
+				if (data.hasOwnProperty('sleepTime'))
+				{
+					waitTime = data.sleepTime;
+				}
+
+				// Send an AJAX command
+				set_ajax_timer(waitTime);
 			}
 		}
 	})(akeeba.jQuery);
@@ -1104,24 +1258,132 @@ function backup_step(data)
 function backup_error(message)
 {
 	(function($){
+		// If resume is not enabled, die.
+		if (!akeeba_autoresume_enabled)
+		{
+			backup_die(message);
+		}
+
+		// If we are past the max retries, die.
+		if (akeeba_autoresume_try >= akeeba_autoresume_maxretries)
+		{
+			backup_die(message);
+			return;
+		}
+
 		// Make sure the timer is stopped
-		reset_timeout_bar();
+		akeeba_autoresume_try++;
+        var resumeNotificationMessage = akeeba_translations['UI-BACKUPHALT_DESC'];
+        var resumeNotificationMessageReplaced = resumeNotificationMessage.replace('%d', akeeba_autoresume_timeout.toFixed(0))
+        akeebaBackup_notifications_notify(akeeba_translations['UI-BACKUPHALT'], resumeNotificationMessageReplaced);
+		reset_retry_timeout();
+
 		// Hide progress and warnings
 		$('#backup-progress-pane').hide("fast");
 		$('#backup-warnings-panel').hide("fast");
+		$('#error-panel').hide("fast");
+
+		// Setup and show the retry pane
+		$('#backup-error-message-retry').html(message);
+		$('#retry-panel').show("fast");
+
+		// Start the countdown
+		start_retry_timeout();
+	})(akeeba.jQuery);
+}
+
+function akeeba_cancel_resume_backup()
+{
+	(function($){
+		// Make sure the timer is stopped
+		reset_retry_timeout();
+
+		// Kill the backup
+		var errorMessage = $('#backup-error-message-retry').html();
+		backup_die(errorMessage);
+	})(akeeba.jQuery);
+}
+
+function akeeba_resume_backup()
+{
+	(function($){
+		// Make sure the timer is stopped
+		reset_retry_timeout();
+
+		// Hide error and retry panels
+		$('#error-panel').hide("fast");
+		$('#retry-panel').hide("fast");
+
+		// Show progress and warnings
+		$('#backup-progress-pane').show("fast");
+		if ($('#warnings-list').html())
+		{
+			$('#backup-warnings-panel').show("fast");
+		}
+
+        var rightNow = new Date();
+        akeebaBackup_notifications_notify(akeeba_translations['UI-BACKUPRESUME'] + ' ' + rightNow.toLocaleString());
+
+		// Restart the backup
+		set_ajax_timer();
+	})(akeeba.jQuery);
+}
+
+function backup_die(message)
+{
+	(function($){
+		// Make sure the timer is stopped
+		reset_timeout_bar();
+
+		// Hide progress and warnings
+		$('#backup-progress-pane').hide("fast");
+		$('#backup-warnings-panel').hide("fast");
+		$('#retry-panel').hide("fast");
+
+		// Set up the view log URL
+		var viewLogUrl = akeeba_logview_url + '&tag=' + akeeba_backup_tag;
+		if (akeeba_backup_id)
+		{
+			viewLogUrl = viewLogUrl + '.' + encodeURIComponent(akeeba_backup_id);
+		}
+		$('#ab-viewlog-error').attr('href', viewLogUrl);
+
 		// Setup and show error pane
+        akeebaBackup_notifications_notify(akeeba_translations['UI-BACKUPFAILED'], message);
 		$('#backup-error-message').html(message);
 		$('#error-panel').show();
+
+        // Try to send a push notification for failed backups
+        doAjax({
+            // Data to send to AJAX
+            'ajax'	        : 'pushFail',
+            'tag'	        : akeeba_backup_tag,
+            'backupid'      : akeeba_backup_id,
+            'errorMessage'  : message
+        }, function(msg){});
 	})(akeeba.jQuery);
 }
 
 function backup_complete()
 {
 	(function($){
+        var rightNow = new Date();
+        akeebaBackup_notifications_notify(akeeba_translations['UI-BACKUPFINISHED'] + ' ' + rightNow.toLocaleString());
+
 		// Make sure the timer is stopped
 		reset_timeout_bar();
+
 		// Hide progress
 		$('#backup-progress-pane').hide("fast");
+
+		// Set up the view log URL
+		var viewLogUrl = akeeba_logview_url + '&tag=' + akeeba_backup_tag;
+		if (akeeba_backup_id)
+		{
+			viewLogUrl = viewLogUrl + '.' + encodeURIComponent(akeeba_backup_id);
+		}
+		$('#ab-viewlog-success').attr('href', viewLogUrl);
+
 		// Show finished pane
 		$('#backup-complete').show();
 		$('#backup-warnings-panel').width('100%');
@@ -1129,14 +1391,22 @@ function backup_complete()
 		// Proceed to the return URL if it is set
 		if(akeeba_return_url != '')
 		{
-			// If it's the Site Transfer Wizard, show a message first
-			if(akeeba_is_stw) {
-				alert(akeeba_translations['UI-STW-CONTINUE']);
-			}
-
 			window.location = akeeba_return_url;
 		}
 	})(akeeba.jQuery);
+}
+
+function akeeba_restore_configuration_defaults()
+{
+	akeeba.jQuery.each(akeeba_config_passwordfields, function(curid, defvalue){
+		myElement = document.getElementById(curid);
+		try {
+			console.debug(curid + ' => ' + defvalue);
+		} catch(e) {
+		}
+		akeeba.jQuery(myElement).val('BROWSERS ARE BRAIN DEAD');
+		akeeba.jQuery(myElement).val(defvalue);
+	});
 }
 
 function akeeba_restore_backup_defaults()
@@ -1389,6 +1659,75 @@ function fsfilter_render(data)
 				)
 				.appendTo(akfolders);
 		}
+
+        // Append the "Apply to all" buttons
+        if(Object.keys(data.folders).length > 0)
+        {
+            var headerFilters = ['directories_all', 'skipdirs_all', 'skipfiles_all'];
+            var headerDirs    = $(document.createElement('div')).addClass('folder-header folder-container');
+
+            $.each(headerFilters, function(index, filter)
+            {
+                var ui_icon = $(document.createElement('span')).addClass('folder-icon-container');
+                var applyTo = '';
+
+                switch(filter)
+                {
+                    case 'directories_all':
+                        applyTo = 'ui-icon-cancel';
+                        ui_icon.append('<span class="ak-toggle-button ui-icon ui-icon-cancel"></span>');
+                        break;
+                    case 'skipdirs_all':
+                        applyTo = 'ui-icon-folder-open';
+                        ui_icon.append('<span class="ak-toggle-button ui-icon ui-icon-folder-open"></span>');
+                        break;
+                    case 'skipfiles_all':
+                        applyTo = 'ui-icon-document';
+                        ui_icon.append('<span class="ak-toggle-button ui-icon ui-icon-document"></span>');
+                        break;
+                }
+
+                ui_icon.attr('title', '<div class="tooltip-arrow-up-leftaligned"></div><div>'+akeeba_translations['UI-FILTERTYPE-'+filter.toUpperCase()]+'</div>')
+					.tooltip({
+						html: true,
+						placement: 'top'
+                	});
+
+                ui_icon.click(function(){
+                    var selected;
+
+                    if($(this).hasClass('ui-state-highlight')){
+                        $(this).removeClass('ui-state-highlight');
+                        selected = false;
+                    }
+                    else{
+                        $(this).addClass('ui-state-highlight');
+                        selected = true;
+                    }
+
+                    $.each(akfolders.find('.folder-container').not('.folder-header').find('span.'+applyTo), function(index, item){
+                        var hasClass = $(item).parent().hasClass('ui-state-highlight');
+
+                        // I have to exclude items that have the same state of the desired one, otherwise I'll toggle it
+                        if((!selected && !hasClass) || (selected && hasClass))
+                        {
+                            return;
+                        }
+
+                        $(item).click();
+                    });
+                });
+
+                ui_icon.appendTo(headerDirs);
+            });
+
+            $(document.createElement('span')).addClass('folder-name')
+                .html('<span class="pull-left ui-icon ui-icon-arrowthick-1-w"></span>' + akeeba_translations['UI-FILTERTYPE-APPLYTOALLDIRS'])
+                .appendTo(headerDirs);
+
+            headerDirs.appendTo(akfolders);
+        }
+
 		$.each(data.folders, function(folder, def){
 			var uielement = $(document.createElement('div'))
 				.addClass('folder-container');
@@ -1411,21 +1750,12 @@ function fsfilter_render(data)
 						ui_icon.append('<span class="ak-toggle-button ui-icon ui-icon-document"></span>');
 						break;
 				}
-				ui_icon.tooltip({
-					top: 24,
-					left: 0,
-					track: false,
-					delay: 0,
-					showURL: false,
-					opacity: 1,
-					fixPNG: true,
-					fade: 0,
-					extraClass: 'ui-dialog ui-corner-all',
-					bodyHandler: function() {
-						html = '<div class="tooltip-arrow-up-leftaligned"></div><div>'+akeeba_translations['UI-FILTERTYPE-'+filter.toUpperCase()]+'</div>';
-						return html;
-					}
-				});
+
+				ui_icon.attr('title', '<div class="tooltip-arrow-up-leftaligned"></div><div>'+akeeba_translations['UI-FILTERTYPE-'+filter.toUpperCase()]+'</div>')
+					.tooltip({
+						html: true,
+						placement: 'top'
+					});
 
 				switch(def[filter])
 				{
@@ -1485,6 +1815,55 @@ function fsfilter_render(data)
 		// ----- Render the files
 		var akfiles = $('#files');
 		akfiles.html('');
+
+        // Append the "Apply to all" buttons
+        if(Object.keys(data.files).length > 0)
+        {
+            var headerFiles = $(document.createElement('div')).addClass('file-header file-container');
+
+            var ui_icon = $(document.createElement('span')).addClass('file-icon-container');
+            ui_icon.append('<span class="ak-toggle-button ui-icon ui-icon-cancel"></span>');
+
+			ui_icon.attr('title', '<div class="tooltip-arrow-up-leftaligned"></div><div>'+akeeba_translations['UI-FILTERTYPE-FILES_ALL']+'</div>')
+				.tooltip({
+					html: true,
+					placement: 'top'
+				});
+
+            ui_icon.click(function(){
+                var selected;
+
+                if($(this).hasClass('ui-state-highlight')){
+                    $(this).removeClass('ui-state-highlight');
+                    selected = false;
+                }
+                else{
+                    $(this).addClass('ui-state-highlight');
+                    selected = true;
+                }
+
+                $.each(akfiles.find('.file-container').not('.file-header').find('span.ui-icon-cancel'), function(index, item){
+                    var hasClass = $(item).parent().hasClass('ui-state-highlight');
+
+                    // I have to exclude items that have the same state of the desidered one, otherwise I'll toggle it
+                    if((!selected && !hasClass) || (selected && hasClass))
+                    {
+                        return;
+                    }
+
+                    $(item).click();
+                });
+            });
+
+            ui_icon.appendTo(headerFiles);
+
+            $(document.createElement('span')).addClass('file-name')
+                .html('<span class="pull-left ui-icon ui-icon-arrowthick-1-w"></span>' + akeeba_translations['UI-FILTERTYPE-APPLYTOALLFILES'])
+                .appendTo(headerFiles);
+
+            headerFiles.appendTo(akfiles);
+        }
+
 		$.each(data.files, function(file, def){
 			var uielement = $(document.createElement('div'))
 				.addClass('file-container');
@@ -1499,21 +1878,13 @@ function fsfilter_render(data)
 						ui_icon.append('<span class="ak-toggle-button ui-icon ui-icon-cancel"></span>');
 						break;
 				}
-				ui_icon.tooltip({
-					top: 24,
-					left: 0,
-					track: false,
-					delay: 0,
-					showURL: false,
-					opacity: 1,
-					fixPNG: true,
-					fade: 0,
-					extraClass: 'ui-dialog ui-corner-all',
-					bodyHandler: function() {
-						html = '<div class="tooltip-arrow-up-leftaligned"></div><div>'+akeeba_translations['UI-FILTERTYPE-'+filter.toUpperCase()]+'</div>';
-						return html;
-					}
-				});
+
+				ui_icon.attr('title', '<div class="tooltip-arrow-up-leftaligned"></div><div>'+akeeba_translations['UI-FILTERTYPE-'+filter.toUpperCase()]+'</div>')
+					.tooltip({
+						html: true,
+						placement: 'top'
+					});
+
 				switch(def[filter])
 				{
 					case 2:
@@ -1804,21 +2175,12 @@ function dbfilter_render(data)
 						ui_icon.append('<span class="ak-toggle-button ui-icon ui-icon-contact"></span>');
 						break;
 				}
-				ui_icon.tooltip({
-					top: 24,
-					left: 0,
-					track: false,
-					delay: 0,
-					showURL: false,
-					opacity: 1,
-					fixPNG: true,
-					fade: 0,
-					extraClass: 'ui-dialog ui-corner-all',
-					bodyHandler: function() {
-						html = '<div class="tooltip-arrow-up-leftaligned"></div><div>'+akeeba_translations['UI-FILTERTYPE-'+filter.toUpperCase()]+'</div>';
-						return html;
-					}
-				});
+
+				ui_icon.attr('title', '<div class="tooltip-arrow-up-leftaligned"></div><div>'+akeeba_translations['UI-FILTERTYPE-'+filter.toUpperCase()]+'</div>')
+					.tooltip({
+						html: true,
+						placement: 'top'
+					});
 
 				switch(dbef[filter])
 				{
@@ -1892,20 +2254,10 @@ function dbfilter_render(data)
 						.addClass('ui-icon')
 						.addClass(iconclass)
 					)
+					.attr('title', '<div class="tooltip-arrow-up-leftaligned"></div><div>'+akeeba_translations[icontip]+'</div>'+'</div>')
 					.tooltip({
-						top: 24,
-						left: 0,
-						track: false,
-						delay: 0,
-						showURL: false,
-						opacity: 1,
-						fixPNG: true,
-						fade: 0,
-						extraClass: 'ui-dialog ui-corner-all',
-						bodyHandler: function() {
-							html = '<div class="tooltip-arrow-up-leftaligned"></div><div>'+akeeba_translations[icontip]+'</div>';
-							return html;
-						}
+						html: true,
+						placement: 'top'
 					})
 				)
 				.appendTo(uielement);
@@ -2119,256 +2471,6 @@ function dbfilter_nuke()
 	doAjax(new_data, function(response){
 		dbfilter_render(response);
 	});
-}
-
-//=============================================================================
-//Akeeba Backup Core - System Restore Point roll-back
-//=============================================================================
-var akeeba_srprestoration_error_callback = akeeba_srprestoration_error_callback_default;
-var akeeba_srprestoration_stat_inbytes = 0;
-var akeeba_srprestoration_stat_outbytes = 0;
-var akeeba_srprestoration_stat_files = 0;
-var akeeba_srprestoration_factory = null;
-
-/**
- * Callback script for AJAX errors
- * @param msg
- * @return
- */
-function akeeba_srprestoration_error_callback_default(msg)
-{
-	(function($) {
-		$('#restoration-progress').hide();
-		$('#restoration-database-progress').hide();
-		$('#restoration-error').show();
-		$('#backup-error-message').html(msg);
-	})(akeeba.jQuery);
-}
-
-/**
- * Performs an AJAX request to the file restoration script
- * @param data
- * @param successCallback
- * @param errorCallback
- * @return
- */
-function doSRPRestorationAjax(data, successCallback, errorCallback)
-{
-    (function($) {
-        json = JSON.stringify(data);
-        var post_data = {json: json, ajax: data.ajax};
-
-        var structure =
-        {
-                type: "POST",
-                url: akeeba_srprestoration_ajax_url,
-                cache: false,
-                data: post_data,
-                timeout: 600000,
-                success: function(msg) {
-                        // Initialize
-                        var junk = null;
-                        var message = "";
-
-                        // Get rid of junk before the data
-                        var valid_pos = msg.indexOf('###');
-                        if( valid_pos == -1 ) {
-                                // Valid data not found in the response
-                                msg = 'Invalid AJAX data: ' + msg;
-                                if(errorCallback == null)
-                                {
-                                        if(akeeba_srprestoration_error_callback != null)
-                                        {
-                                                akeeba_srprestoration_error_callback(msg);
-                                        }
-                                }
-                                else
-                                {
-                                        errorCallback(msg);
-                                }
-                                return;
-                        } else if( valid_pos != 0 ) {
-                                // Data is prefixed with junk
-                                junk = msg.substr(0, valid_pos);
-                                message = msg.substr(valid_pos);
-                        }
-                        else
-                        {
-                                message = msg;
-                        }
-                        message = message.substr(3); // Remove triple hash in the beginning
-
-                        // Get of rid of junk after the data
-                        var valid_pos = message.lastIndexOf('###');
-                        message = message.substr(0, valid_pos); // Remove triple hash in the end
-
-                        try {
-                            var data = JSON.parse(message);
-                        } catch(err) {
-                            var msg = err.message + "\n<br/>\n<pre>\n" + message + "\n</pre>";
-                            if(errorCallback == null)
-                            {
-                                    if(akeeba_srprestoration_error_callback != null)
-                                    {
-                                            akeeba_srprestoration_error_callback(msg);
-                                    }
-                            }
-                            else
-                            {
-                                    errorCallback(msg);
-                            }
-                            return;
-                        }
-
-                        // Call the callback function
-                        successCallback(data);
-                },
-                error: function(Request, textStatus, errorThrown) {
-                        var message = 'AJAX Loading Error: '+textStatus;
-                        if(errorCallback == null)
-                        {
-                                if(akeeba_srprestoration_error_callback != null)
-                                {
-                                        akeeba_srprestoration_error_callback(message);
-                                }
-                        }
-                        else
-                        {
-                                errorCallback(message);
-                        }
-                }
-        };
-        $.ajax( structure );
-    })(akeeba.jQuery);
-}
-
-/**
- * Pings the restoration script (making sure its executable!!)
- * @return
- */
-function pingSRPRestoration()
-{
-	// Reset variables
-	akeeba_srprestoration_stat_inbytes = 0;
-	akeeba_srprestoration_stat_outbytes = 0;
-	akeeba_srprestoration_stat_files = 0;
-
-	// Do AJAX post
-	var post = {ajax : 'restoreFilesPing'};
-	start_timeout_bar(5000,80);
-	doSRPRestorationAjax(post, function(data){
-		startSRPRestoration(data);
-	});
-}
-
-/**
- * Starts the restoration
- * @return
- */
-function startSRPRestoration()
-{
-	// Reset variables
-	akeeba_srprestoration_stat_inbytes = 0;
-	akeeba_srprestoration_stat_outbytes = 0;
-	akeeba_srprestoration_stat_files = 0;
-
-	// Do AJAX post
-	var post = {ajax : 'restoreFilesStart'};
-	start_timeout_bar(5000,80);
-	doSRPRestorationAjax(post, function(data){
-		processSRPRestorationStep(data);
-	});
-}
-
-/**
- * Steps through the restoration
- * @param data
- * @return
- */
-function processSRPRestorationStep(data)
-{
-	reset_timeout_bar();
-	if(data.status == false)
-	{
-		// handle failure
-		akeeba_srprestoration_error_callback_default(data.message);
-	}
-	else
-	{
-		if(data.done)
-		{
-			(function($){
-				startSRPdbRestoration();
-			})(akeeba.jQuery);
-		}
-		else
-		{
-			// Add data to variables
-			akeeba_srprestoration_stat_inbytes += data.bytesIn;
-			akeeba_srprestoration_stat_outbytes += data.bytesOut;
-			akeeba_srprestoration_stat_files += data.files;
-
-			// Display data
-			(function($){
-				$('#extbytesin').html( akeeba_srprestoration_stat_inbytes );
-				$('#extbytesout').html( akeeba_srprestoration_stat_outbytes );
-				$('#extfiles').html( akeeba_srprestoration_stat_files );
-			})(akeeba.jQuery);
-
-			// Do AJAX post
-			post = {
-				ajax: 'restoreFilesStep',
-				factory: data.factory
-			};
-			start_timeout_bar(5000,80);
-			doSRPRestorationAjax(post, function(data){
-				processSRPRestorationStep(data);
-			});
-		}
-	}
-}
-
-function finalizeSRPRestoration()
-{
-	// Do AJAX post
-	var post = {ajax : 'restoreFilesFinalize', factory: akeeba_srprestoration_factory};
-	start_timeout_bar(5000,80);
-	doSRPRestorationAjax(post, function(data){
-		SRPRestorationFinished(data);
-	});
-}
-
-function startSRPdbRestoration() {
-	(function($){
-		$('#restoration-progress').hide();
-		$('#restoration-db-progress').show();
-	})(akeeba.jQuery);
-	var post = {ajax : 'dbRestoreStart'};
-	doSRPRestorationAjax(post, doSRPdbRestoration);
-}
-
-function doSRPdbRestoration(data) {
-	if(data.error) {
-		akeeba_srprestoration_error_callback_default(data.error);
-	} else if(data.done == 1) {
-		finalizeSRPRestoration();
-	} else {
-		// TODO Maybe add a progress bar?
-		(function($){
-			$('#restoration-db-progress-message').html(data.message);
-			var post = {ajax : 'dbRestore'};
-			doSRPRestorationAjax(post, doSRPdbRestoration);
-		})(akeeba.jQuery);
-	}
-}
-
-function SRPRestorationFinished()
-{
-	// We're just finished - return to the back-end Control Panel
-	(function($){
-		$('#restoration-db-progress').hide();
-		$('#restoration-done').show();
-	})(akeeba.jQuery);
 }
 
 //=============================================================================

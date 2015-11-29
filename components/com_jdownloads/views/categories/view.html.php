@@ -37,6 +37,8 @@ class jdownloadsViewCategories extends JViewLegacy
         $user  = JFactory::getUser();
         $model = $this->getModel();
         
+        $jd_user_settings = JDHelper::getUserRules();
+        
         // Get some data from the models
 		$state		= $this->get('State');
         $params     = $state->params;
@@ -47,16 +49,26 @@ class jdownloadsViewCategories extends JViewLegacy
        
 		$parent		= $this->get('Parent');
         
-        // we must get all 'allowed' category IDs 
-        $this->authorised_cats = JDHelper::getAuthorisedJDCategories('core.create', $user);
-        $authorised = $user->authorise('core.create', 'com_jdownloads') || (count($this->authorised_cats));
-        if ($authorised === true) {
-            // It exist a global permissions or at minimum a single category where the user has the permission to 'create'.
-            $this->view_upload_button = true;                
-        } else {
-            $this->view_upload_button = false;
-        }
+        // upload icon handling
+        $this->view_upload_button = false;
+        
+        if ($jd_user_settings->uploads_view_upload_icon){
+            // we must here check whether the user has the permissions to create new downloads 
+            // this can be defined in the components permissions but also in any category
+            // but the upload icon is only viewed when in the user groups settings is also activated the: 'display add/upload icon' option
                 
+            // 1. check the component permissions
+            if (!$user->authorise('core.create', 'com_jdownloads')){
+                // 2. not global permissions so we must check now every category (for a lot of categories can this be very slow)
+                $this->authorised_cats = JDHelper::getAuthorisedJDCategories('core.create', $user);
+                if (count($this->authorised_cats) > 0){
+                    $this->view_upload_button = true;
+                }
+            } else {
+                $this->view_upload_button = true;
+            }        
+        }
+                        
 		// Check for errors.
 		if (count($errors = $this->get('Errors'))) {
 			JError::raiseWarning(500, implode("\n", $errors));
@@ -72,6 +84,11 @@ class jdownloadsViewCategories extends JViewLegacy
             return false;
         }          
         
+        // Get the tags
+        foreach ($items as $item){
+            $item->tags = new JHelperTags;
+            $item->tags->getItemTags('com_jdownloads.category', $item->id);
+        } 
         
         // add all needed cripts and css files
         $document = JFactory::getDocument();
@@ -79,6 +96,7 @@ class jdownloadsViewCategories extends JViewLegacy
         $document->addScript(JURI::base().'components/com_jdownloads/assets/rating/js/ajaxvote.js');
         
         if ($jlistConfig['use.lightbox.function']){
+            JHtml::_('bootstrap.framework');
             $document->addScript(JURI::base().'components/com_jdownloads/assets/lightbox/lightbox.js');
             $document->addStyleSheet( JURI::base()."components/com_jdownloads/assets/lightbox/lightbox.css", 'text/css', null, array() );
         }

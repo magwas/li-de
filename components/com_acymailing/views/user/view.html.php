@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	4.8.1
+ * @version	5.0.1
  * @author	acyba.com
- * @copyright	(C) 2009-2014 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2015 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -71,10 +71,9 @@ class UserViewUser extends acymailingView
 			if(!empty($subscription)){
 				foreach($subscription as $id => $onesub){
 					$subscription[$id]->status = 1;
-					if(!empty($menuparams) AND strtolower($menuparams->get('listschecked','all')) != 'all' AND !in_array($id,explode(',',$menuparams->get('listschecked','all')))){
+					if(!empty($menuparams) && strtolower($menuparams->get('listschecked','all')) != 'all' && !in_array($id,explode(',',$menuparams->get('listschecked','all')))){
 						$subscription[$id]->status = 0;
 					}
-
 				}
 			}
 
@@ -112,6 +111,29 @@ class UserViewUser extends acymailingView
 			}
 		}
 
+		$hiddenLists = '';
+		if(!empty($menuparams)){
+			$hiddenLists = trim($menuparams->get('hiddenlists','None'));
+			if(empty($subscriber)) $allLists = $listsClass->getLists('listid');
+			else $allLists = $subscriberClass->getSubscription($subscriber->subid,'listid');
+
+			$hiddenListsArray = array();
+			if(strpos($hiddenLists,',') || is_numeric($hiddenLists)){
+				$allhiddenlists = explode(',',$hiddenLists);
+				foreach($allLists as $oneList){
+					if(!$oneList->published || !in_array($oneList->listid,$allhiddenlists)) continue;
+					$hiddenListsArray[] = $oneList->listid;
+					unset($subscription[$oneList->listid]);
+				}
+			}elseif(strtolower($hiddenLists) == 'all'){
+				$subscription = array();
+				foreach($allLists as $oneList){
+					if(!empty($oneList->published)) $hiddenListsArray[] = $oneList->listid;
+				}
+			}
+			$hiddenLists = implode(',',$hiddenListsArray);
+		}
+
 		$displayLists = false;
 		foreach($subscription as $oneSub){
 			if(!empty( $oneSub->published) AND $oneSub->visible){
@@ -120,6 +142,7 @@ class UserViewUser extends acymailingView
 			}
 		}
 
+		$this->assignRef('hiddenlists',$hiddenLists);
 		$this->assignRef('values',$values);
 		$this->assign('status',acymailing_get('type.festatus'));
 		$this->assignRef('subscription',$subscription);
@@ -158,6 +181,7 @@ class UserViewUser extends acymailingView
 		$replace['{list:name}'] = '';
 		foreach($subscriber as $oneProp => $oneVal){
 			$replace['{user:'.$oneProp.'}'] = $oneVal;
+			$replace['{user:'.$oneProp.'|ucwords}'] = ucwords($oneVal);
 		}
 
 		if(!empty($mailid)){

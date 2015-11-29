@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	4.8.1
+ * @version	5.0.1
  * @author	acyba.com
- * @copyright	(C) 2009-2014 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2015 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -23,6 +23,7 @@ class UserController extends acymailingController{
 	}
 
 	function confirm(){
+		if(acymailing_isRobot()) return false;
 
 		$config = acymailing_config();
 		$app = JFactory::getApplication();
@@ -35,6 +36,16 @@ class UserController extends acymailingController{
 		if(empty($user)) return false;
 
 		$redirectUrl = $config->get('confirm_redirect');
+		$listRedirection = '';
+		$subscription = $userClass->getSubscriptionStatus($user->subid);
+		foreach($subscription as $i => $onelist){
+			if(!in_array($onelist->status, array(1,2)) || JText::_('REDIRECTION_CONFIRMATION_'.$i) == 'REDIRECTION_CONFIRMATION_'.$i) continue;
+			$listRedirection = JText::_('REDIRECTION_CONFIRMATION_'.$i);
+			break;
+		}
+
+		if(!empty($listRedirection)) $redirectUrl = $listRedirection;
+
 		if(!empty($redirectUrl)){
 			$replace = array();
 			foreach($user as $key => $val){
@@ -148,7 +159,7 @@ class UserController extends acymailingController{
 		$subscriber->subid = JRequest::getInt('subid');
 
 		$user = $subscriberClass->identify();
-		if($user->subid != $subscriber->subid){
+		if(!$user || empty($subscriber->subid) || $user->subid != $subscriber->subid){
 			echo "<script>alert('ERROR : You are not allowed to modify this user'); window.history.go(-1);</script>";
 			exit;
 		}
@@ -280,8 +291,13 @@ class UserController extends acymailingController{
 
 		if($incrementUnsub){
 			$db= JFactory::getDBO();
-			$db->setQuery('UPDATE '.acymailing_table('stats').' SET `unsub` = `unsub` +1 WHERE `mailid` = '.(int)$mailid);
-			$db->query();
+			$db->setQuery('SELECT subid FROM #__acymailing_history WHERE `action` = "unsubscribed" AND `subid` = '.intval($subscriber->subid).' AND `mailid` = '.intval($mailid).' LIMIT 1,1');
+			$alreadythere = $db->loadResult();
+
+			if(empty($alreadythere)){
+				$db->setQuery('UPDATE '.acymailing_table('stats').' SET `unsub` = `unsub` +1 WHERE `mailid` = '.(int)$mailid);
+				$db->query();
+			}
 		}
 
 		$classGeoloc = acymailing_get('class.geolocation');
@@ -310,8 +326,13 @@ class UserController extends acymailingController{
 
 
 		$redirectUnsub = $config->get('unsub_redirect');
-
 		if(!empty($redirectUnsub)){
+			$replace = array();
+			foreach($oldUser as $key => $val){
+				$replace['{'.$key.'}'] = $val;
+				$replace['{user:'.$key.'}'] = $val;
+			}
+			$redirectUnsub = str_replace(array_keys($replace),$replace,$redirectUnsub);
 			$this->setRedirect($redirectUnsub);
 			return;
 		}

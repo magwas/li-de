@@ -67,8 +67,6 @@ class TableSzavazasok extends JTable
    /** @var date letrehozva  **/
    public $letrehozva = null;
 
-   /** @var date letrehozva  **/
-   public $cimkek = null;
 
 
 

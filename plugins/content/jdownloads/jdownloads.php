@@ -1,7 +1,7 @@
 <?php
 /**
 * jDownloads content plugin
-* Version 3.2
+* Version 3.2 
 * For Joomla 3.x
 * Original created by Marco Pelozzi - marco.u3@bluewin.ch - www.redorion.com
 * Modified and reworked for Joomla 2.5/3.x by Arno Betz - jDownloads.com - 2014-11-25
@@ -23,6 +23,8 @@
 */
 
 defined( '_JEXEC' ) or die( 'Restricted access' ); 
+
+setlocale(LC_ALL, 'C.UTF-8', 'C');
 
 jimport( 'joomla.plugin.plugin' );
 
@@ -58,7 +60,10 @@ if ($app->isSite()){
     
     // "Home" menu link itemid
     global $root_itemid;
-    $root_itemid =  $menuItemids['root'];    
+    $root_itemid =  $menuItemids['root'];
+    
+    global $date_format;
+    $date_format = JDHelper::getDateFormat();    
 
     //Globals definition
     $GLOBALS['jDFPitemid'] = jd_CalcItemid();
@@ -127,6 +132,7 @@ class plgContentJdownloads extends JPlugin
                 
                 if ($jlistConfigM['use.lightbox.function']){
                     // Only when lightbox is activated in jD
+                    JHtml::_('bootstrap.framework');
                     $document->addScript($jDFPplugin_live_site.'content/jdownloads/jdownloads/lightbox/lightbox.js');
                     $document->addStyleSheet($jDFPplugin_live_site."content/jdownloads/jdownloads/lightbox/lightbox.css", 'text/css', null, array() );
                 }
@@ -766,7 +772,7 @@ class plgContentJdownloads extends JPlugin
     }
 
     function jd_file_fill_downloadok($p_Template, $files, $p_Symbol_Off, $p_DownloadType, $download_allowed){
-        global $jlistConfigM, $jDFPsfolders, $jDFPrank, $jDFPlive_site, $jDFPplugin_live_site, $jDFPabsolute_path, $cat_link_itemidsPlg, $jDLayoutTitleExists, $root_itemid;
+        global $jlistConfigM, $jDFPsfolders, $jDFPrank, $jDFPlive_site, $jDFPplugin_live_site, $jDFPabsolute_path, $cat_link_itemidsPlg, $jDLayoutTitleExists, $root_itemid, $date_format;
 
         $db     = JFactory::getDBO();
         $user   = JFactory::getUser();
@@ -828,7 +834,7 @@ class plgContentJdownloads extends JPlugin
         
         $jd_cat_id      = $files->cat_id;
         $jd_filename    = $files->url_download;                                                                              
-        $jd_language    = $files->language;
+        $jd_file_language  = $files->file_language;
         $jd_system      = $files->system;
         
         if ($files->category_cat_dir_parent){
@@ -930,11 +936,12 @@ class plgContentJdownloads extends JPlugin
         $l_Template = str_replace('{license}', $lic_data, $l_Template); // old placeholder
 
         // Build the 'files language' data
-        $file_lang_values = explode(',' , $jlistConfigM['language.list']);
-        if ($jd_language == 0 ) {
+        $file_lang_values = explode(',' , JDHelper::getOnlyLanguageSubstring($jlistConfigM['language.list']));
+
+        if ($jd_file_language == 0 ) {
             $jd_showlanguage = '';
         } else {
-            $jd_showlanguage = $jdpic_language.$file_lang_values[$jd_language];
+            $jd_showlanguage = $jdpic_language.$file_lang_values[$jd_file_language];
         }
         $l_Template = str_replace("{language}",$jd_showlanguage,$l_Template); // old placeholder
         $l_Template = str_replace("{language_text}",$jd_showlanguage,$l_Template);
@@ -950,7 +957,8 @@ class plgContentJdownloads extends JPlugin
         $l_Template = str_replace("{system_text}",$jd_showsystem,$l_Template);
       
         // Build hits values
-        $jd_showhits = $jdpic_hits.$files->downloads;
+        $numbers_downloads = JDHelper::strToNumber((int)$files->downloads);
+        $jd_showhits = $jdpic_hits.$numbers_downloads;
         $l_Template = str_replace("{hits_value}",$jd_showhits,$l_Template);
 
         // Build website url
@@ -980,7 +988,7 @@ class plgContentJdownloads extends JPlugin
         if ($files->author <> ''){
             if ($files->url_author <> '') {           
                 if ($mail_encode) {
-                    $link_author = $jdpic_author.' '.$mail_encode;
+                    $link_author = $jdpic_author.$mail_encode;
                 } else {
                     if (strpos($files->url_author, 'http://') !== false) {    
                         $link_author = $jdpic_author.'<a href="'.$files->url_author.'" target="_blank">'.$files->author.'</a> '.$extern_url_pic;
@@ -1004,7 +1012,7 @@ class plgContentJdownloads extends JPlugin
         }
                      
         // Place the images
-        $l_Template = JDHelper::placeThumbs($l_Template, $files->images);      
+        $l_Template = JDHelper::placeThumbs($l_Template, $files->images, 'list');      
         
         // Compute for HOT symbol
         if ($jlistConfigM['loads.is.file.hot'] > 0 && $files->downloads >= $jlistConfigM['loads.is.file.hot'] ){
@@ -1070,10 +1078,10 @@ class plgContentJdownloads extends JPlugin
         // file_date
         if ($files->file_date != '0000-00-00 00:00:00') {
              if ($files->params->get('show_date') == 0){ 
-                 $filedate_data = $jdpic_date.JHtml::_('date',$files->file_date, $jlistConfigM['global.datetime']);
+                 $filedate_data = $jdpic_date.JHtml::_('date',$files->file_date, $date_format['long']);
                  $filedate_data_title = JText::_('COM_JDOWNLOADS_EDIT_FILE_FILE_DATE_TITLE'); 
              } else {
-                 $filedate_data = $jdpic_date.JHtml::_('date',$files->file_date, $jlistConfigM['global.datetime.short']);
+                 $filedate_data = $jdpic_date.JHtml::_('date',$files->file_date, $date_format['short']);
                  $filedate_data_title = '';
              }    
         } else {
@@ -1087,10 +1095,10 @@ class plgContentJdownloads extends JPlugin
         if ($files->date_added != '0000-00-00 00:00:00') {
             if ($files->params->get('show_date') == 0){ 
                 // use 'normal' date-time format field
-                $date_data = $jdpic_date.JHtml::_('date',$files->date_added, $jlistConfigM['global.datetime']);
+                $date_data = $jdpic_date.JHtml::_('date',$files->date_added, $date_format['long']);
             } else {
                 // use 'short' date-time format field
-                $date_data = $jdpic_date.JHtml::_('date',$files->date_added, $jlistConfigM['global.datetime.short']);
+                $date_data = $jdpic_date.JHtml::_('date',$files->date_added, $date_format['short']);
             }    
         } else {
              $date_data = '';
@@ -1112,9 +1120,9 @@ class plgContentJdownloads extends JPlugin
         // modified_date
         if ($files->modified != '0000-00-00 00:00:00') {
             if ($files->params->get('show_date') == 0){ 
-                $modified_data = $jdpic_date.JHtml::_('date',$files->modified, $jlistConfigM['global.datetime']);
+                $modified_data = $jdpic_date.JHtml::_('date',$files->modified, $date_format['long']);
             } else {
-                $modified_data = $jdpic_date.JHtml::_('date',$files->modified, $jlistConfigM['global.datetime.short']);
+                $modified_data = $jdpic_date.JHtml::_('date',$files->modified, $date_format['short']);
             }    
         } else {
             $modified_data = '';
@@ -1229,10 +1237,10 @@ class plgContentJdownloads extends JPlugin
             } else {        
                 if ($is_preview){
                     // we need the path to the "previews" folder
-                    $mp3_path = basename($jlistConfigM['files.uploaddir']).'/'.$jlistConfigM['preview.files.folder.name'].'/'.$files->preview_filename;
+                    $mp3_path = JUri::base().basename($jlistConfigM['files.uploaddir']).'/'.$jlistConfigM['preview.files.folder.name'].'/'.$files->preview_filename;
                 } else {
                     // we use the normal download file for the player
-                    $mp3_path = basename($jlistConfigM['files.uploaddir']).'/'.$category_dir.'/'.$files->url_download;
+                    $mp3_path = JUri::base().basename($jlistConfigM['files.uploaddir']).'/'.$category_dir.'/'.$files->url_download;
                 }   
             }    
             $mp3_config = trim($jlistConfigM['mp3.player.config']);
@@ -1268,7 +1276,7 @@ class plgContentJdownloads extends JPlugin
             if ($files->itemtype == 'mp3'){
                 $fullscreen = 'false';
                 $autohide = 'false';
-                //$playerheight = (int)$jlistConfigM['flowplayer.playerheight.audio'];
+                $playerheight = (int)$jlistConfigM['flowplayer.playerheight.audio'];
                 // we must use also the ipad plugin identifier when required
                 // see http://flowplayer.blacktrash.org/test/ipad-audio.html and http://flash.flowplayer.org/plugins/javascript/ipad.html
                 if ($ipad_user){
@@ -1334,19 +1342,47 @@ class plgContentJdownloads extends JPlugin
                     $mp3_info = str_replace('{name}', $files->url_download, $mp3_info);
                 } 
                 $mp3_info = str_replace('{album_title}', JText::_('COM_JDOWNLOADS_FE_VIEW_ID3_ALBUM'), $mp3_info);
-                $mp3_info = str_replace('{album}', $info[TALB], $mp3_info);
+                if (isset($info['TALB'])) {
+                    $mp3_info = str_replace('{album}', $info['TALB'], $mp3_info);
+                } else {
+                    $mp3_info = str_replace('{album}', '', $mp3_info);
+                }    
                 $mp3_info = str_replace('{artist_title}', JText::_('COM_JDOWNLOADS_FE_VIEW_ID3_ARTIST'), $mp3_info);
-                $mp3_info = str_replace('{artist}', $info[TPE1], $mp3_info);
+                if (isset($info['TPE1'])) {
+                    $mp3_info = str_replace('{artist}', $info['TPE1'], $mp3_info);
+                } else {
+                    $mp3_info = str_replace('{artist}', '', $mp3_info);
+                }    
                 $mp3_info = str_replace('{genre_title}', JText::_('COM_JDOWNLOADS_FE_VIEW_ID3_GENRE'), $mp3_info);
-                $mp3_info = str_replace('{genre}', $info[TCON], $mp3_info);
+                if (isset($info['TCON'])) {
+                    $mp3_info = str_replace('{genre}', $info['TCON'], $mp3_info);
+                } else {
+                    $mp3_info = str_replace('{genre}', '', $mp3_info);
+                }    
                 $mp3_info = str_replace('{year_title}', JText::_('COM_JDOWNLOADS_FE_VIEW_ID3_YEAR'), $mp3_info);
-                $mp3_info = str_replace('{year}', $info[TYER], $mp3_info);
+                if (isset($info['TYER'])) {
+                    $mp3_info = str_replace('{year}', $info['TYER'], $mp3_info);
+                } else {
+                    $mp3_info = str_replace('{year}', '', $mp3_info);                 
+                }    
                 $mp3_info = str_replace('{length_title}', JText::_('COM_JDOWNLOADS_FE_VIEW_ID3_LENGTH'), $mp3_info);
-                $mp3_info = str_replace('{length}', $info[TLEN].' '.JText::_('COM_JDOWNLOADS_FE_VIEW_ID3_MINS'), $mp3_info);
-                
+                if (isset($info['TLEN'])) {
+                    $mp3_info = str_replace('{length}', $info['TLEN'].' '.JText::_('COM_JDOWNLOADS_FE_VIEW_ID3_MINS'), $mp3_info);
+                } else {
+                    $mp3_info = str_replace('{length}', '', $mp3_info);
+                }    
                 $l_Template = str_replace('{mp3_id3_tag}', $mp3_info, $l_Template); 
             }     
-        }        
+        }
+        
+        // replace the {preview_url}
+        if ($files->preview_filename){
+            // we need the relative path to the "previews" folder
+            $media_path = basename($jlistConfigM['files.uploaddir']).'/'.$jlistConfigM['preview.files.folder.name'].'/'.$files->preview_filename;
+            $l_Template = str_replace('{preview_url}', $media_path, $l_Template);
+        } else {
+            $l_Template = str_replace('{preview_url}', '', $l_Template);
+        }                 
        
         $user_can_see_download_url = false;
        
@@ -1534,95 +1570,29 @@ class plgContentJdownloads extends JPlugin
       $l_Template = str_replace('{sum_jcomments}','', $l_Template);
       $l_Template = str_replace('{rating}','', $l_Template);
       
-      // tabs or sliders when the placeholders are used
-      if ((int)$jlistConfigM['use.tabs.type'] > 0){
-           jimport ('joomla.html.html.bootstrap');
-           if ((int)$jlistConfigM['use.tabs.type'] == 1){
-               // use slides
-               $l_Template = str_replace('{tabs begin}', JHtml::_('bootstrap.startAccordion', 'jdpane', 'panel1'), $l_Template);
-               $l_Template = str_replace('{tab description}', JHtml::_('bootstrap.addSlide', 'jdpane', JText::_('COM_JDOWNLOADS_FE_TAB_DESCRIPTION_TITLE'), 'panel1'), $l_Template); 
-               $l_Template = str_replace('{tab description end}', JHtml::_('bootstrap.endSlide'), $l_Template);
-               $l_Template = str_replace('{tab pics}', JHtml::_('bootstrap.addSlide', 'jdpane', JText::_('COM_JDOWNLOADS_FE_TAB_PICS_TITLE'), 'panel2'), $l_Template); 
-               $l_Template = str_replace('{tab pics end}', JHtml::_('bootstrap.endSlide'), $l_Template);
-               $l_Template = str_replace('{tab mp3}', JHtml::_('bootstrap.addSlide', 'jdpane', JText::_('COM_JDOWNLOADS_FE_TAB_AUDIO_TITLE'), 'panel3'), $l_Template);
-               $l_Template = str_replace('{tab mp3 end}', JHtml::_('bootstrap.endSlide'), $l_Template);
-               $l_Template = str_replace('{tab data}', JHtml::_('bootstrap.addSlide', 'jdpane', JText::_('COM_JDOWNLOADS_FE_TAB_DATA_TITLE'), 'panel4'), $l_Template);
-               $l_Template = str_replace('{tab data end}', JHtml::_('bootstrap.endSlide'), $l_Template);
-               $l_Template = str_replace('{tab download}', JHtml::_('bootstrap.addSlide', 'jdpane', JText::_('COM_JDOWNLOADS_FE_TAB_DOWNLOAD_TITLE'), 'panel5'), $l_Template); 
-               $l_Template = str_replace('{tab download end}',JHtml::_('bootstrap.endSlide'), $l_Template);
-               $l_Template = str_replace('{tab custom1}', JHtml::_('bootstrap.addSlide', 'jdpane', $jlistConfigM['additional.tab.title.1'], 'panel6'), $l_Template); 
-               $l_Template = str_replace('{tab custom1 end}', JHtml::_('bootstrap.endSlide'), $l_Template);
-               $l_Template = str_replace('{tab custom2}', JHtml::_('bootstrap.addSlide', 'jdpane', $jlistConfigM['additional.tab.title.2'], 'panel7'), $l_Template); 
-               $l_Template = str_replace('{tab custom2 end}', JHtml::_('bootstrap.endSlide'), $l_Template);
-               $l_Template = str_replace('{tab custom3}', JHtml::_('bootstrap.addSlide', 'jdpane', $jlistConfigM['additional.tab.title.3'], 'panel8'), $l_Template); 
-               $l_Template = str_replace('{tab custom3 end}',JHtml::_('bootstrap.endSlide'), $l_Template);
-               $l_Template = str_replace('{tabs end}', JHtml::_('bootstrap.endAccordion'), $l_Template);            
-           } else {
-               // use tabs
-               $l_Template = str_replace('{tabs begin}', JHtml::_('bootstrap.startTabSet', 'jdpane', array('active' => 'panel1')), $l_Template);
-               $l_Template = str_replace('{tab description}', JHtml::_('bootstrap.addTab', 'jdpane', 'panel1', JText::_('COM_JDOWNLOADS_FE_TAB_DESCRIPTION_TITLE', true)), $l_Template); 
-               $l_Template = str_replace('{tab description end}', JHtml::_('bootstrap.endTab'), $l_Template);
-               $l_Template = str_replace('{tab pics}', JHtml::_('bootstrap.addTab', 'jdpane', 'panel2', JText::_('COM_JDOWNLOADS_FE_TAB_PICS_TITLE', true)), $l_Template); 
-               $l_Template = str_replace('{tab pics end}', JHtml::_('bootstrap.endTab'), $l_Template);
-               $l_Template = str_replace('{tab mp3}', JHtml::_('bootstrap.addTab', 'jdpane', 'panel3', JText::_('COM_JDOWNLOADS_FE_TAB_AUDIO_TITLE', true)), $l_Template); 
-               $l_Template = str_replace('{tab mp3 end}', JHtml::_('bootstrap.endTab'), $l_Template);
-               $l_Template = str_replace('{tab data}', JHtml::_('bootstrap.addTab', 'jdpane', 'panel4', JText::_('COM_JDOWNLOADS_FE_TAB_DATA_TITLE', true)), $l_Template); 
-               $l_Template = str_replace('{tab data end}', JHtml::_('bootstrap.endTab'), $l_Template);
-               $l_Template = str_replace('{tab download}', JHtml::_('bootstrap.addTab', 'jdpane', 'panel5', JText::_('COM_JDOWNLOADS_FE_TAB_DOWNLOAD_TITLE', true)), $l_Template); 
-               $l_Template = str_replace('{tab download end}', JHtml::_('bootstrap.endTab'), $l_Template);
-               $l_Template = str_replace('{tab custom1}', JHtml::_('bootstrap.addTab', 'jdpane', 'panel6', $jlistConfig['additional.tab.title.1'], true), $l_Template); 
-               $l_Template = str_replace('{tab custom1 end}', JHtml::_('bootstrap.endTab'), $l_Template);
-               $l_Template = str_replace('{tab custom2}', JHtml::_('bootstrap.addTab', 'jdpane', 'panel7', $jlistConfig['additional.tab.title.2'], true), $l_Template); 
-               $l_Template = str_replace('{tab custom2 end}', JHtml::_('bootstrap.endTab'), $l_Template);
-               $l_Template = str_replace('{tab custom3}', JHtml::_('bootstrap.addTab', 'jdpane', 'panel8', $jlistConfig['additional.tab.title.3'], true), $l_Template); 
-               $l_Template = str_replace('{tab custom3 end}', JHtml::_('bootstrap.endTab'), $l_Template);
-               $l_Template = str_replace('{tabs end}', JHtml::_('bootstrap.endTabSet'), $l_Template);      
-           }       
-      } else {
-           // delete the placeholders 
-           $l_Template = str_replace('{tabs begin}', '', $l_Template);
-           $l_Template = str_replace('{tab description}', '', $l_Template);
-           $l_Template = str_replace('{tab description end}', '', $l_Template);
-           $l_Template = str_replace('{tab pics}', '', $l_Template);
-           $l_Template = str_replace('{tab pics end}', '', $l_Template);
-           $l_Template = str_replace('{tab mp3}', '', $l_Template);
-           $l_Template = str_replace('{tab mp3 end}', '', $l_Template);
-           $l_Template = str_replace('{tab data}', '', $l_Template);
-           $l_Template = str_replace('{tab data end}', '', $l_Template);
-           $l_Template = str_replace('{tab download}', '', $l_Template);
-           $l_Template = str_replace('{tab download end}', '', $l_Template);
-           $l_Template = str_replace('{tab custom1}', '', $l_Template);
-           $l_Template = str_replace('{tab custom1 end}', '', $l_Template);      
-           $l_Template = str_replace('{tab custom2}', '', $l_Template);
-           $l_Template = str_replace('{tab custom2 end}', '', $l_Template);
-           $l_Template = str_replace('{tab custom3}', '', $l_Template);
-           $l_Template = str_replace('{tab custom3 end}', '', $l_Template);
-           $l_Template = str_replace('{tabs end}', '', $l_Template);      
-      } 
-      
-        // custom fields
-        $custom_fields_arr = existsCustomFieldsTitlesPlg();
-        $row_custom_values = array('dummy',$files->custom_field_1, $files->custom_field_2, $files->custom_field_3, $files->custom_field_4, $files->custom_field_5,
+      // custom fields
+      $custom_fields_arr = existsCustomFieldsTitlesPlg();
+      $row_custom_values = array('dummy',$files->custom_field_1, $files->custom_field_2, $files->custom_field_3, $files->custom_field_4, $files->custom_field_5,
                                    $files->custom_field_6, $files->custom_field_7, $files->custom_field_8, $files->custom_field_9, $files->custom_field_10, $files->custom_field_11, $files->custom_field_12, $files->custom_field_13, $files->custom_field_14);
-        for ($x=1; $x<15; $x++){
-            // replace placeholder with title and value
-            if (in_array($x,$custom_fields_arr[0]) && $row_custom_values[$x] && $row_custom_values[$x] != '0000-00-00'){
-                $l_Template = str_replace("{custom_title_$x}", $custom_fields_arr[1][$x-1], $l_Template);
-                if ($x > 5){
-                    $l_Template = str_replace("{custom_value_$x}", stripslashes($row_custom_values[$x]), $l_Template);
-                } else {
-                    $l_Template = str_replace("{custom_value_$x}", $custom_fields_arr[2][$x-1][$row_custom_values[$x]], $l_Template);
-                }    
-            } else {
-                // remove placeholder
-                if ($jlistConfigM['remove.field.title.when.empty']){
-                    $l_Template = str_replace("{custom_title_$x}", '', $l_Template);
-                } else {
-                    $l_Template = str_replace("{custom_title_$x}", $custom_fields_arr[1][$x-1], $l_Template);
-                }    
-                $l_Template = str_replace("{custom_value_$x}", '', $l_Template);
-            }    
-        }
+      for ($x=1; $x<15; $x++){
+          // replace placeholder with title and value
+          if (in_array($x,$custom_fields_arr[0]) && $row_custom_values[$x] && $row_custom_values[$x] != '0000-00-00'){
+              $l_Template = str_replace("{custom_title_$x}", $custom_fields_arr[1][$x-1], $l_Template);
+              if ($x > 5){
+                  $l_Template = str_replace("{custom_value_$x}", stripslashes($row_custom_values[$x]), $l_Template);
+              } else {
+                  $l_Template = str_replace("{custom_value_$x}", $custom_fields_arr[2][$x-1][$row_custom_values[$x]], $l_Template);
+              }    
+          } else {
+              // remove placeholder
+              if ($jlistConfigM['remove.field.title.when.empty']){
+                  $l_Template = str_replace("{custom_title_$x}", '', $l_Template);
+              } else {
+                  $l_Template = str_replace("{custom_title_$x}", $custom_fields_arr[1][$x-1], $l_Template);
+              }    
+              $l_Template = str_replace("{custom_value_$x}", '', $l_Template);
+          }    
+      }
       
       // insert files title area
       if (!$jDLayoutTitleExists){
@@ -1663,26 +1633,27 @@ class plgContentJdownloads extends JPlugin
        if ($sum > 0) $count = 'LIMIT '.$sum; 
       
       // Get the data from the model
-      $cat_id = (int) $matches[2];
+      // and convert to array of integer
+      $cat_id = implode(',', array_map( 'intval', array_filter( explode(',', $matches[2]), 'is_numeric' ) ));
       
       $query    = $db->getQuery(true);
       $groups    = implode(',', $user->getAuthorisedViewLevels());
       $asset    = 'com_jdownloads.category.'.$cat_id;
        
       // Check at first whether this user may view the items from this category.
-      $db->setQuery("SELECT count(*) FROM #__jdownloads_categories WHERE published = 1 AND id = '$cat_id' AND access IN ($groups)");
+      $db->setQuery("SELECT count(*) FROM #__jdownloads_categories WHERE published = 1 AND id IN ($cat_id) AND access IN ($groups)");
       $cat = $db->loadResult();
        
        if ($cat){
            if ($type == 'hottest'){
                // we will view only the most downloaded files from a single category 
-               $db->setQuery("SELECT * FROM #__jdownloads_files WHERE published = 1 AND cat_id = '$cat_id' AND access IN ($groups) ORDER BY downloads desc ".$count);
+               $db->setQuery("SELECT * FROM #__jdownloads_files WHERE published = 1 AND cat_id IN ($cat_id) AND access IN ($groups) ORDER BY downloads desc ".$count);
            } elseif ($type == 'latest'){
                // we will view only the newest files from a single category
-               $db->setQuery("SELECT * FROM #__jdownloads_files WHERE published = 1 AND cat_id = '$cat_id' AND access IN ($groups) ORDER BY date_added desc ".$count);
+               $db->setQuery("SELECT * FROM #__jdownloads_files WHERE published = 1 AND cat_id IN ($cat_id) AND access IN ($groups) ORDER BY date_added desc ".$count);
            } else {
                // only category placeholder is used - so we use the ordering field 
-               $db->setQuery("SELECT * FROM #__jdownloads_files WHERE published = 1 AND cat_id = '$cat_id' AND access IN ($groups) ORDER BY ordering ".$count);
+               $db->setQuery("SELECT * FROM #__jdownloads_files WHERE published = 1 AND cat_id IN ($cat_id) AND access IN ($groups) ORDER BY ordering ".$count);
            }       
            $cat_result = '';
            $files = $db->loadObjectList();
@@ -1702,7 +1673,8 @@ class plgContentJdownloads extends JPlugin
              return NULL;
            }
        } else {
-           // user have not the permissions to view items from this category
+           // seems that user have not the permissions to view items from this category/categories
+           // or wrong category IDs used
            return '';
        }     
     } 

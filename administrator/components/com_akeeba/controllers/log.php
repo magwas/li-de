@@ -1,14 +1,17 @@
 <?php
 /**
- * @package AkeebaBackup
+ * @package   AkeebaBackup
  * @copyright Copyright (c)2009-2014 Nicholas K. Dionysopoulos
- * @license GNU General Public License version 3, or later
+ * @license   GNU General Public License version 3, or later
  *
- * @since 1.3
+ * @since     1.3
  */
 
 // Protect from unauthorized access
 defined('_JEXEC') or die();
+
+use Akeeba\Engine\Factory;
+use Akeeba\Engine\Platform;
 
 /**
  * Log view controller class
@@ -18,9 +21,19 @@ class AkeebaControllerLog extends AkeebaControllerDefault
 {
 	public function execute($task)
 	{
-		if(!in_array($task, array('iframe','download'))) {
+		$profile_id = $this->input->getInt('profileid', null);
+
+		if (!empty($profile_id) && is_numeric($profile_id) && ($profile_id > 0))
+		{
+			$session = JFactory::getSession();
+			$session->set('profile', $profile_id, 'akeeba');
+		}
+
+		if (!in_array($task, array('iframe', 'download')))
+		{
 			$task = 'browse';
 		}
+
 		parent::execute($task);
 	}
 
@@ -31,11 +44,14 @@ class AkeebaControllerLog extends AkeebaControllerDefault
 	public function browse($cachable = false, $urlparams = false)
 	{
 		$tag = $this->input->get('tag', null, 'cmd');
-		if(empty($tag)) $tag = null;
+		if (empty($tag))
+		{
+			$tag = null;
+		}
 		$model = $this->getThisModel();
 		$model->setState('tag', $tag);
 
-		AEPlatform::getInstance()->load_configuration(AEPlatform::getInstance()->get_active_profile());
+		Platform::getInstance()->load_configuration(Platform::getInstance()->get_active_profile());
 
 		parent::display($cachable, $urlparams);
 	}
@@ -44,11 +60,14 @@ class AkeebaControllerLog extends AkeebaControllerDefault
 	public function iframe($cachable = false, $urlparams = false)
 	{
 		$tag = $this->input->get('tag', null, 'cmd');
-		if(empty($tag)) $tag = null;
+		if (empty($tag))
+		{
+			$tag = null;
+		}
 		$model = $this->getThisModel();
 		$model->setState('tag', $tag);
 
-		AEPlatform::getInstance()->load_configuration(AEPlatform::getInstance()->get_active_profile());
+		Platform::getInstance()->load_configuration(Platform::getInstance()->get_active_profile());
 
 		parent::display();
 
@@ -58,10 +77,13 @@ class AkeebaControllerLog extends AkeebaControllerDefault
 
 	public function download($cachable = false, $urlparams = false)
 	{
-		AEPlatform::getInstance()->load_configuration(AEPlatform::getInstance()->get_active_profile());
+		Platform::getInstance()->load_configuration(Platform::getInstance()->get_active_profile());
 
 		$tag = $this->input->get('tag', null, 'cmd');
-		if(empty($tag)) $tag = null;
+		if (empty($tag))
+		{
+			$tag = null;
+		}
 
 		@ob_end_clean(); // In case some braindead plugin spits its own HTML
 		header("Cache-Control: no-cache, must-revalidate"); // HTTP/1.1

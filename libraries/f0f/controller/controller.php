@@ -2,7 +2,7 @@
 /**
  * @package    FrameworkOnFramework
  * @subpackage controller
- * @copyright  Copyright (C) 2010 - 2014 Akeeba Ltd. All rights reserved.
+ * @copyright   Copyright (C) 2010 - 2015 Nicholas K. Dionysopoulos / Akeeba Ltd. All rights reserved.
  * @license    GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -1347,7 +1347,7 @@ class F0FController extends F0FUtilsObject
 				$customURL = base64_decode($customURL);
 			}
 
-			$url = !empty($customURL) ? $customURL : 'index.php?option=' . $this->component . '&view=' . $this->view . '&task=edit&id=' . $id  . $this->getItemidURLSuffix();
+			$url = !empty($customURL) ? $customURL : 'index.php?option=' . $this->component . '&view=' . $this->view . '&task=edit&id=' . $id . $this->getItemidURLSuffix();
 			$this->setRedirect($url, JText::_($textkey));
 		}
 

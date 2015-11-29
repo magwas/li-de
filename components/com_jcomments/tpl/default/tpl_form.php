@@ -20,7 +20,8 @@ class jtt_tpl_form extends JoomlaTuneTemplate
 	{
 		if ($this->getVar('comments-form-message', 0) == 1) {
 			$this->getMessage( $this->getVar('comments-form-message-text') );
-			return;
+			//FT PRÓBA 2015.05.07 fb-s loginnál itt lép ki a form rajzolásból  
+            return;
 		}
 		
 		if ($this->getVar('comments-form-link', 0) == 1) {

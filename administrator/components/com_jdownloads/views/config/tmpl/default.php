@@ -16,7 +16,8 @@ defined('_JEXEC') or die('Restricted access');
 global $jlistConfig; 
 
 JHtml::_('behavior.tooltip');
-JHtml::_('behavior.formvalidation');
+JHTML::_('behavior.formvalidation');
+// JHtml::_('behavior.formvalidator'); Joomla >= 3.4
 jimport( 'joomla.html.html.tabs' );
 $canDo      = JDownloadsHelper::getActions();
 
@@ -94,16 +95,16 @@ if ($canDo->get('edit.config')){
                         
                         <tr>
                         <td width="330"><strong><?php echo JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_DATETIME')." "; ?></strong><br />
-                                <input name="jlistConfig[global.datetime]" value="<?php echo $jlistConfig['global.datetime']; ?>" size="30" maxlength="50"/></td>
-                        <td>
+                                <textarea name="jlistConfig[global.datetime]" rows="4" cols="40"><?php echo htmlspecialchars($jlistConfig['global.datetime'], ENT_QUOTES ); ?></textarea>
+                        <td valign="top">
                             <?php echo JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_DATETIME_DESC');?>
                         </td>
                         </tr>                        
 
                         <tr>
                         <td width="330"><strong><?php echo JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_DATETIME_SHORT')." "; ?></strong><br />
-                                <input name="jlistConfig[global.datetime.short]" value="<?php echo $jlistConfig['global.datetime.short']; ?>" size="30" maxlength="50"/></td>
-                        <td>
+                                <textarea name="jlistConfig[global.datetime.short]" rows="4" cols="40"><?php echo htmlspecialchars($jlistConfig['global.datetime.short'], ENT_QUOTES ); ?></textarea>
+                        <td valign="top">
                             <?php echo JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_DATETIME_SHORT_DESC');?>
                         </td>
                         </tr>                        
@@ -524,14 +525,14 @@ if ($canDo->get('edit.config')){
                         </td>                
                         </tr>
                         
-                        <tr>
+                        <!-- <tr>
                         <td width="330"><strong><?php echo JText::_('COM_JDOWNLOADS_BACKEND_SET_SEF_ROUTER_OPTION_TITLE')." "; ?></strong><br />
                              <?php echo JDownloadsHelper::yesnoSelectList( 'jlistConfig[use.sef.with.file.titles]', 'class="inputbox"', $jlistConfig['use.sef.with.file.titles']); ?>
                         </td>
                         <td>
                                <?php echo JText::_('COM_JDOWNLOADS_BACKEND_SET_SEF_ROUTER_OPTION_DESC');?>
                         </td>                
-                        </tr> 
+                        </tr> --> 
                         
                         <tr>
                         <td width="330"><strong><?php echo JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_USE_REAL_NAME_IN_FRONTEND')." "; ?></strong><br />

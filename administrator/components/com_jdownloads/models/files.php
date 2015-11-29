@@ -114,7 +114,8 @@ class jdownloadsModelfiles extends JModelList
          {
              $files_info[$i]['id']   = $i+1;
              $files_info[$i]['name'] = $filenames[$i];
-             $files_info[$i]['date'] = date($jlistConfig['global.datetime'], filemtime($files_dir.$filenames[$i]));               
+             $date_format = JDownloadsHelper::getDateFormat();
+             $files_info[$i]['date'] = date($date_format['long'], filemtime($files_dir.$filenames[$i]));               
              $files_info[$i]['size'] = JDownloadsHelper::fsize($files_dir.$filenames[$i]);    
          }
          

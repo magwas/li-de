@@ -70,7 +70,7 @@ class jdownloadsModelDownload extends JModelItem
 	public function &getItem($pk = null, $plugin = false)
 	{
 		global $jlistConfig;
-		
+        
         // Initialise variables.
 		$pk = (!empty($pk)) ? $pk : (int) $this->getState('download.id');
 
@@ -111,21 +111,6 @@ class jdownloadsModelDownload extends JModelItem
 				$query->select('c.title AS category_title, c.alias AS category_alias, c.access AS category_access, c.cat_dir AS category_cat_dir, c.cat_dir_parent AS category_cat_dir_parent');
 				$query->join('LEFT', '#__jdownloads_categories AS c on c.id = a.cat_id');
 
-				//+FT li-de témakör láthatság kezelés
-				$user = JFactory::getUser();
-				$query->join('LEFT','#__szavazasok as lidesz on c.cat_dir = concat("SZ", lidesz.id)');
-				$query->join('LEFT','#__temakorok as lidet on (lidet.id = lidesz.temakor_id  or
-				                                            c.cat_dir = concat("T", lidet.id) )');
-				$query->join('LEFT','#__tagok as lideta on lideta.temakor_id = lidet.id and lideta.user_id = "'.$user->id.'"');
-				$query->where('((lidet.lathatosag = 0) or
-				(lidet.lathatosag = 1 and "'.$user->id.'" > 0) or
-				(lidet.lathatosag = 2 and lideta.user_id is not null) 
-				)');				
-				//DBG echo '<pre>'.$query.'</pre>';
-				//-FT li-de témakör láthatság kezelés
-				
-				
-				
 				// Join on user table.
 				if ($jlistConfig['use.real.user.name.in.frontend']){
                     $query->select('u.name AS creator');
@@ -163,7 +148,6 @@ class jdownloadsModelDownload extends JModelItem
 				if ($this->getState('filter.language'))
 				{
 					$query->where('a.language in ('.$db->quote(JFactory::getLanguage()->getTag()).','.$db->quote('*').')');
-					$query->where('(contact.language in ('.$db->quote(JFactory::getLanguage()->getTag()).','.$db->quote('*').') OR contact.language IS NULL)');
 				}
 
 				// Join over the categories to get parent category titles
@@ -195,11 +179,6 @@ class jdownloadsModelDownload extends JModelItem
 					$query->where('(a.published = ' . (int) $published.')');
 				}
 
-
-
-				
-				echo '<pre>'.$query.'</pre>';
-				
 				$db->setQuery($query);
 
 				$data = $db->loadObject();
@@ -368,7 +347,7 @@ class jdownloadsModelDownload extends JModelItem
             }
             return true;
         }
-        JError::raiseWarning( 'SOME_ERROR_CODE', JText::sprintf('COM_JDOWNLOADS_INVALID_RATING', $rate), "JModelArticle::storeVote($rate)");
+        JError::raiseWarning( '100', JText::sprintf('COM_JDOWNLOADS_INVALID_RATING', $rate), "JModelDownload::storeVote($rate)");
         return false;
     }
     

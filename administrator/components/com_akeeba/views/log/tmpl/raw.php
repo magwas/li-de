@@ -9,7 +9,8 @@
 
 defined('_JEXEC') or die();
 
-JHtml::_('behavior.framework');
+use Akeeba\Engine\Factory;
+
 ?>
 <script language="javascript" type="text/javascript">
 // Disable right-click
@@ -38,7 +39,7 @@ document.onkeydown = onKeyDown;
 
 // -- Get the log's file name
 $tag = $this->tag;
-$logName = AEUtilLogger::logName($tag);
+$logName = Factory::getLog()->getLogFilename($tag);
 
 // Load JFile class
 JLoader::import('joomla.filesystem.file');

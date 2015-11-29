@@ -9,6 +9,9 @@
 // Protect from unauthorized access
 defined('_JEXEC') or die();
 
+use Akeeba\Engine\Platform;
+use Akeeba\Engine\Factory;
+
 class AkeebaDispatcher extends F0FDispatcher
 {
 	public $defaultView = 'backup';
@@ -64,23 +67,17 @@ class AkeebaDispatcher extends F0FDispatcher
 				$session->set('profile', 1, 'akeeba');
 			}
 
-			// Load the factory
-			require_once JPATH_ADMINISTRATOR.'/components/com_akeeba/akeeba/factory.php';
+			// Load Akeeba Engine
+			require_once JPATH_COMPONENT_ADMINISTRATOR . '/engine/Factory.php';
+			Platform::addPlatform('joomla25', JPATH_COMPONENT_ADMINISTRATOR . '/platform/joomla25');
 
 			// Load the Akeeba Backup configuration and check user access permission
-			$aeconfig = AEFactory::getConfiguration();
-			AEPlatform::getInstance()->load_configuration();
-			unset($aeconfig);
+			$akeebaEngineConfig = Factory::getConfiguration();
+			Platform::getInstance()->load_configuration();
+			unset($akeebaEngineConfig);
 
 			// Preload helpers
-			require_once JPATH_ADMINISTRATOR.'/components/com_akeeba/helpers/includes.php';
 			require_once JPATH_ADMINISTRATOR.'/components/com_akeeba/helpers/escape.php';
-
-			// If JSON functions don't exist, load our compatibility layer
-			if( (!function_exists('json_encode')) || (!function_exists('json_decode')) )
-			{
-				require_once JPATH_COMPONENT_ADMINISTRATOR.'/helpers/jsonlib.php';
-			}
 
 			// Load Akeeba Strapper
 			include_once JPATH_ROOT.'/media/akeeba_strapper/strapper.php';

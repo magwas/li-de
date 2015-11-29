@@ -343,6 +343,7 @@ class icagendaModelList extends iCModelItem
 				)
 			)
 		);
+
 		return $this->getItems($structure);
 	}
 
@@ -480,7 +481,6 @@ class icagendaModelList extends iCModelItem
 
 		$query->order('e.next ' . $ordering);
 
-		
 		// Tell the database connector what query to run.
 		$db->setQuery($query);
 

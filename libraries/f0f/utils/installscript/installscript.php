@@ -2,7 +2,7 @@
 /**
  * @package     FrameworkOnFramework
  * @subpackage  utils
- * @copyright   Copyright (C) 2010 - 2014 Akeeba Ltd. All rights reserved.
+ * @copyright   Copyright (C) 2010 - 2015 Nicholas K. Dionysopoulos / Akeeba Ltd. All rights reserved.
  * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -281,14 +281,20 @@ abstract class F0FUtilsInstallscript
 			return false;
 		}
 
-		// Workarounds for notorious JInstaller bugs we submitted patches for but were rejected – yet the bugs were never
-		// fixed. Way to go, Joomla!...
-		if (in_array($type, array('install')))
+		// Always reset the OPcache if it's enabled. Otherwise there's a good chance the server will not know we are
+		// replacing .php scripts. This is a major concern since PHP 5.5 included and enabled OPcache by default.
+		if (function_exists('opcache_reset'))
+		{
+			opcache_reset();
+		}
+
+		// Workarounds for JInstaller issues
+		if (in_array($type, array('install', 'discover_install')))
 		{
 			// Bugfix for "Database function returned no error"
 			$this->bugfixDBFunctionReturnedNoError();
 		}
-		elseif ($type != 'discover_install')
+		else
 		{
 			// Bugfix for "Can not build admin menus"
 			$this->bugfixCantBuildAdminMenus();
@@ -780,7 +786,9 @@ abstract class F0FUtilsInstallscript
 			}
 		}
 
-		// Remove #__menu records for good measure!
+		// Remove #__menu records for good measure! –– I think this is not necessary and causes the menu item to
+		// disappear on extension update.
+		/**
 		$query = $db->getQuery(true);
 		$query->select('id')
 			->from('#__menu')
@@ -846,6 +854,7 @@ abstract class F0FUtilsInstallscript
 				}
 			}
 		}
+		/**/
 	}
 
 	/**
@@ -1707,6 +1716,8 @@ abstract class F0FUtilsInstallscript
 			$data['component_id'] = $component_id;
 			$data['img'] = ((string)$menuElement->attributes()->img) ? (string)$menuElement->attributes()->img : 'class:component';
 			$data['home'] = 0;
+			$data['path'] = '';
+			$data['params'] = '';
 		}
 		// No menu element was specified, Let's make a generic menu item
 		else
@@ -1723,6 +1734,8 @@ abstract class F0FUtilsInstallscript
 			$data['component_id'] = $component_id;
 			$data['img'] = 'class:component';
 			$data['home'] = 0;
+			$data['path'] = '';
+			$data['params'] = '';
 		}
 
 		try
@@ -1750,9 +1763,9 @@ abstract class F0FUtilsInstallscript
 				->where('home = 0');
 
 			$db->setQuery($query);
-			$menu_id = $db->loadResult();
+			$menu_ids_level1 = $db->loadColumn();
 
-			if (!$menu_id)
+			if (empty($menu_ids_level1))
 			{
 				// Oops! Could not get the menu ID. Go back and rollback changes.
 				JError::raiseWarning(1, $table->getError());
@@ -1761,10 +1774,27 @@ abstract class F0FUtilsInstallscript
 			}
 			else
 			{
+				$ids = implode(',', $menu_ids_level1);
+
+				$query->clear()
+					->select('id')
+					->from('#__menu')
+					->where('menutype = ' . $db->quote('main'))
+					->where('client_id = 1')
+					->where('type = ' . $db->quote('component'))
+					->where('parent_id in (' . $ids . ')')
+					->where('level = 2')
+					->where('home = 0');
+
+				$db->setQuery($query);
+				$menu_ids_level2 = $db->loadColumn();
+
+				$ids = implode(',', array_merge($menu_ids_level1, $menu_ids_level2));
+
 				// Remove the old menu item
 				$query->clear()
 					->delete('#__menu')
-					->where('id = ' . (int)$menu_id);
+					->where('id in (' . $ids . ')');
 
 				$db->setQuery($query);
 				$db->query();
@@ -2333,7 +2363,7 @@ abstract class F0FUtilsInstallscript
 		$extension_id = array_shift($ids);
 
 		$query = $db->getQuery(true)
-			->delete($this->postInstallationMessages)
+			->delete($db->qn('#__postinstall_messages'))
 			->where($db->qn('extension_id') . ' = ' . $db->q($extension_id));
 
 		try

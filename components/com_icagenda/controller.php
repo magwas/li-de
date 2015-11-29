@@ -57,7 +57,7 @@ class iCagendaController extends JControllerLegacy
 			'print' => 'BOOLEAN',
 			'lang' => 'CMD',
 			'Itemid' => 'INT');
-			
+
 		parent::display($cachable, $safeurlparams);
 
 		return $this;

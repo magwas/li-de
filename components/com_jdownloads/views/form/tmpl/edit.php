@@ -18,7 +18,8 @@ global $jlistConfig;
 JHtml::_('behavior.keepalive');
 JHtml::_('behavior.tooltip');
 JHtml::_('behavior.calendar');
-JHtml::_('behavior.formvalidation');
+JHTML::_('behavior.formvalidation');
+// JHtml::_('behavior.formvalidator'); Joomla >= 3.4
 
 jimport( 'joomla.html.html.tabs' );
 
@@ -45,7 +46,7 @@ $limits = $this->get('user_limits');
 		    if (task == 'download.cancel' || document.formvalidator.isValid(document.id('adminForm'))) {
 			    Joomla.submitform(task);
 		    } else {
-			    alert('<?php echo $this->escape(JText::_('COM_JDOWNLOADS_VALIDATION_FORM_FAILED'));?>');
+			    alert('<?php echo $this->escape(htmlspecialchars(JText::_('COM_JDOWNLOADS_VALIDATION_FORM_FAILED'), ENT_QUOTES, 'UTF-8'));?>');
 		    }
 	    }
         
@@ -212,25 +213,32 @@ $limits = $this->get('user_limits');
                         <?php echo $this->form->getLabel('access'); ?>
                         <?php echo $this->form->getInput('access'); ?>
                     </div>
-            <?php endif; ?>
+                <?php endif; ?>
+            <?php endif; ?>                
+            
+            <?php 
+            if ($rules->form_tags):?>                        
+                <div class="formelm_tags">
+                    <?php echo $this->form->getLabel('tags'); ?>
+                    <?php echo $this->form->getInput('tags'); ?>
+                </div>              
+            <?php endif; ?>                            
 
             <?php if ($rules->form_language):?>                        
                 <div class="formelm">
                     <?php echo $this->form->getLabel('language'); ?>
                     <?php echo $this->form->getInput('language'); ?>
                 </div>
-           
             <?php endif; ?>            
-        <?php endif; ?>            
-            
-        <?php if ($this->item->params->get('access-change') || $this->item->params->get('access-create') || $this->item->params->get('access-edit')): ?>
-            <?php if ($rules->form_published):?>
-                <div class="formelm">
-                    <?php echo $this->form->getLabel('published'); ?>
-                    <?php echo $this->form->getInput('published'); ?>
-                </div>
+
+            <?php if ($this->item->params->get('access-change') || $this->item->params->get('access-create') || $this->item->params->get('access-edit')): ?>
+                <?php if ($rules->form_published):?>
+                    <div class="formelm">
+                        <?php echo $this->form->getLabel('published'); ?>
+                        <?php echo $this->form->getInput('published'); ?>
+                    </div>
+                <?php endif; ?>            
             <?php endif; ?>            
-        <?php endif; ?>            
             
             <?php if ($rules->form_creation_date):?>
                 <div class="formelm">
@@ -314,7 +322,7 @@ $limits = $this->get('user_limits');
                     <?php echo $this->form->getInput('url_download'); ?>
                     <span>
                         &nbsp;<input type="button" value="" class="button_rename" title="<?php echo JText::_('COM_JDOWNLOADS_FORM_RENAME_FILE_LABEL'); ?>" name="activateFileNameField" onClick="editFilename();" >&nbsp;
-                        <?php echo ' <a href="index.php?option=com_jdownloads&amp;task=download.deletefile&amp;id='.$this->item->file_id.'"><img src="'.JURI::root().'administrator/components/com_jdownloads/assets/images/'.'delete.png'.'" width="18px" height="18px" border="0" style="vertical-align:middle;" alt="'.JText::_('COM_JDOWNLOADS_FORM_DELETE_FILE_LABEL').'" title="'.JText::_('COM_JDOWNLOADS_FORM_DELETE_FILE_LABEL').'" /></a>'; ?>
+                        <?php echo ' <a href="index.php?option=com_jdownloads&amp;task=download.deletefile&amp;id='.$this->item->file_id.'"><img src="'.JURI::root().'administrator/components/com_jdownloads/assets/images/'.'delete.png'.'" width="18px" height="18px" style="vertical-align:middle;border:0px;" alt="'.JText::_('COM_JDOWNLOADS_FORM_DELETE_FILE_LABEL').'" title="'.JText::_('COM_JDOWNLOADS_FORM_DELETE_FILE_LABEL').'" /></a>'; ?>
                     </span>
                 </div>        
            <?php }                               
@@ -354,7 +362,7 @@ $limits = $this->get('user_limits');
                     <?php echo $this->form->getInput('preview_filename'); ?>
                     <span>
                         &nbsp;<input type="button" value="" class="button_rename" title="<?php echo JText::_('COM_JDOWNLOADS_FORM_RENAME_FILE_LABEL'); ?>" name="activateFilePrevNameField" onClick="editFilenamePreview();" >&nbsp;
-                        <?php echo ' <a href="index.php?option=com_jdownloads&amp;task=download.deletefile&amp;id='.$this->item->file_id.'&amp;type=prev"><img src="'.JURI::root().'administrator/components/com_jdownloads/assets/images/'.'delete.png'.'" width="18px" height="18px" border="0" style="vertical-align:middle;" alt="'.JText::_('COM_JDOWNLOADS_FORM_DELETE_FILE_LABEL').'" title="'.JText::_('COM_JDOWNLOADS_FORM_DELETE_FILE_LABEL').'" /></a>'; ?>
+                        <?php echo ' <a href="index.php?option=com_jdownloads&amp;task=download.deletefile&amp;id='.$this->item->file_id.'&amp;type=prev"><img src="'.JURI::root().'administrator/components/com_jdownloads/assets/images/'.'delete.png'.'" width="18px" height="18px" style="vertical-align:middle;border:0px;" alt="'.JText::_('COM_JDOWNLOADS_FORM_DELETE_FILE_LABEL').'" title="'.JText::_('COM_JDOWNLOADS_FORM_DELETE_FILE_LABEL').'" /></a>'; ?>
                     </span>                    
                 </div>        
             <?php endif;?>            
@@ -426,7 +434,7 @@ $limits = $this->get('user_limits');
                    <legend><?php echo JText::_('COM_JDOWNLOADS_FORM_LABEL_TAB_IMAGES'); ?></legend>
                     <?php $image_id = 0; ?>
                     <?php if ($this->item->images){ ?>    
-                        <table class="admintable" width="100%" border="0" cellpadding="0" cellspacing="10">
+                        <table class="admintable" style="width:100%;border:0px;" cellpadding="0" cellspacing="10">
                         <tr><td><?php if ($this->item->images) echo JText::_('COM_JDOWNLOADS_THUMBNAIL_LIST_INFO'); ?></td></tr>
                         <tr>
                         <td valign="top">
@@ -448,7 +456,7 @@ $limits = $this->get('user_limits');
                                         padding: 0;" type="checkbox" name="keep_image['.$image_id.']" value="'.$image.'" checked />';
                                  echo '<a href="'.JURI::root().'images/jdownloads/screenshots/'.$image.'" target="_blank">';
                                  
-                                 echo '<img border="0" style="position:relative;border:1px solid black; max-width:100px; max-height:100px;" align="middle" src="'.JURI::root().'images/jdownloads/screenshots/thumbnails/'.$image.'" alt="'.$image.'" title="'.$image.'" />';
+                                 echo '<img style="position:relative;border:1px solid black; max-width:100px; max-height:100px;" align="middle" src="'.JURI::root().'images/jdownloads/screenshots/thumbnails/'.$image.'" alt="'.$image.'" title="'.$image.'" />';
                                  echo '</a>';
                                  echo '</li>';                         
                             }
@@ -466,7 +474,7 @@ $limits = $this->get('user_limits');
                              <label>
                              <?php  echo JHtml::_('tooltip', JText::_('COM_JDOWNLOADS_FORM_IMAGE_UPLOAD_DESC'), JText::_('COM_JDOWNLOADS_FORM_IMAGE_UPLOAD_LABEL').' '.JText::sprintf('COM_JDOWNLOADS_LIMIT_IMAGES_MSG', $rules->uploads_max_amount_images), '', JText::_('COM_JDOWNLOADS_FORM_IMAGE_UPLOAD_LABEL').' '.JText::sprintf('COM_JDOWNLOADS_LIMIT_IMAGES_MSG', $rules->uploads_max_amount_images) ); ?>
                              </label>
-                            <table id="files_table" class="admintable" border="0" cellpadding="0" cellspacing="10">
+                            <table id="files_table" class="admintable" style="border:0px;" cellpadding="0" cellspacing="10">
                             <tr id="new_file_row">
                             <td class=""><input type="file" name="file_upload_thumb[0]" id="file_upload_thumb[0]" size="40" accept="image/gif,image/jpeg,image/jpg,image/png" onchange="add_new_image_file(this)" />
                             </td>
@@ -549,11 +557,18 @@ $limits = $this->get('user_limits');
                 </div>
 				<div style="clear:both"></div>
             <?php endif; ?>
-            <?php if ($rules->form_changelog):?> 	  
-                  <label><?php echo '<b>'.$this->form->getLabel('changelog').'</b>'; ?></label>
-                  <?php echo $this->form->getInput('changelog'); ?>
-                  <div style="clear:both"></div>
-            <?php endif; ?>
+            <?php if ($rules->form_changelog){ 	  
+                     if ($rules->uploads_use_editor){ ?>
+                        <label><?php echo '<b>'.$this->form->getLabel('changelog').'</b>'; ?></label>
+                        <?php echo $this->form->getInput('changelog'); ?>
+                        <div style="clear:both"></div>
+                     <?php } else { ?>
+                              <div class="formelm">
+                                    <?php echo $this->form->getLabel('changelog'); ?>
+                                    <?php echo $this->form->getInput('changelog'); ?>
+                              </div>          
+                     <?php } ?>
+            <?php } ?>
              <?php
              if ($rules->form_extra_select_box_1 && $jlistConfig['custom.field.1.title'] != ''){ ?>
                 <div class="formelm">
@@ -652,46 +667,54 @@ $limits = $this->get('user_limits');
             <?php } ?>
            
             <?php 
-            if ($rules->form_extra_large_input_1 && $jlistConfig['custom.field.13.title'] != ''){ ?>
-                 
-                    <div class="formelm">
-                        <b><?php echo $this->form->getLabel('custom_field_13'); ?></b>
-                         <?php 
-                         if (!$jlistConfig['files.editor']){ 
-                             // use a simple textarea instead editor
-                             $this->form->setFieldAttribute( 'custom_field_13', 'type', 'textarea' );
-                             $this->form->setFieldAttribute( 'custom_field_13', 'rows', '8' );
-                             $this->form->setFieldAttribute( 'custom_field_13', 'cols', '35' );
-                         } else {
-                             ?> <div class="clr"></div> <?php
-                         }
-                         echo $this->form->getInput('custom_field_13'); 
-                         ?>       
-                    </div>
+            if ($rules->form_extra_large_input_1 && $jlistConfig['custom.field.13.title'] != ''){ 
+                 if ($rules->uploads_use_editor){ ?>
+                    <label>
+                        <?php echo '<b>'.$this->form->getLabel('custom_field_13').'</b>'; ?>
+                    </label>
+                    <?php echo $this->form->getInput('custom_field_13'); ?>
                     <div style="clear:both"></div>
                     <br />
-            <?php } ?>
-                    
-            <?php if ($rules->form_extra_large_input_2 && $jlistConfig['custom.field.14.title'] != ''){ ?>
-                  
+            <?php } else { ?>
                     <div class="formelm">
-                        <b><?php echo $this->form->getLabel('custom_field_14'); ?></b>
-                         <?php 
-                         if (!$jlistConfig['files.editor']){ 
-                             // use a simple textarea instead editor
-                             $this->form->setFieldAttribute( 'custom_field_14', 'type', 'textarea' );
-                             $this->form->setFieldAttribute( 'custom_field_14', 'rows', '8' );
-                             $this->form->setFieldAttribute( 'custom_field_14', 'cols', '35' );
-                         } else {
-                             ?> <div class="clr"></div> <?php
-                         }
-                         echo $this->form->getInput('custom_field_14'); 
-                         ?>       
-                    </div>
+                        <?php $label = $this->form->getLabel('custom_field_13'); 
+                              if ($pos = strrpos($label, 'custom_field_13')){
+                                  // we must replace the label text in this case with the defined label text from the configuration 
+                                  $label = substr_replace($label, trim($jlistConfig['custom.field.13.title']), $pos, 15); 
+                              }  
+                              echo $label;
+                        ?>
+                        <?php echo $this->form->getInput('custom_field_13'); ?>
+                    </div>                        
+            <?php } 
+              } ?>
+                    
+            <?php 
+            if ($rules->form_extra_large_input_2 && $jlistConfig['custom.field.14.title'] != ''){ 
+                 if ($rules->uploads_use_editor){ ?>
+                    <label>
+                        <?php echo '<b>'.$this->form->getLabel('custom_field_14').'</b>'; ?>
+                    </label>
+                    <?php echo $this->form->getInput('custom_field_14'); ?>
                     <div style="clear:both"></div>
-                    <br />                    
-            <?php } ?>            
-	    </fieldset>
+                    <br />
+            <?php } else { ?>
+                    <div class="formelm">
+                        <?php $label = $this->form->getLabel('custom_field_14'); 
+                              if ($pos = strrpos($label, 'custom_field_14')){
+                                  // we must replace the label text in this case with the defined label text from the configuration 
+                                  $label = substr_replace($label, trim($jlistConfig['custom.field.14.title']), $pos, 15); 
+                              }  
+                              echo $label;                        
+                        ?>
+                        <?php echo $this->form->getInput('custom_field_14'); ?>
+                    </div>                        
+            <?php } 
+              } ?>
+
+                    
+                    
+            </fieldset>
 
 
 <!-- Description TAB -->      
@@ -706,17 +729,33 @@ $limits = $this->get('user_limits');
         <fieldset class="jd_fieldset_outer">
             <legend><?php echo JText::_('COM_JDOWNLOADS_FORM_LABEL_DESCRIPTIONS'); ?></legend>
 
-            <?php if ($rules->form_short_desc):?>
-                <label><?php echo '<b>'.$this->form->getLabel('description').'</b>'; ?></label>
-                <?php echo $this->form->getInput('description'); ?>
-                <div style="clear:both"></div>
-                <br />
-            <?php endif; ?>
+            <?php if ($rules->form_short_desc){
+                      if ($rules->uploads_use_editor){ ?>
+                          <label><?php echo '<b>'.$this->form->getLabel('description').'</b>'; ?></label>
+                          <?php echo $this->form->getInput('description'); ?>
+                          <div style="clear:both"></div>
+                          <br />
+                      <?php } else { ?> 
+                          <div class="formelm">
+                            <?php echo $this->form->getLabel('description'); ?>
+                            <?php echo $this->form->getInput('description'); ?>
+                          </div>    
+                      <?php } ?>                          
+            <?php } ?>
             
-            <?php if ($rules->form_long_desc):?>
-                <label><?php echo '<b>'.$this->form->getLabel('description_long').'</b>'; ?></label>
-                <?php echo $this->form->getInput('description_long'); ?>
-            <?php endif; ?>
+            <?php if ($rules->form_long_desc){ 
+                      if ($rules->uploads_use_editor){ ?>
+                          <label><?php echo '<b>'.$this->form->getLabel('description_long').'</b>'; ?></label>
+                          <?php echo $this->form->getInput('description_long'); ?>
+                          <div style="clear:both"></div>
+                          <br />
+                      <?php } else { ?> 
+                          <div class="formelm">
+                            <?php echo $this->form->getLabel('description_long'); ?>
+                            <?php echo $this->form->getInput('description_long'); ?>
+                          </div>    
+                      <?php } ?>                          
+            <?php } ?>
       </fieldset>  
       <?php } ?>
 
@@ -733,21 +772,21 @@ $limits = $this->get('user_limits');
 		            <legend><?php echo JText::_('COM_JDOWNLOADS_FORM_LABEL_META_DATA'); ?></legend>
 		            
                     <?php if ($rules->form_meta_desc):?>
-                        <div class="formelm-area">
+                        <div class="formelm">
 		                    <?php echo $this->form->getLabel('metadesc'); ?>
 		                    <?php echo $this->form->getInput('metadesc'); ?>
 		                </div>
                     <?php endif; ?>
 		            
                     <?php if ($rules->form_meta_key):?>
-                        <div class="formelm-area">
+                        <div class="formelm">
 		                    <?php echo $this->form->getLabel('metakey'); ?>
 		                    <?php echo $this->form->getInput('metakey'); ?>
 		                </div>
                     <?php endif; ?>
 
                     <?php if ($rules->form_robots):?>
-                        <div class="formelm-area">
+                        <div class="formelm">
                             <?php echo $this->form->getLabel('robots'); ?>
                             <?php echo $this->form->getInput('robots'); ?>
                         </div>

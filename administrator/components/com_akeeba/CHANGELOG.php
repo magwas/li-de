@@ -1,663 +1,258 @@
 <?php die();?>
-Akeeba Backup 3.11.0
+Akeeba Backup 4.4.3
 ================================================================================
-+ Show update information in the component's control panel page
-+ Allow the user to forcibly reload the update information from the component's control panel page
-+ Backup progress also shown on the browser tab's icon using Piecon
-+ You can now change the date format of the Start column of the Manage Backups page
-+ Database table installation, uninstallation and update is now handled by our own code instead of the unreliable JInstaller code
-+ Work around against certain browsers (e.g. Safari) and password managers auto-filling fields marked with autocomplete="off"
-+ Display a warning when you set up an ANGIE password during backup
-+ [PRO] Added CLI script to check for new versions and automatically update Akeeba Backup
-~ Working around Safari browser ignoring web standards: it always auto-completes a password field even when web developers explicitly specify autocomplete="off"
-# [HIGH] Accessing the component fails on Joomla! 3.2.x if the core database has not been updated
-# [MEDIUM] Blank page or 400 error message after updating from 3.10.1 or lower using Live Update
-# [MEDIUM] WebDAV upload fails depending on whether you have a trailing slash in the base URL and a leading slash in the directory name
-# [MEDIUM] ANGIE: Sometimes a fatal error is thrown on redirection
-# [MEDIUM] The CLI check script was not working under Joomla 2.5
-# [LOW] Some languages do not include a translation for the new PLG_SYSTEM_AKEEBAUPDATECHECK_MSG string
-# [LOW] A tilde in the PHP version could cause a cosmetic error (a warning printed out) during restoration. Functionality was not affected by this issue.
++ One-click backup icons. Select which profiles to display as one-click icons in Akeeba Backup's control panel
++ More prominent site restoration and transfer instructions in the Manage Backups page
++ ANGIE: Added support for PrestaShop 1.4.x
+# [HIGH] Chunked upload to OneDrive would result in an error
+# [HIGH] Only 5Mb would be transferred to Amazon S3 on some hosts with PHP compiled against a broken libcurl library; workaround applied.
+# [HIGH] Multipart upload to S3 fails when the file size is an integer multiple of the chunk size
+# [HIGH] Amazon S3 has a major bug with Content-Length on some hosts when using single part uploads. We are now working around it.
+# [MEDIUM] Using "Manage remote files" in the Manage Backups page could mangle backup profiles under some circumstances
+# [LOW] Extra databases definition page, trying to validate the connection without any information entered results in a success message
+# [LOW] Fixed supplying additional Download ID directly from the Control Panel page
+# [LOW] Fixed backing up multiple external folders
 
-Akeeba Backup 3.10.2
+Akeeba Backup 4.4.2
 ================================================================================
-+ [PRO] Special ANGIE versions for WordPress, phpBB and miscellaneous PHP scripts allow you to backup and restore even more sites and scripts!
-+ [PRO] CRON script to check for failed backups
-~ Now using the built-in Joomla! extensions updater instead of Live Update to deliver updates
-~ Live Update now uses the same Bootstrap style as the rest of the component
-~ Live Update now uses database storage to solve issues with it getting stuck on some sites
-~ Instruct browsers to NOT auto-complete password fields in the configuration page. Some browsers will STILL perform auto-completion.
-~ Update backup duration after post-processing is finished, giving more accurate information about backups uploading their archives to remote storage
-~ The size of the failed backup is stored when the backup record is being cleaned up automatically
-- Removing the obsolete "Akeeba Backup Notification Module"
-# [MEDIUM] WebDAV fails when the base URL does not contain a trailing slash (e.g. Box.com's base URL)
-# [MEDIUM] WebDAV over SSL (HTTPS) fails on hosts without a system-wide certificate authority root
-# [LOW] The backup archive size was reported incorrectly when the "Process each part immediately" option is enabled
-# [LOW] Step and substep not shown during database backup
+# [HIGH] Under rare circumstances temporary data could be committed to the database and break future backups.
+# [HIGH] Amazon S3 has a major bug with Content-Length on some hosts when using multipart uploads. We are now working around it.
+# [HIGH] Google Storage and DreamObjects would not work
+# [HIGH] Upload to S3 would fail due to cacert.pem issues with some hosts and versions of PHP
+# [HIGH] Upload to S3 would fail if a file was an integer multiple of the Amazon S3 chunk size (5242880)
+# [HIGH] Obsolete jQuery Tooltip plugin could cause JavaScript errors
 
-Akeeba Backup 3.10.1
+Akeeba Backup 4.4.2.b1
 ================================================================================
-! [PRO] The Hybrid file write engine in the restoration page resulted to an error
-! [PRO] The Windows Azure BLOB Storage post-processing engine was broken
-! [PRO] The iDriveSync post-processing engine was broken
-+ [PRO] CloudMe integration.
-+ [PRO] WebDAV integration. Allows us to support more than 40 new cloud storage providers including the frequently requested OwnCloud, Box.com and Copy.com!
-~ Store last plugin notification timestamp inside the component table
-~ Update notification emails do not include an automatic log in URL by default
+- Removed the "Upload to Amazon S3 (legacy API)" post-processing engine. Existing backup profiles will be automatically migrated to the "Upload to Amazon S3" engine. [PRO]
+- Removed post-installation messages
++ Akeeba Backup will ask you to enter your Download ID before showing you available updates. [PRO]
++ Akeeba Backup will ask you to run the Configuration Wizard when it detects it's necessary. One less thing for you to remember!
++ JSON API: Return an error if preflight configuration checks indicate a critical error (e.g. output directory not writeable)
++ "Exclude error logs" filter, enabled by default, to prevent broken backup archives when error logs change their size / are rotated while the backup is in progress
+~ CLI scripts should now print a warning instead of immediately dying if you try running them in PHP 5.2 or earlier (what are you doing with this kind of archaic PHP versions on your production servers anyway?!!) [PRO]
+~ The profile ID is displayed in the profile selection drop-down
+~ Desktop notifications are now optional. If you have already enabled them don't worry, they won't be disabled (your browser remembers the previous setting).
+~ Improved layout for the Control Panel page
+~ New icon colour palette for easier identification of the Control Panel icons
+~ No more yellow flash when loading the Akeeba Backup control panel page
+~ Manage Backups: "Part 00" would be displayed when there is just one backup part present. Button label changed to "Download".
+~ Manage Backups: Simplified the page layout
+~ ANGIE: Removed the confusing messages about restoring to a different site or PHP version
+~ ANGIE: Simplified the final page ("Finished")
+~ Make it more obvious that the Scheduling Information tabs actually DO work when you click on them
+~ Remove the title from the popover tips
++ ANGIE: Added throttle speed for replacing data
++ Automatically exclude folders related to version control systems
+# [HIGH] No error thrown when the engine state cannot be saved while the backup is in progress
+# [HIGH] The database storage option for the temporary data didn't work
+# [MEDIUM] Updated Dropbox post processing engine due to changes on their servers [PRO]
+# [MEDIUM] FTP/SFTP browser would fail on some servers when you don't provide a starting directory [PRO]
+# [LOW] Database schema self-healing was disabled
+# [LOW] The backup size would be inflated if "Upload each part immediately" is enabled and it takes multiple step to post process a single archive part [PRO]
 
-Akeeba Backup 3.10.0
+Akeeba Backup 4.4.0 and 4.4.1
 ================================================================================
-! [PRO] System Restore Points for components didn't work
-+ [PRO] You can now tell Akeeba Backup to upload kickstart.php to remote storage (e.g. when using FTP or SFTP) to facilitate site transfers
-+ You can specify the large file threshold (it was previously hard-coded to 10Mb)
-+ "Large site scanner" engine for sites with directories containing hundreds or even several thousands of files
-+ [PRO] System Restore Points now support extension types: package, library, file
-~ Ignoring filters and engines with non-alphanumeric characters in their names, preventing crashes on hosts which automatically create copies of files e.g. folders.php to filders.1.php without asking the user
-~ Warn about bad (S)FTP hostnames
-# ANGIE doesn't reset the secret key in configuration.php
-# [MEDIUM] Lite Mode was broken
-# [LOW] gh-460 Layout display error in database exclusion page when you cannot connect to the database
-# [LOW] gh-463 All items in Manage Backups page shown under Joomla! 3.2
-# [LOW] [PRO] ghpro-7 Pagination alignment
-# [LOW] [PRO] ALICE would report PHP 5.5 as too new, even though it's currently fully supported
+~ These versions were removed shortly after release due to high priority issues in the Amazon S3 API.
 
-Akeeba Backup 3.9.2
+Akeeba Backup 4.3.1
 ================================================================================
-+ SFTP authentication with key files in the "Upload to Remote SFTP (SSH) Server" post-processing engine
-+ SFTP connection testing for the "Upload to Remote SFTP (SSH) Server" post-processing engine
-+ SFTP directory browser for the "Upload to Remote SFTP (SSH) Server" post-processing engine
-+ Hybrid file writing engine for the integrated restoration feature
-~ Forbit the browsers to autocomplete the fields in the Backup Now page. Many browsers auto-filled the ANGIE password (usually with the Super User's password), catching users by surprise when restoring their sites.
-~ Changed the wording of the update email to make it abundantly clear that it's not sent by Akeeba Ltd
-~ Improved detection of administrator email addresses
-~ Warn users of the Core release that entering the Download ID doesn't magically "unlock" the Professional features
-~ Better layout for the Component Parameters in Joomla! 3
-# [MEDIUM] The Extension Manager: Update page displays wrong when the System Restore Points feature is enabled on Joomla! 2.5, using Firefox (other Joomla! versions / browsers are not affected)
-# [MEDIUM] The alternate CRON backup script (akeeba-altbackup.php) would go on forever
-# [LOW] Untranslated strings when using the SRP feature
-# [LOW] Dropbox chunked upload would kick in for files less than 150Mb, causing problems in some low quality, yet popular, hosts.
-# [LOW] Link to retry uploading of failed remote transfer not shown in Manage Backups page
+# [LOW] Core: Archive integrity test would not run due to a file not being installed
+# [LOW] The Size in Manage Backups would be wrong as the last part's size was counted twice
 
-Akeeba Backup 3.9.1
+Akeeba Backup 4.3.0
 ================================================================================
-! [PRO] System Restore Points causing a fatal error when the (broken!) Joomla! cache is enabled.
-! [CORE] The Core version would throw a white page
+! Minimum PHP version required is now 5.4.0
++ Automatically check the integrity of the backup archive (opt-in, please read the documentation)
++ ANGIE: Added option to enable/disable mail system while restoring a Joomla site
+# [LOW] The autoupdate script could not download the package in PRO versions
+# [LOW] Fixed profile description tooltip
+# [LOW] The SQL query would not be printed on database errors
+# [MEDIUM] ANGIE: You could not override the ANGIE password in the Backup Now page
+# [HIGH] Multipart ZIP archives were broken
 
-Akeeba Backup 3.9.0
+Akeeba Backup 4.2.4
 ================================================================================
-+ [PRO] Massively updated System Restore Points feature, now works without replacing Joomla! extensions installer *and* it also works with extension updates
-+ [PRO] You can enter a custom S3 endpoint URL, allowing you to use third party storage services with an S3-compatible API
-+ [PRO] ANGIE is now embedded in "All configured databases" backup archives to let you restore them easily on your server.
-+ [PRO] Easily troubleshoot your backup issues using Akeeba Log Inspection and Cause Elimination (ALICE) feature. It's like asking the developers for support, only faster.
-- [PRO] Removing Box.com integration. PLEASE READ THE DOCUMENTATION FOR THE EXPLANATION.
-- The old lazy scheduling plugin is now completely removed (for the last year it would only show an error message to remind you to disable it)
-~ S3: Make sure that the directory uses forward slashes instead of backslashes; remove trailing slashes from the directory name
-~ Better layout in back-end views under Joomla! 3
-# [LOW] Incremental files only backup was broken
-# [LOW] J3 Help toolbar modal window was not shown correctly
+~ ANGIE: Improve memory efficiency of the database engine
+~ Switching the default log level to All Information and Debug
++ Support utf8mb4 in CRON jobs
+# [LOW] Desktop notifications for backup resume showed "%d" instead of the time to wait before resume
+# [LOW] Push notifications should not be enabled by default
+# [MEDIUM] Dropbox integration would not work under many PHP 5.5 and 5.6 servers due to a PHP issue. Workaround applied.
+# [HIGH] Restoring on MySQL would be impossible unless you used the MySQL PDO driver
 
-Akeeba Backup 3.8.2
+Akeeba Backup 4.2.3
 ================================================================================
-+ [PRO] SFTP post-processing engine, allows you to upload backup archives to an SFTP (SSH) server
-# [HIGH] CLI backup script: the connection is not set to UTF-8, causing backup issues on some servers
-# [HIGH] System Restore Points: Upgrading Akeeba Backup leads to a huge restore point or a failure if you are using the component's default output directory for your backups
-# [LOW] A non-existent JS file is attempted to be loaded in the Core release (the file only exists in the Pro release)
+! Packaging error leading to immediate backup failure
 
-Akeeba Backup 3.8.1
+Akeeba Backup 4.2.2
 ================================================================================
-! An annoying –but harmless– fatal error was shown on upgrade from older versions
++ Push notifications with Pushbullet
+# [HIGH] ANGIE: Restoration may fail or corrupt text on some servers due to UTF8MB4 support
 
-Akeeba Backup 3.8.0
+Akeeba Backup 4.2.1
 ================================================================================
-+ [PRO] DreamObjects support (an S3-compatible cloud storage solution by DreamHost)
-+ Backup on update plugin: allows you to automatically backup your site before applying an update using the Joomla! Update component built into Joomla! itself
-+ [PRO] Experimental support for PostgreSQL, SQL Server and Microsoft Azure SQL database technologies (installation and basic backups)
-- Removed JMonitoring integration plugin as this software is no longer available
-# [LOW] [PRO] CLI CRON scripts not fully compatible with PHP CGI
+~ Updated Import from S3 to use the official Amazon AWS SDK for PHP
+~ OneDrive: refresh the tokens if they expire in the middle of an upload
++ You can set the backup profile name directly from the Configuration page
++ You can create new backup profiles from the Configuration page using the Save & New button
++ Desktop notifications for backup start, finish, warning and error on compatible browsers (Chrome, Safari, Firefox)
++ UTF8MB4 (UTF-8 multibyte) support in restoration scripts, allows you to correctly restore content using multibyte Unicode characters (Emoji, Traditional Chinese, etc)
+~ The logs and log directories at the site's root are forcibly excluded if present (some developers hardcode them)
+~ ANGIE (restoration script): Reset OPcache after the restoration is complete (NB! Only if you use ANGIE's Remove Installation Directory feature)
+# [HIGH] Restoration might be impossible if your database passwords contains a double quote character
+# [MEDIUM] Dropbox and iDriveSync: could not upload under PHP 5.6 and some versions of PHP 5.5
+# [MEDIUM] OneDrive upload could fail in CLI CRON jobs if the upload of all parts takes more than 3600 seconds
+# [MEDIUM] Possible crash when the legacy MySQL driver is not available
+# [MEDIUM] Reupload from Manage Backups failed when the post-processing engine is configured to use chunked uploads
+# [LOW] White page when the ak_stats database table is broken
+# [LOW] Some installations didn't have the correct embedded installer selected. Now forcing the correct default if an invalid value is detected.
 
-Akeeba Backup 3.7.10
+Akeeba Backup 4.2.0
 ================================================================================
-~ No change compared to version 3.7.9. This is released due to what appears to be a CDN caching issue preventing some users from seeing the correct package. Please read the release notes for more information.
+- Removed Joomla! 2.5 support
+- Removed post-setup page; these messages are now handled through Joomla!'s Post-Installation Messages feature
+- Removed the Site Transfer Wizard. You can use the DirectFTP/DirectSFTP engines; or use Upload to FTP/SFTP and check the Upload Kickstart option (preferred method)
+- Removed the System Restore Point feature; please make a full site backup before updating your extensions. Joomla! 3.x requires full backups due to the way ACL, Categories, Tags and Content History work; that's why the SRP feature was removed.
+- Removed Extension Filters. For the same reasons we removed SRP: this cannot work as expected in Joomla! 3.x.
+- Removed Lite Mode in the front-end. Smartphones are now the norm and Joomla! 3.x offers a responsive back-end. Just use it from your smartphone!
++ Check for obsolete PHP versions and printing a warning
++ gh-528 Native support for Microsoft Live OneDrive
++ gh-529 Added support for uploading archives in subdirectories while using FTP post-processing engine
++ gh-530 Show profile title in a tooltip when hovering over the profile ID in Manage Backups page
++ gh-530 Profile filter in the Manage Backups page
++ Always exclude the configured Joomla! log directory, no matter where it is
+# [LOW] ANGIE would throw a memory outage error on extreme circumstances when the database server connected and disconnected immediately
+# [LOW] Prevent usage of negative profile ID in CLI backups
+# [MEDIUM] Import from S3 could be a byte off
 
-Akeeba Backup 3.7.9
+Akeeba Backup 4.1.2
 ================================================================================
-! Wrong ANGIE package included in 3.7.8
++ Added "Apply to all" button in Files and Directories Exclusion page
++ ANGIE for Wordpress: Db collation set to "utf8_general_ci" by default
+# [HIGH] Missing interface options on bad hosts which disable the innocent parse_ini_file PHP function
+# [HIGH] ANGIE (restoration): Some bad hosts disable the innocent parse_ini_file PHP function resulting in translation and functional issues during the restoration
+# [MEDIUM] ANGIE for Wordpress: Site url was not replaced when moving to a different server
+# [LOW] On some hosts you wouldn't get the correct installer included in the backup
+# [LOW] ANGIE for Wordpress: fixed changing Admin access details while restoring
+# [LOW] Configuration Wizard: detected minimum execution time was ignored; default value of 2 seconds always applied
 
-Akeeba Backup 3.7.8
+Akeeba Backup 4.1.1
 ================================================================================
-+ Option for full site backup with incremental files (kudos to Brian Teeman for the suggestion)
-~ ANGIE: Improved database error reporting
-~ ANGIE: Removing absolute URLs in favour of relative URLs, trying to make it compatible with temporary URLs (which are still not encouraged as they'll break Joomla's SEF URLs)
-+ Box.net: you can now use remote quotas with this post-processing method
-+ Box.net: you can now download backup archives directly to your browser with this post-processing method
-# [MEDIUM] ANGIE: Restoration would fail if the original site's database password contains certain special characters
-# [MEDIUM] Could not exclude symlinks to directories when dereference symlinks was disabled
-# [MEDIUM] ANGIE: Default log and tmp path would still not work properly on Windows hosts. Now tested against WAMPServer, XAMPP, EasyPHP and IIS.
-# [LOW] PHP Notice thrown in Backup Now page of Core release
-# [LOW] Compatibility issue with FOF 2.1
-# [LOW] ANGIE: Throw the correct error message when the database key is invalid
-# [LOW] Pre-installation script would run the wrong SQL files on upgrade (normally not causing a problem, but still it's not the intended behaviour)
-# [LOW] System Restore Points wouldn't work with plugins
-# [LOW] ANGIE: Relative paths in template may result to restoration failure on certain hosts with similar named files in the default PHP include path (thank you, Damian)
-# [LOW] Box.net: backups would appear as Obsolete instead of Remote
+- Removed the obsolete "Upgrade profiles to ANGIE" post-installation message
+# [LOW] Tooltips for backup comments not shown in Manage Backup page on Joomla! 3.x
+# [HIGH] Control Panel icons not shown on some extremely low quality hosts which disable the innocuous parse_ini_file function. If you were affected SWITCH HOSTS, IMMEDIATELY!
+# [HIGH] gh-523 Fatal error on Joomla! 2.5 when logging in as Administrator (NOT Super User!) and you have published our Quick Icon plugin
+# [HIGH] Old PHP 5.3 versions have a bug regarding Interface implementation, causing a PHP fatal error
 
-Akeeba Backup 3.7.7
+Akeeba Backup 4.1.0
 ================================================================================
-+ Added "Robert button" (accept the mandatory information in the post-setup page without ticking each box)
-~ Making MySQLi the default database engine in ANGIE
-# [LOW] ANGIE: Division by zero on dead slow servers
-# [LOW] ANGIE: The FTP layer's status sticks to the value of the backed up site
++ Brand new icon set in the Control Panel page by Helvecio da Silva (http://hlvcdesign.com.br)
++ Warning added when Joomla!'s com_postinstall component is broken (with instructions to fix it)
+~ Less intrusive display of the file integrity check results
+# [HIGH] System Restore Points didn't really work
+# [HIGH] The Quick Icon - Akeeba Backup Notification plugin was broken since 4.1.0.rc1 (thanks Camden!)
+# [HIGH] Stack filters wouldn't load. As a result, voluminous and unwanted data of Joomla!'s Finder tables would always be included.
+# [MEDIUM] The backup ID was not returned to JSON API requests, making download after backup with Akeeba Remote CLI impossible (thanks Mikkel)
+# [LOW] Work around Joomla!'s bug causing it to not load its library translation strings while showing the installation status messages when System Restore Points are enabled
+# [LOW] Piecon could throw Javascript errors on some sites
+# [LOW] Upload to Dropbox may not work on servers without a global cacert.pem file
 
-Akeeba Backup 3.7.6
+Akeeba Backup 4.1.0.rc3
 ================================================================================
-! [HIGH] 403, memory outage errors (all Joomla! versions) and lack of system messages (Joomla! 3.x)
-# [MEDIUM] RackSpace CloudFiles authentication broken; apparently the updated documentation in RackSpace's site isn't accurate?!
+! DirectoryIterator::getExtension is not compatible with PHP 5.3.4 and 5.3.5
+! As we announced 18 months ago, we require PHP 5.3.4 or later. If your site doesn't meet this requirement a very stern warning will be issued.
+- Removed the (broken) multipart upload from the legacy S3 post-processing engine. Please use the new "Upload to Amazon S3" option for multipart uploads.
+~ Removing references to JParameter (it was removed in Joomla! 3.4 alpha)
+# [HIGH] Some Pro features (restore SRPs, site transfer wizard) not working because their files are deleted on installation
+# [HIGH] Bug in third party Guzzle library causes Amazon S3 multipart uploads of archives larger than the remaining RAM size to fail due to memory exhaustion.
+# [MEDIUM] The backup would halt if the upload to S3 failed instead of simply raising a warning
+# [MEDIUM] System Restore Points were throwing a fatal error while applying size quota
+# [MEDIUM] Fatal error on sites with open_basedir restrictions on the site's root
+# [LOW] System Restore Points throwing warnings
 
-Akeeba Backup 3.7.5
+Akeeba Backup 4.1.0.rc2
 ================================================================================
-+ ANGIE: Warn users of IE9 or earlier that they need to upgrade or switch to another browser
-+ ANGIE: Reset some configuration.php settings when restoring to a different location, hopefully preventing broken sites due to server incompatibilities
-+ ANGIE: Better session handling, making restoration more resilient to accidental information disclosure (when used with the password protection feature)
-+ iDriveSync integration (Pro only)
-+ PRO: Adding the possibility to password-protect the ANGIE installer
-+ PRO: Allow editing the virtual directory name of external folders; if it's empty, the files will end up inside the archive's root
-~ ANGIE: Expect web.config to have been renamed to web.config.bak during extraction (req. Kickstart 3.7.0)
-~ ANGIE: Always use a file to store session data, as the PHP session storage seems to be causing db restoration issues
-# [MEDIUM] ANGIE: Default log and tmp path wouldn't work properly on Windows hosts
-# [LOW] ANGIE: State wasn't reset after the end of restoration, causing a subsequent restoration on the same site / local server and browser session to fail
-# [LOW] ANGIE: Wrong database information put in configuration.php when restoring multiple databases (thanks Spring)
+! Settings would be lost when upgrading to 4.1.0.rc1 due to the loss of the settings' encryption key on upgrade
+# [LOW] 500 error when a specified engine (scanner, archiver, post-processing, dump) doesn't exist
 
-Akeeba Backup 3.7.4
+Akeeba Backup 4.1.0.rc1
 ================================================================================
-! [HIGH] ANGIE: Database settings not saved when restoring sites
-! [HIGH] ANGIE: Failed Joomla! 3 restoration due to typo in default configuration
++ New and improved backup engine
++ Installation integrity check automatically spots missing, out of date or tampered files and warns you
++ ALICE will check if Additional Database information are correct [PRO]
++ ANGIE: Add warning about Live site URL on Windows
++ You can now sort and search entries in the Profiles Management page
++ Using advanced selects (Chosen) for backup profile lists under Joomla! 3
+- Removed inconsistent submenus at the top of some pages
+~ The following features are deprecated and will be removed in a later version: site transfer wizard, system restore points, extension filters, lite mode, the old Amazon S3 integration (there is a new Amazon S3 integration which has replaced it)
+~ Changed the .htaccess files to be compatible with Apache 2.4
+~ Improved styling for detected issues
+~ Set the commonly used ports for FTP/FTPS and SFTP transfers in the Site Transfer Wizard [PRO]
+# [MEDIUM] ANGIE: The option "No auto value on zero" was not working
+# [MEDIUM] The data file pointer can be null sometimes when using multipart archives causing backup failures
+# [MEDIUM] Fixed error while trying to fetch Super Administrators email during frontend backup
+# [MEDIUM] ALICE: The "Backup engine state saving issues" and "Timeout while backing up" tests returned wrong results [PRO]
+# [MEDIUM] Upload to remote storage from the Manage Backups page was broken for Amazon S3 multipart uploads [PRO]
+# [MEDIUM] ae/gh-11 Race condition could prevent the reliable creation of JPS (encrypted) archives [PRO]
+# [MEDIUM] gh-522 "Back to standard installer" still results in a System Restore Point backup being taken [PRO]
+# [LOW] Tooltips not showing for engine parameters when selecting a different engine (e.g. changing the Archiver Engine from JPA to ZIP)
+# [LOW] The lib_joomla translation might not be loaded when an extension is installed and the System - System Restore Points plugin is enabled [PRO]
+# [LOW] ANGIE: Fixed table name abstraction when no table prefix is given
+# [LOW] ANGIE: Fixed loading of translations
+# [LOW] SFTP post-processing engine did not mark successfully uploaded backup as Remote [PRO]
+# [LOW] SFTP post-processing engine could not fetch the archive back to the server [PRO]
+# [LOW] ANGIE: Fixed .htaccess parsing while restoring a WordPress site
+# [LOW] ANGIE: Fixed removing installation directory while restoring a WordPress site
 
-Akeeba Backup 3.7.3
+Akeeba Backup 4.0.5
 ================================================================================
-+ New backup installation script (ANGIE)
-~ The Lazy Scheduling plugin which is deprecated since 2011 is now reduced to printing a warning which reminds you to disable it on your site
-# [HIGH] Internal server error on ancient versions of PHP 5.3 with broken late static binding implementations
-# [LOW] #445 Switching profiles in Backup Now page does not update the form properly
+# [HIGH] The integrated restoration is broken after the last security update
 
-Akeeba Backup 3.7.2
+Akeeba Backup 4.0.4
 ================================================================================
-# [HIGH] The component's menu item was removed if the installation couldn't proceed (too low PHP or Joomla! version)
-# [HIGH] Joomla! doesn't run the database upgrade scripts when upgrading from a very old version or when the #__schemas entry is somehow missing
-# [HIGH] After a failed installation, even if the subsequent installation is reported successful Joomla! does not install the database tables causing a broken installation
-# [MEDIUM] The reason why the installation was aborted is not shown due to a Joomla! bug; worked around
+! [SECURITY: Medium] Possibility of arbitrary file writing while a backup archive is being extracted by the integrated restoration feature
 
-Akeeba Backup 3.7.1
+Akeeba Backup 4.0.3
 ================================================================================
-! Performance issue (too much RAM required) the first time Akeeba Backup would run
++ Warn the user if the post-processing engine requires cURL extension and it's not enabled
+! Backup failure on certain Windows hosts and PHP versions due to the way these versions handle file pointers
+! Failure to post-process part files immediately on certain Windows hosts and PHP versions due to the way these versions handle file pointers
 
-Akeeba Backup 3.7.0
+Akeeba Backup 4.0.2
 ================================================================================
-~ UX improvement: When the Discover & Import archives finishes redirect to Manage Backups instead of Control Panel
-~ Automatically detect and fix missing database tables
-# [HIGH] The directory browser for off-site folders didn't work properly
-# [MEDIUM] Wrong End of Central Directory record in multi-part ZIP archives didn't allow anything except Kickstart to extract them
-# [MEDIUM] Import S3 would fail on multipart archives
-# [MEDIUM] Using "Discover and Import Archives" with multipart archives would end up not showing the last part in the Manage Backups page
-# [MEDIUM] The .htaccess in the backups directory would cause the server to return an error page instead of just limit access
-# [MEDIUM] The "Manage remotely stored files" didn't appear in a popup as it is supposed to on Joomla! 3.0.
-# [LOW] Specifying Super Administrator email for update notifications wasn't working
-# [LOW] Very rare issue killing the database backup with a message like "fwrite(): XYZ is not a valid stream resource"
-# [LOW] Very rare performance issue when your PHP memory limit is expressed in Kilobytes, e.g. 131072K instead of 128M
-# [LOW] Giving akeeba.backup ACL privilege without also giving the global Edit Content privilege would prevent you from backing up
-# [LOW] Backups downloaded from S3 would not be imported to the Manage Backups page, but only downloaded on the server
-# [LOW] MySQL 5.6 compatibility
-# [LOW] Help tooltips wouldn't display correctly on Joomla! 3.0.3
+! Dangling file pointer causing backup failure on certain Windows hosts
+~ CloudFiles implementation changed to authentication API version 2.0, eliminating the need to choose your location
+~ Old MySQL versions (5.1) would return randomly ordered rows when dumping MyISAM tables when the MySQL database is corrupt up to the kazoo and about to come crashing down in flames
+~ Some servers seem to try and load the AkeebaUsagestats class twice
+# [LOW] Database table exclusion table blank and backup errors when your db user doesn't have adequate privileges to show procedures, triggers or stored procedures in MySQL
+# [LOW] Could not back up triggers, procedures and functions
 
-Akeeba Backup 3.6.12
+Akeeba Backup 4.0.1
 ================================================================================
-# [LOW] Backup doesn't run on IE because it lacks console.debug support (ugh!)
+! A bug in SRP prevented updates unless you disabled it. Moreover, the data of the extensions were not saved in the SRP backup (also affects all 3.11.x versions of Akeeba Backup).
 
-Akeeba Backup 3.6.11
+Akeeba Backup 4.0.0
 ================================================================================
-+ Allow you to specify only one Super Administrator to receive emails for Akeeba Backup updates
-+ The users have to acknowledge a warning against untested backups before using the component
-# [HIGH] Restoring backups with multiple databases doesn't allow you to modify the super administrator password
-# [LOW] Backup wouldn't work on some brain-dead browsers like Mobile Safari due to XHR caching issues
-# [LOW] ABI would warn against using PHP 5.3 with E_STRICT and display_errors enabled. This was a leftover from the Joomla! 1.5 days and had to be removed.
-# [LOW] Working around Gantry bugs which make it incompatible with the SRP plugin (Pro version)
-# [LOW] JSON API doesn't respect the from and limit parameters in the listBackups method
-
-Akeeba Backup 3.6.10
-================================================================================
-~ Add more part size checks in the Configuration Wizard
-~ Improved post-setup error messages if you have not selected both license & support checkboxes
-~ Make sure we are no longer using Joomla!'s integrated extension update (it doesn't support stability and Joomla! version compatibility checks)
-# [HIGH] The Akeeba Backup Update Check plugin would crash the site under Joomla! 3.0
-# [HIGH] CLI backup broken under Joomla! 3.0
-
-Akeeba Backup 3.6.9
-================================================================================
-+ The users have to accept the license and support policy before using the component
-+ You can now exclude the username and password of your database connection from the backup
-# [MEDIUM] ABI: Passwords with dollar signs will cause the configuration.php to throw parse errors
-# [LOW] The Akeeba Backup update notification plugin didn't work
-# [LOW] Notice thrown by the System Restore Points feature
-# [LOW] JClientFtp::getInstance requires an empty array, not null, as its third parameter
-
-Akeeba Backup 3.6.8
-================================================================================
-# [LOW] Sometimes the interface renders strangely (e.g. when a plugin sets format="")
-
-Akeeba Backup 3.6.7
-================================================================================
-# [HIGH] Front-end backup doesn't work
-
-Akeeba Backup 3.6.6
-================================================================================
-+ Warning when your tmp or log folder are equal to the site root which would result in incomplete backup
-+ Profile import/export (including all profile settings, of course!)
-~ Small visual improvements in the Configuration page
-~ Improved integrated help rendering
-# [HIGH] CLI backups of databases containing data or tables with non-ASCII characters would fail
-# [HIGH] J3 Enabling System Restore Points made it impossible to install extensions on the site
-# [MEDIUM] Sometimes no profiles are shown in the Profiles Management page
-# [MEDIUM] Profile settings would be reset when turning encryption on/off
-# [MEDIUM] ABI Using passwords with double quotes would result in inability to use the restored site (thanks @nternetinspired)
-# [LOW] J3 Tooltips in Configuration page are surrounded by a smaller white box
-# [LOW] J3 Component Parameters icon opened a modal box instead of simply redirecting to com_config
-# [LOW] J3 Incomaptibility of jQuery UI with Joomla!'s jQuery version leading to broken Multiple Databases and Off-Site Folders inclusion filters
-* All items marked with "J3" only apply to Joomla! 3. Items marked with ABI apply to Akeeba Backup Installer
-
-Akeeba Backup 3.6.6.rc1 RELEASE CANDIDATE
-================================================================================
-+ Support for Joomla! 3.0 stable
-+ Configuration tooltips now remain sticky (as per @brianteeman's suggestion)
-+ Now using a Quick Icon plugin to show the backup status instead of the legacy module method
-# [MEDIUM] Front-end backup wouldn't work in some cases
-# [MEDIUM] Pagination not shown in Profiles view, sometimes making profiles disappear until you logged out and back in
-# [LOW] Backup failure on MySQL versions which do not support the SQL_BIG_SELECTS option
-
-Akeeba Backup 3.6.5
-================================================================================
-# [HIGH] Display bug with bundled FOF version
-
-Akeeba Backup 3.6.4
-================================================================================
-~ Better handling of default log directory path when restoring, based on which path exists and which is writable
-# [HIGH] The Akeeba Backup Update Check plugin would occasionally crash
-# [MEDIUM] Opening MySQL and MySQLi connections could sometimes fail
-# [MEDIUM] System Restore Points would not work on Windows
-# [MEDIUM] Old PHP version warning was shown in extensions installation page when using System Restore Points
-# [LOW] Main Database Only wouldn't run from the command-line
-# [LOW] Adding a RegEx folder skip filter like !#subdirectory# would result in no backup being taken
-# [LOW] Missing ID in checkbox could interfere with FTP connection test
-# [LOW] Scheduling information page would crash
-
-Akeeba Backup 3.6.3
-================================================================================
-~ Experimental support for Joomla! 3.0.a2; please use Joomla! 3.0-alpha2 only on TEST sites and report any bugs you find.
-~ Recycling the MySQL connection in the CRON script to help with certain servers losing the db connection on uploading very large backups
-~ Explain that the PHP 5.2 warning is a WARNING, not an error, and allow users to disable it.
-# [MEDIUM] Some hosts report the file and folders permissions in a strange way, causing the permissions warning to always pop up in Akeeba Backup's Control Panel page
-# [LOW] Notice thrown in the quota code
-
-Akeeba Backup 3.6.2
-================================================================================
-~ Make it abundantly clear to PHP 5.2 users that they are using an outdated PHP version, without the option to turn off the huge, blinding message.
-~ Improve styling of the Configuration page
-# [LOW] warning in lines 48 and 248 of the mod_akadmin module
-# [LOW] Fatal error in command-line CRON script when the email to administrator fails
-# [LOW] The restoration script would always display in English
-# [MEDIUM] Integrated restoration would fail with a Javascript error
-# [MEDIUM] Copying the Dropbox tokens wouldn't work as we were missing the necessary User ID
-
-Akeeba Backup 3.6.1
-================================================================================
-# [LOW] Update icon sometimes floating under the right-hand column
-# [HIGH] System Restore Points not compatible with PHP 5.2
-
-Akeeba Backup 3.6.0
-================================================================================
-! THIS VERSION IS ONLY COMPATIBLE WITH JOOMLA! 2.5.1 OR LATER
-+ #434 Let the email report the post-processing status
-+ Expose AKEEBAPRO status in JSON API's getVersion
-+ Scheduling information page
-~ Removing leftover jquery.js and jquery-ui.js from media/com_akeeba/js directory
-# [MEDIUM] Fatal error in the native CLI akeeba-backup.php script when there are warnings
-# [LOW] Notice thrown by S3 processing engine
-# [LOW] Division by zero when restoring an SRP backup with a zero-length database dump
-# [LOW] Clicking on Changelog for a second time would result in a Javascript error
-
-Akeeba Backup 3.5.2
-================================================================================
-# [HIGH] Site Overrides' site root path was ignored
-# [HIGH] Restoring a backup with multiple database definitions would result in the restoration getting stuck in a loop showing the main site db restoration page
-# [MEDIUM] File filters for files in the site roto not respected when using the akeeba-backup.php CLI script
-# [LOW] Import Archives did not parse directory variables like [DEFAULT_OUTPUT] and [SITEROOT]
-# [LOW] You could no longer delete backup files or records through the JSON API
-# [LOW] Error thrown in the component's control panel when Debug System is enabled
-# [LOW] Wrong label "Database driver" instead of "Database hostname" in Site Overrides configuration (Professional release)
-# [LOW] Backup notification icon would be permanently deactivated if a user without backup privileges (e.g. Administrator) tried to display it
-# [LOW] Deleting a remotely stored backup could result in an error if there were too many parts
-# [LOW] Strict notice in Administer Backup Files page
-
-Akeeba Backup 3.5.1
-================================================================================
-+ Plugin for JMonitoring, notifies you on failed and stale backups
-# [HIGH] Blank pages when accessing various Akeeba Backup views on some hosts which tried to load a certain PHP file twice, despite that making no sense whatsoever :s
-# [HIGH] Obsolete files from very old releases (3.3.x and earlier) were not being removed, causing fatal errors.
-# [MEDIUM] Restore points lacked the "Roll back" button
-# [LOW] Akeeba Backup Core tries to install plugins existing only in the Professional release
-# [LOW] Akeeba Backup Core would try to uninstall an inexistent module
-# [LOW] The akeeba-backup.php CLI script wouldn't load the language files, causing the backup confirmation email to fail
-# [LOW] A Javascript popup was shown when saving the Post-Configuration Wizard settings in Akeeba Backup Core
-
-Akeeba Backup 3.5.0
-================================================================================
-~ Default minimum update stability is now set to stable
-~ Akeeba Backup Core always updates to Stable only, irrespective of the user's preferences
-~ The Post-Installation page now allows you to select the minimum update stability level
-~ Auto-disable the Akeeba Backup icon module if a crash is detected, making sure that failed updates won't bring down your site
-# Accessing Live Update threw a Not Authorized error
-# Forgot to include the frontend dispatcher in the XML manifest. Thank you,	Daniele!
-# The CLI scripts weren't copied when installing the Professional release
-# The SRP and Update Check plugins wouldn't get installed in the Professional release
-# The remote API for the SRP backup was broken. Thank you Daniele!
-# FOF wasn't loaded by mod_akadmin, causing a fatal error to be thrown in the Joomla! control panel
-
-Akeeba Backup 3.5.a2
-================================================================================
-! THIS IS AN ALPHA (TESTING) RELEASE. IT SHOULD NOT BE INSTALLED ON PRODUCTION (LIVE) SITES.
-+ Allow Dropbox tokens to be copied across sites, allowing you to authenticate many sites to the same Dropbox account
-# Live Update wouldn't work in Akeeba Backup 3.5.a1
-# The warning about the Download ID would never go away
-# Content-Disposition should wrap the filename in double quotes when downloading files
-
-Akeeba Backup 3.5.a1
-================================================================================
-! THIS IS AN ALPHA (TESTING) RELEASE. IT SHOULD NOT BE INSTALLED ON PRODUCTION (LIVE) SITES.
-+ Overhauled backup engine
-+ Multi-db support (work in progress)
-+ You can now add the Joomla! version in the archive's name using the [PLATFORM_VERSION] tag
-+ Making sure you won't forget to enter your Download ID
-+ Configure button next to profile's name in Profiles view
-+ You can now override the site's root and/or database connection details, allowing you to backup any accessible on the server
-+ #368 SugarSync integration
-+ #396 Google Storage integration
-+ New backup archive naming variable: [SITENAME]
-+ #326 Added SRP support to the JSON API
-~ Automatically update the XML update stream in Joomla! 2.5 to make use of the Download ID in the Pro release
-~ ABI: Remove J! 1.5 support
-# Accessing Akeeba Backup without adequate ACL priileges would cause an infinite redirection loop
-# ABI: No progress bar shown in database restoration
-# Functions, procedures and triggers were not being backed up correctly when their definition contained comments
-
-Akeeba Backup 3.4.3
-================================================================================
-# Call time pass by reference removed in PHP 5.4.0, causing a fatal error when using Akeeba Backup on PHP 5.4
-# The Box.net integration would copy the backup archive to the administrator directory and not delete it
-# Regression: using the email after front-end backup causes a backup failure under Joomla! 2.5
-# No emails after front-end backup sent under Joomla! 2.5
-
-Akeeba Backup 3.4.2
-================================================================================
-# Some servers didn't create a correct OAuth signature for Dropbox' POST requests
-# The Dropbox integration didn't work with PHP Safe Mode
-
-Akeeba Backup 3.4.1
-================================================================================
-# Immediate crash in Joomla! 1.5 when the System - Legacy plugin is activated
-# Dropbox authorisation step 1 would fail on some servers
-
-Akeeba Backup 3.4.0
-================================================================================
-+ ABI: Updated jQuery and jQuery UI
-+ ABI: Remember the preference to clear the database connection information when navigating between steps
-+ #120 ABI: Ability to skip restoring select databases, except the one of the site (Skip instead of Next)
-+ #121 Import arbitrary archives from S3
-+ #248 Integrate with box.net cloud storage provider
-+ The backup.php CRON script now supports a --debug switch so that it will dump any PHP errors
-+ Finder tables (which can be rebuilt anytime) are now skipped by default, leading in MAJOR performance boost when backing up Joomla! 2.5 sites
-~ Reimplementing Dropbox integration with their official API
-# The update notification plugin could fire repeatedly if it wasn't able to update its last run timestamp
-# ABI doesn't support MySQLi connection to non-standard (non-3306) ports
-# Regression: multiple db backup didn't work
-# The backup.php CRON script would not support send-by-email features under Joomla! 2.5.x
-
-Akeeba Backup 3.3.13
-================================================================================
-+ You can now update Akeeba Backup Professional using the Joomla! extensions update (you still have to supply your Download ID to the component)
-+ System Restore Points: Allow skipping table data with the <skiptables> element
-# System Restore Points threw an error when updating a component
-# The extension post-installation message would not show when System Restore Points was enabled
-# Configuration overrides weren't being applied (affecting backup.php CRON script and System Restore Points)
-# Language strings not showing on installation
-
-Akeeba Backup 3.3.12
-================================================================================
-+ You can now force the language the update emails will be sent in
-# Cancelling the edit of a backup record results in the display being filtered (thanks @brianteeman)
-# The backup notification icon did not show on Joomla! 2.5.0 due to differences in Joomla's HTML markup
-# backup.php stopped working with Joomla! 2.5.0 Stable
-
-Akeeba Backup 3.3.11
-================================================================================
-+ Support for Amazon S3 RRS (Reduced Redundancy Storage)
-~ Updating the CLI platform with the new location of Joomla! 2.5's version.php file
-~ ABI: Warning message when Javascript is disabled during restoration
-! Joomla! 2.5 requires passing the table prefix in getTable()
-# The header in Administer Backup Files would change when using the pagination controls (thank you @brianteeman)
-# A "Transfer Archive ()" link would appear even when there was no post-processing engine available (thank you @brianteeman)
-# DropBox file operations (delete, download) were not working
-# ABI: The configuration.php would show broken characters when non-ASCII characters were used in any field, e.g. site name or off-line message (kudos to Alexandros S. for the heads up)
-# 311: Intermediate backup files are not removed after backup failure
-
-Akeeba Backup 3.3.10
-================================================================================
-~ ABI: Bumped the minimum required PHP versions (5.1.6 for J! 1.5, 5.2.7 for J! 1.6+)
-! Regression: No quotas would be applied
-
-Akeeba Backup 3.3.9
-================================================================================
-! The SRP quotas would remove the latest system restore point, rendering the feature useless
-~ Improved readability of update notification email (thank you Brian Teeman!)
-# Suppressed warnings and notices would be reported in the log file, but they are expected to happen (they are file existence/read tests)
-# Notice thrown in engine/abstract/archiver.php
-# Suppressed warning thrown in engine/abstract/dump.php
-# Suppressed warning thrown in AEConfiguration::reset()
-# Suppressed warning thrown in AEUtilTempvars::reset()
-# Suppressed warning thrown in AEDumpNative::createNewPartIfRequired()
-# Suppressed warning thrown in AECoreDomainPack::pack_files()
-# Suppressed warning thrown in AEAbstractArchiver::_addFile()
-
-Akeeba Backup 3.3.8
-================================================================================
-+ UX: Remotely stored backups are now identified as "Remote" instead of "Obsolete" (kudos to Brian Teeman for proposing this)
-+ UX: Renamed the Normal and Tabular views in Files and Directories Exclusion; added a more prominent link to the tabular view (kudos to Brian Teeman for proposing this)
-+ ABI: You can now set the Cookie Domain and Cookie Path during restoration
-# The pagination bar in the Restore Points would take you to the Backups page when clicked
-# Joomla! 1.7 layout fixes
-! System Restore Points were broken
-
-Akeeba Backup 3.3.7
-================================================================================
-+ Add delete support for CloudFiles so that remote quotas are possible with it
-+ Add download support for CloudFiles so that you can fetch archives back to your server
-+ Add delete support for DropBox so that remote quotas are possible with it
-+ Add download support for DropBox so that you can fetch archives back to your server
-+ If Admin Tools Professional is installed, the update notification email link will include your administrator secret word.
-~ Updated bundled JavaScript libraries to jQuery 1.7 and jQuery UI 1.8.16
-# ABI: Invalid use of DS
-# System Restore Point backups would appear in the "latest backup" view
-# Sending backup completion emails was impossible from the CLI scripts (backup.php, altbackup.php)
-# If you did not specify an email address, Akeeba Backup would fail fetching the Super Administator email addressed under Joomla! 1.7
-# "Transfer Archive" would appear for obsolete backup records (Pro release)
-# Regression: could not upload archives from the Administer Backup Files page
-# Non-standard administrator templates could have a problem with the backup status icon module hiding everything on the page
-
-Akeeba Backup 3.3.6
-================================================================================
-~ #247 Propose a fix for non-existent/unwritable backup output directory
-# Cosmetic: #253 CHANGELOG would display an page showing [object] Object on Firefox
-# Cosmetic: Tooltips on exclusion views would float out of view
-# Make sure that we have at least PHP 5.2.7 before enabling the administrator module and the system plugins
-# Backing up Thumbs.db and .DS_Store files cause extraction to fail on Windows and Mac OS X respectively; as of now, we don't back them up
-! Command-line backup would not run on Joomla! 1.7 due to missing DS constant, still required by Joomla!
-
-Akeeba Backup 3.3.5
-================================================================================
-+ Showing backup record ID in Administer Backup Files page
-+ The Akeeba Backup admin icon now inlines itself to the Joomla! control panel's Quick Icons module
-+ Display the CHANGELOG inside the component's Control Panel page
-- Akeeba Backup Core feature moved to Professional: Update notification emails
-- Akeeba Backup Core feature moved to Professional: System Restore Points
-- Akeeba Backup Core feature moved to Professional: Site Transfer Wizard
-- Akeeba Backup Core feature moved to Professional: All archiver engines except JPA
-- Akeeba Backup Core feature moved to Professional: Most log level options
-- Akeeba Backup Core feature moved to Professional: All backup types except full site and db-only backup
-- Akeeba Backup Core feature moved to Professional: Date conditional filter
-- Akeeba Backup Core feature moved to Professional: All quota settings except the basic ones (obsolete count, size, count)
-- Akeeba Backup Core feature moved to Professional: Fine tuning settings except min/max execution time and runtime bias
-# Regression: Count quotas would remove the latest, not the oldest, backup files
-# Installing Akeeba Backup would remove the menu item link for Akeeba Subscriptions
-# Akeeba Backup notification module: "Enable warnings" had no effect
-# Use of AKEEBAPRO instead of AKEEBA_PRO in administrator/components/com_akeeba/views/backup/tmpl/default.php (fixed by doorknob)
-# Untranslated string JGLOBAL_BATCH_COPY (this lang string was replaced in Joomla! 1.7)
-# Would not show development version only updates
-# GMT timezone used for the backup time stamp in Joomla! 1.7 instead of the user's timezone.
-# ABI: It would leave behind akeeba_connection_test.png in the site's root, created by Akeeba Backup's Site Transfer Wizard
-# Notice thrown by the native dump engine (cosmetic issue)
-
-Akeeba Backup 3.3.4
-================================================================================
-+ Explanatory text regarding archive restoration in the Core release, when you visit the Administer Backup Files page
-+ Improved message in the case of an error which will help you solve the issue yourself
-+ ACL checks in the backup status administrator module
-+ Row-level filtering is now possible (by creating a PHP filter file)
-+ ABI is now self-documenting; no excuses for not reading the fine manual any more!
-+ Added warning about UNC paths when used as the site's root, since PHP is very often buggy with respect to UNC paths
-~ Modified the success message after taking a System Restore Point, backing up before upgrading Joomla! or otherwise take a backup as part of an automated process with a return URL
-~ backup.php now returns exit code 1 if there were warnings or 2 if the backup failed on an error
-~ Changed Akeeba Backup's installation page to better lead you to your next steps.
-~ Renamed jquery.js to akeebajq.js due to some system plugins removing all instances of jquery.js from the page source (whichever idiot wrote them!)
-~ Renamed jquery-ui.js to akeebajqui.js due to some system plugins removing all instances of jquery-ui.js from the page source (whichever idiot wrote them!)
-~ Updated SRP definitions for Akeeba Backup, Admin Tools, Akeeba Subscriptions and Akeeba Release System
-# tmp directory would not be cleaned up after extensions installation when SRP is used
-# The Configuration page would not render on IE7, IE8 and IE9 (the latter only when using Compatibility mode)
-# Backup age quotas caused the backup finalization to crash on PHP 5.2
-# --quiet option added to backup.phpto suppress output except warnings and errors
-# When using a developer's release, Live Update would always report that a newer version is available
-# When a Windows server is using a UNC path for the site's root, the backup always failed
-# When jQuery wasn't loaded, the message urged you to use Google AJAX API, which is no longer an option.
-# ABI: Would always report that the storage isn't working when the session save path is unwritable but ABI could create a storage file to store session information.
-# Quotas would delete the most recent files, not the oldest files
-
-Akeeba Backup 3.3.3
-================================================================================
-~ Live Update and Joomla! XML update feed now tuned to look for updates through our CloudFront CDN distribution for faster results
-~ Huge text describing what the update link does, what it doesn't and how to disable it added to update notification emails
-# Akeeba Backup Update Check: version.php not loaded, causing it to believe that there is always an update available
-# Restoration of a System Restore Point would not restore database content if it was very big (thanks to the guys at Migur for discovering it)
-# During a System Restore Point restoration the database restoration progress would not be printed out
-# Timezone was reset to UTC on Joomla! 1.6 and later when the server default timezone wasn't set, instead of letting Joomla! define the timezone based on Global Configuration preferences
-# System Restore Points wouldn't run for component installations on Joomla! 1.5 running on Linux servers
-
-Akeeba Backup 3.3.2
-================================================================================
-~ UI fixes for Joomla! 1.7
-~ Improved Control Panel layout to better give at-a-glance information
-~ Replaced remaining $mainframe references with JFactory::getApplication()
-# The "Post-installation" view would load repeatedly on some servers
-# Workaround for Joomla! 1.6+ bug resulting in "Can not build admin menus" and "DB function reports no error" messages when trying to install the component after a failed installation/update
-# Site crash if somehow the component directories were removed but the module or plugins were not uninstalled
-# Improved installation and uninstallation under Joomla! 1.6/1.7, working around Joomla! bugs which would prevent installation
-# CLI backup would not run on sites running on Joomla! 1.7
-# Akeeba Backup Update Check would send out emails even when no update information was retrieved from the updates server
-
-Akeeba Backup 3.3.1
-================================================================================
-! The new quota implementation wasn't compatible with PHP 5.2 and threw a fatal error
-
-Akeeba Backup 3.3.0
-================================================================================
-+ Maximum age quota limits; allows for, say, only monthly and last 30 day backups to be kept
-+ #175 Post-installation view should "remember" user's settings
-+ You can now define the maximum size System Restore Points will occupy on your server
-# Obsolete count quota would only keep the last 10 records when enabled, no matter the user's choice
-# #162 Force reload update information in the post-installation view
-# Live Update would not refresh the version status after applying an update
-# The "back to Control Panel" button in Step 3 of the Site Transfer Wizard would do nothing at all
-# Some buggy servers report file lengths as floats, misleading Akeeba Backup into believing that it is unable to backup correctly the site's files
-# Inversion of logic on AEPlatform::get_site_root() would cause issues on servers which report "/" as the site's root
-# The ACL view in Joomla! 1.5 wouldn't allow you to change the permissions for individual users
-# Post-installation setup would always ignore user's preference about automatic update emails and never enable the feature
-# The post-installation page could appear over and over again on a new installation
-# #176 System Restore Points interfere with the backup notification module
-# ABI: Invisible newlines could cause PHP sessions to go haywire, not allowing the restoration to proceed
-# Joomla! 1.6 wouldn't run the SQL file on update, causing potential update failure
-# Quotas and post-processing would be applied to System Restore Points
-# System Restore Points would have a download link
-# System Restore Points would have an edit link which, of course, does nothing
-
-Akeeba Backup 3.3.b1
-================================================================================
-+ Post-setup configuration wizard
-+ #97 Akeeba Backup can now detect if its tables are broken and attempt to fix them, or warn you that it can't work properly
-+ #29 Upload already taken, locally stored backup archives to remote storage any time
-+ You are now able to select if you will be notified by Live Update for alpha, beta and RC versions.
-~ Changed the page title to "System Restore Point in progress" when taking a System Restore Point
-~ Changed all button to native button elements instead of Joomla!-styled input elements so that buttons DO LOOK like buttons
-~ UI fix to cater for RocketTheme's MissionControl back-end template
-~ UI fix for Nooku Server Alpha 3 (the flex-box was killing our layout)
-~ Improved tooltips for clarity and usability
-~ Changed label of Backup Now view to "Site Transfer Wizard" when it's called from the Site Transfer Wizard
-~ Changed lable of "Backing up files" step to read "Transferring files to remote server" when a Site Transfer Wizard backup is running
-~ Added a message before Site Transfer Wizard transfers you to the new site to complete the restoration
-# Update check plugin: it would run all the time, without checking its last run time
-# Live Update: The caching never worked, resulting in repeated hits to the update server
-# Live Update: Current version number wouldn't always show up with svn releases
-# The administrator backup notification icon module wasn't removed on component uninstall
-# Large files in ZIP archives would always have a wrong uncompressed size of 4Gb
-# Remote files quotas would not be applied
-# Invalid ZIP central directory record generated meant the archive wouldn't be extracted by thirdparty unarchivers
-# Invalid file size stored for large files when the ZIP format was being used
-# If no files were being backed up from a root directory, an empty directory entry would be created, potentially making extraction impossible
-# The remote API wouldn't return progress information
-# Live Update: crashes on Joomla! 1.6 after caching fix
-# Installation of a component using SRP in Joomla! 1.6 would cause the output of the install.component.php to never be displayed, causing potential installation issues
-# ABI: "No database definitions found" error on some misbehaving servers
-# One Click Actions: MySQL query error when auto-expiring old entries
-# 156 Temporary directory not pre-populated in enhanced installer
-# Files inside media/com_akeeba changed to 0755 permissions instead of the intended 0644
-
-Akeeba Backup 3.3.a2
-================================================================================
-~ Remove alternate jQuery sources. The included jQuery library can be loaded on all sites (unless the permissions are broken, but you receive a warnign about it).
-~ Renamed "Back" button to "Control Panel" (thank you, Brian Teeman, for the UX hint!)
-~ Forward compatibility with 1.7 based on BC notes in http://docs.joomla.org/Potential_backward_compatibility_issues_in_Joomla_1.7_and_Joomla_Platform_11.1
-# Directory browser: Using the "Go" button results in an error message.
-# Can not override some configuration variables from the CLI
-# S3: could not upload (it never took the bucket name)
-# Fatal error coming from Live Update when accessing the component under Joomla! 1.6
-# cacert.pem missing from package
-# Update check emails could be sent en masse, instead of once every day to each Super Administrator
-# Update check emails would severely malfunction on Joomla! 1.6
-# "System - Akeeba Backup Update Check" plugin had the wrong name in the XML file
-
-Akeeba Backup 3.3.a1
-================================================================================
-
-+ DirectSFTP engine, allows directly transferring your site to a remote SFTP server
-+ Alternate directory scanning method, working around some servers not listing all files, leading to missing files from the backups
-+ Site Transfer Wizard so that you can easily transfer your sites between hosts
-+ web.config file in the backup output directory to prevent direct web access to the directory on IIS-based hosts
-+ System Restore Points: extension developers can instruct Akeeba Backup to take SRPs before upgrades for that extra peace of mind
-+ #125 Allow per-extension system restoration point overrides
-+ Akeeba Backup now uninstalls its modules and plugins when you uninstall the component (how did I miss that?!)
-+ #111 Add warning for low memory limit
-+ #107 Optional storage of temporary data to the database instead of files
-+ #131 One click update emails to Super Administrators
-+ Live Update now takes a System Restore Point before upgrade when this feature is enabled
-# RackSpace CloudFiles: Did not support UK-based accounts; added an option for that (thanks Dean!)
-# #92 Restoring an 1.6 site results to configuration.php artifacts
-# #95 Live site URL not stored in component configuration
-# #96 JS/CSS files out of date after upgrade, due to browser caching
-# #93 Using HTTPS with cURL fails on some servers
-# #123 S3: Automatically remove / from the bucket name
-# #124 S3: Do not lowercase the bucket name
-# #112 Live Update doesn't work on hosts with open_basedir restrictions
-# Can not backup a site on some broken hosts which report an empty string as the site's root *and* do not parse relative directories correctly
++ Support for iDriveSync accounts created in 2014 or later
++ A different log file is created per backup attempt (and automatically removed when the backup archives are deleted by quotas or by using Delete Files in the interface)
++ You can now run several backups at the same time
++ The minimum execution time can now be enforced in the client side for backend backups, leading to increased stability on certain hosts
++ Back-end backups will resume after an AJAX error, allowing you to complete backups even on very hosts with very tight resource usage limits
++ The Dropbox chunked upload can now work on files smaller than 150Mb and will work across backup steps, allowing you to upload large files to Dropbox without timeout errors
++ Greatly improve the backup performance on massive tables as long as they have an auto_increment column
++ Work around the issues caused by some servers' error pages which contain DOM-modifying JavaScript
++ Support for the new MySQL (PDO) driver in Joomla! 3.4
++ Akeeba Backup now uses Joomla!'s Post-installation Messages on Joomla! 3.2.0 and later instead of showing its own post-installation page after a new install / upgrade to a new version
++ Anonymous reporting of PHP, MySQL and CMS versions (opt-out through the options)
+- Removed obsolete ABI (Akeeba Backup Installer)
+~ Even better workaround for very badly written system plugins which output Javascript without a trailing semicolon and/or newline, leading to Javascript errors. This is not a bug in our software, it's a bug in those badly written plugins and WE have to work around THEIR bad code!
+~ Work around for the  overreaching password managers in so-called modern browsers which fill random, irrelevant passwords in the JPS and ANGIE password fields, without asking you and without notifying you, without letting developers tell them "no, do not autocomplete this field because you're doing it wrong and screwing with my clients, Mr. Stupid Browser".
+# [HIGH] Dropbox upload would enter an infinite loop when using chunked uploads
+# [MEDIUM] ANGIE: Restoring off-site directories would lead to errors
+# [MEDIUM] Front-end backup failure on multilingual sites or when used in combination with certain third party plugins
+# [MEDIUM] Joomla! caches plugin information, leading to unexpected behaviour in various places
+# [MEDIUM] ANGIE for Joomla!, cannot detect Joomla! version, leading to Two Factor Auth data not being re-encoded with the new secret key
+# [MEDIUM] ANGIE (all flavours): cannot restart db restoration after a database error has occurred.
+# [LOW] ANGIE for WordPress, phpBB and PrestaShop: escape some special characters in passwords
+# [LOW] ANGIE for Joomla!, array values in configuration.php were corrupted

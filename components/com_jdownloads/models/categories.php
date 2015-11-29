@@ -145,7 +145,9 @@ class JdownloadsModelCategories extends JModelList
 		$id	.= ':'.$this->getState('filter.published');
 		$id	.= ':'.$this->getState('filter.access');
 		$id	.= ':'.$this->getState('filter.parentId');
-
+        $id .= ':'.$this->getState('filter.category_id');
+        $id .= ':'.$this->getState('filter.level');
+        
 		return parent::getStoreId($id);
 	}
 
@@ -177,6 +179,8 @@ class JdownloadsModelCategories extends JModelList
                 $options['ordering'] = $this->getState('list.ordering');
             }    
 			$options['direction'] = $this->getState('list.direction');
+            $options['category_id'] = $this->getState('filter.category_id');
+            $options['level'] = $this->getState('filter.level', 0);
             
 			$categories = JDCategories::getInstance('jdownloads', $options);
             
@@ -188,54 +192,6 @@ class JdownloadsModelCategories extends JModelList
 			else {
 				$this->_items = false;
 			}
-			
-			//+FT li-de témakör láthatóság ellenörzés
-			$user = JFactory::getUser();
-			$db = JFactory::getDBO();
-			$item = 0;
-			$i = 0;
-			$lathato = true;
-			while ($i < count($this->_items)) {
-			    $lathato = true;
-				$item = $this->_items[$i];
-				//DBG echo 'ciklus '.$item->cat_dir.'<br>';
-				if (substr($item->cat_dir,0,2)=='SZ') {
-					$db->setQuery('select sz.id
-					from #__szavatasok sz
-					left outer join #__temakorok t on t.id = sz.temakor_id
-					left outer join #__tagok ta 
-					  on ta.temakor_id = sz.temakor_id and ta.user_id = "'.$user->id.'"
-					where sz.id = "'.trim(substr($item->cat_dir,2,6)).'" and
-                        ((t.lathatosag = 0) or 
-						 (t.lathatosag = 1 and "'.$user->id.'" > 0) or 
-						 (t.lathatosag = 2 and ta.user_id is not null) )					
-					');
-					//DBG echo '<pre>'.$db->getQuery().'</pre>';
-					$res = $db->loadObject();
-					if ($res == false) $lathato = false;
-				}
-				if (substr($item->cat_dir,0,1)=='T') {
-					$db->setQuery('select t.id
-					from #__temakorok t
-					left outer join #__tagok ta 
-					  on ta.temakor_id = t.id and ta.user_id = "'.$user->id.'"
-					where t.id = "'.trim(substr($item->cat_dir,1,6)).'" and
-                        ((t.lathatosag = 0) or 
-						 (t.lathatosag = 1 and "'.$user->id.'" > 0) or 
-						 (t.lathatosag = 2 and ta.user_id is not null) )					
-					');
-					//DBG echo '<pre>'.$db->getQuery().'</pre>';
-					$res = $db->loadObject();
-					if ($res == false) $lathato = false;
-				}
-				
-				if ($lathato) {
-					$i++;
-			   } else {
-				   unset($this->_items[$i]);
-			   }	
-			}
-			//-FT li-de témakör láthatóság ellenörzés
 		}
         
 		return $this->_items;
@@ -264,5 +220,5 @@ class JdownloadsModelCategories extends JModelList
         }
 
         return $this->_total;
-    }      
-  }
+  }    
+}

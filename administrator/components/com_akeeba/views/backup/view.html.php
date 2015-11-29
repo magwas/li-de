@@ -9,6 +9,9 @@
 // Protect from unauthorized access
 defined('_JEXEC') or die();
 
+use Akeeba\Engine\Factory;
+use Akeeba\Engine\Platform;
+
 class AkeebaViewBackup extends F0FViewHtml
 {
 	/**
@@ -18,6 +21,7 @@ class AkeebaViewBackup extends F0FViewHtml
 	 */
 	public function onAdd($tpl = null)
 	{
+		/** @var AkeebaModelBackups $model */
 		$model = $this->getModel();
 
 		// Load the Status Helper
@@ -27,11 +31,7 @@ class AkeebaViewBackup extends F0FViewHtml
 		// Determine default description
 		JLoader::import('joomla.utilities.date');
 		$jregistry = JFactory::getConfig();
-		if(version_compare(JVERSION, '3.0', 'ge')) {
-			$tzDefault = $jregistry->get('offset');
-		} else {
-			$tzDefault = $jregistry->getValue('config.offset');
-		}
+		$tzDefault = $jregistry->get('offset');
 		$user = JFactory::getUser();
 		$tz = $user->getParam('timezone', $tzDefault);
 		$dateNow = new JDate('now', $tz);
@@ -48,36 +48,32 @@ class AkeebaViewBackup extends F0FViewHtml
 		// If a return URL is set *and* the profile's name is "Site Transfer
 		// Wizard", we are running the Site Transfer Wizard
 		if(!class_exists('AkeebaModelProfiles')) JLoader::import('models.profiles', JPATH_COMPONENT_ADMINISTRATOR);
+		/** @var AkeebaModelCpanels $cpanelmodel */
 		$cpanelmodel = F0FModel::getAnInstance('Cpanels','AkeebaModel');
 		$profilemodel = new AkeebaModelProfiles();
 		$profilemodel->setId($cpanelmodel->getProfileID());
 		$profile_data = $profilemodel->getProfile();
-		$isSTW = ($profile_data->description == 'Site Transfer Wizard (do not rename)') &&
-			!empty($returnurl);
-		$this->isSTW = $isSTW;
 
 		// Get the domain details from scripting facility
-		$aeconfig = AEFactory::getConfiguration();
-		$script = $aeconfig->get('akeeba.basic.backup_type','full');
-		$scripting = AEUtilScripting::loadScripting();
+		$registry = Factory::getConfiguration();
+		$tag = $model->getState('tag');
+		$script = $registry->get('akeeba.basic.backup_type','full');
+		$scripting = Factory::getEngineParamsProvider()->loadScripting();
 		$domains = array();
 		if(!empty($scripting)) foreach( $scripting['scripts'][$script]['chain'] as $domain )
 		{
 			$description = JText::_($scripting['domains'][$domain]['text']);
 			$domain_key = $scripting['domains'][$domain]['domain'];
-			if( $isSTW && ($domain_key == 'Packing') ) {
-				$description = JText::_('BACKUP_LABEL_DOMAIN_PACKING_STW');
-			}
 			$domains[] = array($domain_key, $description);
 		}
 		$json_domains = AkeebaHelperEscape::escapeJS(json_encode($domains),'"\\');
 
 		// Get the maximum execution time and bias
-		$maxexec = $aeconfig->get('akeeba.tuning.max_exec_time',14) * 1000;
-		$bias = $aeconfig->get('akeeba.tuning.run_time_bias',75);
+		$maxexec = $registry->get('akeeba.tuning.max_exec_time',14) * 1000;
+		$bias = $registry->get('akeeba.tuning.run_time_bias',75);
 
 		// Check if the output directory is writable
-		$quirks = AEUtilQuirks::get_quirks();
+		$quirks = Factory::getConfigurationChecks()->getDetailedStatus();
 		$unwritableOutput = array_key_exists('001', $quirks);
 
 		// Pass on data
@@ -90,14 +86,14 @@ class AkeebaViewBackup extends F0FViewHtml
 		$this->domains = $json_domains;
 		$this->maxexec = $maxexec;
 		$this->bias = $bias;
-		$this->useiframe = $aeconfig->get('akeeba.basic.useiframe',0) ? 'true' : 'false';
+		$this->useiframe = $registry->get('akeeba.basic.useiframe',0) ? 'true' : 'false';
 		$this->returnurl = $returnurl;
 		$this->unwritableoutput =  $unwritableOutput;
 
-		if($aeconfig->get('akeeba.advanced.archiver_engine','jpa') == 'jps')
+		if($registry->get('akeeba.advanced.archiver_engine','jpa') == 'jps')
 		{
 			$this->showjpskey =  1;
-			$this->jpskey =  $aeconfig->get('engine.archiver.jps.key','');
+			$this->jpskey =  $registry->get('engine.archiver.jps.key','');
 		}
 		else
 		{
@@ -107,7 +103,7 @@ class AkeebaViewBackup extends F0FViewHtml
 		if (AKEEBA_PRO)
 		{
 			$this->showangiekey = 1;
-			$this->angiekey = $aeconfig->get('engine.installer.angie.key', '');
+			$this->angiekey = $registry->get('engine.installer.angie.key', '');
 		}
 		else
 		{
@@ -120,20 +116,12 @@ class AkeebaViewBackup extends F0FViewHtml
 		$this->profileid = $cpanelmodel->getProfileID(); // Active profile ID
 		$this->profilelist = $cpanelmodel->getProfilesList(); // List of available profiles
 
-		// Pass on state information pertaining to SRP
-		$this->srpinfo = $model->getState('srpinfo');
-
-		// Add live help
-		AkeebaHelperIncludes::addHelp('backup');
+		// Should I ask for permission to display desktop notifications?
+		JLoader::import('joomla.application.component.helper');
+		$this->desktop_notifications = \Akeeba\Engine\Util\Comconfig::getValue('desktop_notifications', '0') ? 1 : 0;
 
 		// Set the toolbar title
-		if($this->srpinfo['tag'] == 'restorepoint') {
-			$subtitle = JText::_('AKEEBASRP');
-		} elseif($isSTW) {
-			$subtitle = JText::_('SITETRANSFERWIZARD');
-		} else {
-			$subtitle = JText::_('BACKUP');
-		}
+		$subtitle = JText::_('BACKUP');
 		JToolBarHelper::title(JText::_('AKEEBA').':: <small>'.$subtitle.'</small>','akeeba');
 
 		return true;

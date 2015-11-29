@@ -1,13 +1,13 @@
 /**
  * @package    AcyMailing for Joomla!
- * @version    4.8.1
+ * @version    5.0.1
  * @author     acyba.com
- * @copyright  (C) 2009-2014 ACYBA S.A.R.L. All rights reserved.
+ * @copyright  (C) 2009-2015 ACYBA S.A.R.L. All rights reserved.
  * @license    GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 
 
-var largeurMenuInline = 441;
+var largeurMenuInline = 524;
 var hauteurEditeurMin = 500;
 
 var acyeditor_fullmode = false;
@@ -32,9 +32,9 @@ var tooltipTemplatePicture;
 var tooltipShowAreas;
 var templateShown = false;
 var urlAcyeditor;
-var boutonTags = "toolbar-popup-Acytags";
+var boutonTags = "toolbar-tag";
 var boutonMediaBrowser = "toolbar-popup-Acymediabrowser";
-var acyVersion = "4.8.1";
+var acyVersion = "5.0.1";
 var pasteType = "plain";
 var acyEnterMode = "br";
 var urlSite = "";
@@ -44,20 +44,24 @@ var titleSup = "";
 var titleEd = "";
 var titleBtnDupliAfter = "";
 var defaultText = "Write you text here";
-var inlineSource = 0;
+var inlineSource = 1;
 var zoneActionActive;
 var confirmInitAreas = "";
 var tooltipInitAreas = "";
+var tooltipTemplateSortable = "";
+var ckFileVersion = "";
+var confirmDeleteBtnTxt = "";
+var confirmCancelBtnTxt = "";
 
 var initIE = false;
-function Initialisation(id, type, urlBase, urlAdminBase, cssUrl, forceComplet, modeList, modeTemplate, modeArticle, joomla2_5, joomla3, back, tagAllowed, texteSuppression, titleSuppression, titleEdition, titleTemplateDelete, titleTemplateText, titleTemplatePicture, titleShowAreas) {
+function Initialisation(id, type, urlBase, urlAdminBase, cssUrl, forceComplet, modeList, modeTemplate, modeArticle, joomla2_5, joomla3, back, tagAllowed, texteSuppression, titleSuppression, titleEdition, titleTemplateDelete, titleTemplateText, titleTemplatePicture, titleShowAreas, ckEditorFileVersion) {
 
 	txtSup = texteSuppression;
 	titleSup = titleSuppression;
 	titleEd = titleEdition;
 
 	initIE = false;
-	jQuery.noConflict();
+	acyJquery.noConflict();
 	editor = undefined;
 	realstylesheetpath = cssUrl;
 	isJoomla2_5 = joomla2_5;
@@ -73,6 +77,8 @@ function Initialisation(id, type, urlBase, urlAdminBase, cssUrl, forceComplet, m
 	tooltipTemplatePicture = titleTemplatePicture;
 	tooltipShowAreas = titleShowAreas;
 	urlAcyeditor = "plugins/editors/acyeditor/acyeditor/";
+	ckFileVersion = ckEditorFileVersion;
+
 	if (!isJoomla2_5 && !isJoomla3){
 		urlAcyeditor = "plugins/editors/acyeditor/";
 	}
@@ -138,7 +144,7 @@ function Initialisation(id, type, urlBase, urlAdminBase, cssUrl, forceComplet, m
 	}
 
 
-	if (jQuery('#AcyLienImage')[0] == null || jQuery('#AcyLienImage')[0] == undefined)
+	if (acyJquery('#AcyLienImage')[0] == null || acyJquery('#AcyLienImage')[0] == undefined)
 	{
 		var lienImage = document.createElement("a");
 		lienImage.id = "AcyLienImage";
@@ -153,9 +159,9 @@ function Initialisation(id, type, urlBase, urlAdminBase, cssUrl, forceComplet, m
 			lienImage.rel = "{handler: 'iframe', size: {x: 700, y: 460}}";
 		lienImage.style.display = "none";
 		document.body.appendChild(lienImage);
-		jQuery('#' + lienImage.id).addClass("modal");
+		acyJquery('#' + lienImage.id).addClass("modal");
 	}
-	if (jQuery('#AcyLienTag')[0] == null || jQuery('#AcyLienTag')[0] == undefined)
+	if (acyJquery('#AcyLienTag')[0] == null || acyJquery('#AcyLienTag')[0] == undefined)
 	{
 		var lienTag = document.createElement("a");
 		lienTag.id = "AcyLienTag";
@@ -168,10 +174,10 @@ function Initialisation(id, type, urlBase, urlAdminBase, cssUrl, forceComplet, m
 		lienTag.onclick = function () { try { IeCursorFix(); } catch (e) {} };
 		lienTag.style.display = "none";
 		document.body.appendChild(lienTag);
-		jQuery('#' + lienTag.id).addClass("modal");
+		acyJquery('#' + lienTag.id).addClass("modal");
 	}
 
-	if (jQuery('#AcyLienMediaBrowser')[0] == null || jQuery('#AcyLienMediaBrowser')[0] == undefined)
+	if (acyJquery('#AcyLienMediaBrowser')[0] == null || acyJquery('#AcyLienMediaBrowser')[0] == undefined)
 	{
 			var lienMediaBrowser = document.createElement("a");
 			lienMediaBrowser.id = "AcyLienMediaBrowser";
@@ -189,12 +195,12 @@ function Initialisation(id, type, urlBase, urlAdminBase, cssUrl, forceComplet, m
 			lienMediaBrowser.onclick = function () { try { IeCursorFix(); } catch (e) {} };
 			lienMediaBrowser.style.display = "none";
 			document.body.appendChild(lienMediaBrowser);
-			jQuery('#' + lienMediaBrowser.id).addClass("modal");
+			acyJquery('#' + lienMediaBrowser.id).addClass("modal");
 	}
 
 	var idIframe = id + "_ifr";
-	var textArea = jQuery('#' + id)[0];
-	var divParent = jQuery('#' + idIframe)[0];
+	var textArea = acyJquery('#' + id)[0];
+	var divParent = acyJquery('#' + idIframe)[0];
 
 	if (divParent != null && divParent != undefined)
 	{
@@ -208,14 +214,18 @@ function Initialisation(id, type, urlBase, urlAdminBase, cssUrl, forceComplet, m
 	divParent.innerHTML = textArea.value;
 	textArea.parentElement.appendChild(divParent);
 
-	var acyedition = (jQuery('#' + idIframe).find(".acyeditor_delete").length > 0
-					 || jQuery('#' + idIframe).find(".acyeditor_text").length > 0
-					 || jQuery('#' + idIframe).find(".acyeditor_picture").length > 0);
+	var acyedition = (acyJquery('#' + idIframe).find(".acyeditor_delete").length > 0
+					 || acyJquery('#' + idIframe).find(".acyeditor_text").length > 0
+					 || acyJquery('#' + idIframe).find(".acyeditor_picture").length > 0);
 
 	if (acyedition && forceComplet != 1)
 	{
 		acyeditor_fullmode = false;
 		var iframe = document.createElement("iframe");
+
+		if(isBrowserIE())
+			iframe.src = "";
+
 		iframe.frameBorder = '0';
 		divParent.parentElement.appendChild(iframe);
 
@@ -251,25 +261,26 @@ function Initialisation(id, type, urlBase, urlAdminBase, cssUrl, forceComplet, m
 				}
 		};
 
-		iframe.src ="";
+		if(!isBrowserIE())
+			iframe.src ="";
 	}
 	else
 	{
 		acyeditor_fullmode = true;
 
-		var hauteur = jQuery('#' + idIframe).height() - 70 + "px";
+		var hauteur = acyJquery('#' + idIframe).height() - 70 + "px";
 		var largeur = "100%";
 
 		var code = divParent.innerHTML;
 		divParent.innerHTML = "<textarea id='edition_en_cours' style='width:100%;height:100%'></textarea>";
 		if (acyeditor_articlemode)
 		{
-			largeur = jQuery(".adminform").width() + "px";
+			largeur = acyJquery(".adminform").width() + "px";
 			hauteur = "150px";
 		}
 		if (acyeditor_listmode)
 		{
-			largeur = jQuery(".adminform").width() - 65 + "px";
+			largeur = acyJquery(".adminform").width() - 65 + "px";
 			hauteur = "127px";
 		}
 
@@ -302,7 +313,6 @@ function Initialisation(id, type, urlBase, urlAdminBase, cssUrl, forceComplet, m
 			extraPluginsCKEditor += ',templatemode';
 			toolbarGroupsCKEditor.push({ name: 'templatemode', groups: [ "textarea", "picturearea", "deletearea", "-", "showarea" ]});
 		}
-		extraPluginsCKEditor += ',stylesheetparser';
 
 		if(pasteType == 'plain'){
 			pastePlain = true;
@@ -316,6 +326,14 @@ function Initialisation(id, type, urlBase, urlAdminBase, cssUrl, forceComplet, m
 		else if(acyEnterMode == 'div'){ enterM = CKEDITOR.ENTER_DIV;}
 		else{ enterM = CKEDITOR.ENTER_BR; }
 
+		extraPluginsCKEditor += ',codemirror';
+		var codemirrorOptions = {
+			showFormatButton: false,
+			showCommentButton: false,
+			showUncommentButton: false,
+			showAutoCompleteButton: false
+		};
+
 		editor = CKEDITOR.replace("edition_en_cours",{
 			toolbarGroups : toolbarGroupsCKEditor,
 			height : hauteur,
@@ -323,10 +341,11 @@ function Initialisation(id, type, urlBase, urlAdminBase, cssUrl, forceComplet, m
 			baseHref : urlBase,
 			filebrowserImageUploadUrl : urlBase + urlAcyeditor + 'kcfinder/upload.php?type=images',
 			removeButtons: 'Cut,Copy,Paste,Blockquote,HorizontalRule,SpecialChar,Symbol',
-			removePlugins: 'contextmenu,liststyle,tabletools,image,forms',
+			removePlugins: 'contextmenu,liststyle,tabletools,image,forms,sourcedialog',
 			extraPlugins: extraPluginsCKEditor,
 			forcePasteAsPlainText: pastePlain,
 			pasteFromWordRemoveFontStyles: pasteWordSimple,
+			codemirror: codemirrorOptions,
 			enterMode: enterM
 		});
 
@@ -334,7 +353,7 @@ function Initialisation(id, type, urlBase, urlAdminBase, cssUrl, forceComplet, m
 
 		editor.setData(code);
 		editor.on('instanceReady',function(e){
-			var iframe = jQuery('#edition_en_cours')[0].parentElement.getElementsByTagName('iframe')[0];
+			var iframe = acyJquery('#edition_en_cours')[0].parentElement.getElementsByTagName('iframe')[0];
 			editor.on('paste', function(e){ IeCursorFix(); });
 			iframe.contentWindow.document.body.onkeyup = function () { IeCursorFix(); };
 			iframe.contentWindow.document.body.onclick = function () { IeCursorFix(); };
@@ -346,7 +365,7 @@ function Initialisation(id, type, urlBase, urlAdminBase, cssUrl, forceComplet, m
 				var headEditor = iframe.contentWindow.document;
 				headEditor = headEditor.head || headEditor;
 				var linkCss = headEditor.getElementsByTagName("link")[0];
-				jQuery(linkCss).removeAttr("href");
+				acyJquery(linkCss).removeAttr("href");
 			}
 			else
 			{
@@ -361,7 +380,7 @@ function Initialisation(id, type, urlBase, urlAdminBase, cssUrl, forceComplet, m
 			editor.on('selectionChange', function(e) { IeCursorFix(); });
 
 			editor.on('mode',function(e){
-				var iframe = jQuery('#' + id)[0].parentElement.getElementsByTagName("iframe")[0];
+				var iframe = acyJquery('#' + id)[0].parentElement.getElementsByTagName("iframe")[0];
 				if (iframe != undefined)
 				{
 					var headEditor = iframe.contentWindow.document;
@@ -373,7 +392,7 @@ function Initialisation(id, type, urlBase, urlAdminBase, cssUrl, forceComplet, m
 					}
 					else
 					{
-						jQuery(linkCss).removeAttr("href");
+						acyJquery(linkCss).removeAttr("href");
 					}
 					if (acyeditor_templatemode)
 					{
@@ -381,7 +400,7 @@ function Initialisation(id, type, urlBase, urlAdminBase, cssUrl, forceComplet, m
 						SetStateForSelection();
 					}
 				}
-				var textarea = jQuery('#cke_edition_en_cours .cke_inner .cke_contents textarea')[0];
+				var textarea = acyJquery('#cke_edition_en_cours .cke_inner .cke_contents textarea')[0];
 				if (textarea != undefined)
 				{
 					textarea.title = "";
@@ -389,7 +408,7 @@ function Initialisation(id, type, urlBase, urlAdminBase, cssUrl, forceComplet, m
 				}
 			});
 
-			var editorBody = jQuery('#' + id + '_ifr')[0];
+			var editorBody = acyJquery('#' + id + '_ifr')[0];
 			if (editorBody != undefined)
 			{
 				editorBody.style.width = "100%";
@@ -400,13 +419,13 @@ function Initialisation(id, type, urlBase, urlAdminBase, cssUrl, forceComplet, m
 			}
 
 			setTimeout(function() {
-				jQuery("body")[0].onresize = function(e) {
-					jQuery("#cke_edition_en_cours")[0].style.width = "10px";
-					jQuery("#cke_edition_en_cours")[0].style.width = jQuery("#edition_en_cours")[0].parentElement.clientWidth - 10 + "px";
+				acyJquery("body")[0].onresize = function(e) {
+					acyJquery("#cke_edition_en_cours")[0].style.width = "10px";
+					acyJquery("#cke_edition_en_cours")[0].style.width = acyJquery("#edition_en_cours")[0].parentElement.clientWidth - 10 + "px";
 				};
 			}, 500);
 
-			jQuery("#edition_en_cours")[0].parentElement.style.height = "";
+			acyJquery("#edition_en_cours")[0].parentElement.style.height = "";
 		});
 
 		var listeForms = document.getElementsByTagName('form');
@@ -417,27 +436,27 @@ function Initialisation(id, type, urlBase, urlAdminBase, cssUrl, forceComplet, m
 	}
 
 	CKEDITOR.on( 'instanceCreated', function( ev ){
-												var editor = ev.editor;
+        var editor = ev.editor;
 
-												editor.on( 'pluginsLoaded', function() {
+        editor.on( 'pluginsLoaded', function() {
 
-																if ( !CKEDITOR.dialog.exists( 'myDialog' ) ) {
-																				var href = document.location.href.split( '/' );
-																				href.pop();
-																				href.push( 'assets/my_dialog.js' );
-																				href = href.join( '/' );
+            if ( !CKEDITOR.dialog.exists( 'myDialog' ) ) {
+                var href = document.location.href.split( '/' );
+                href.pop();
+                href.push( 'assets/my_dialog.js' );
+                href = href.join( '/' );
 
-																				CKEDITOR.dialog.add( 'myDialog', href );
-																}
+                CKEDITOR.dialog.add( 'myDialog', href );
+            }
 
-																editor.addCommand( 'myDialogCmd', new CKEDITOR.dialogCommand( 'myDialog' ) );
+            editor.addCommand( 'myDialogCmd', new CKEDITOR.dialogCommand( 'myDialog' ) );
 
-																editor.ui.add( 'MyButton', CKEDITOR.UI_BUTTON, {
-																				label: 'My Dialog',
-																				command: 'myDialogCmd'
-																});
-												});
-								});
+            editor.ui.add( 'MyButton', CKEDITOR.UI_BUTTON, {
+                label: 'My Dialog',
+                command: 'myDialogCmd'
+            });
+        });
+    });
 
 
 }
@@ -448,14 +467,13 @@ function ChargementIframe(iframe, urlBase, code, width, height, id, texteSuppres
 	iframe.allowtransparency = "true";
 	iframe.style.width = width;
 	iframe.style.height = height;
-
-	var header = jQuery('#' + iframe.id).contents().find("head")[0];
+	var header = acyJquery('#' + iframe.id).contents().find("head")[0];
 	var base1 = document.createElement("base");
 	base1.href = urlBase;
 	header.appendChild(base1);
 	var script1 = document.createElement("script");
 	script1.type = "text/javascript";
-	script1.src =  urlBase + urlAcyeditor + "ckeditor/ckeditor.js?v=" + acyVersion;
+	script1.src =  urlBase + urlAcyeditor + "ckeditor/ckeditor.js?v=" + ckFileVersion;
 	header.appendChild(script1);
 	var link1 = document.createElement("link");
 	var link2 = document.createElement("link");
@@ -481,12 +499,13 @@ function InitContent(id, texteSuppression, titleSuppression, titleEdition, urlAd
 	SetImagesId(id);
 
 	document.getElementsByTagName('body')[0].onclick = function (e) { CheckDeselection(id, e); hideActionButtons(id, e, 'outside', false);};
+
 	var listeForms = document.getElementsByTagName('form');
 	for (indexForm = 0; indexForm < listeForms.length; ++indexForm)
 	{
 		listeForms[indexForm].onsubmit = function () { CheckDeselection(id); };
 	}
-	jQuery('#' + idIframe)[0].contentWindow.document.onclick = function (e) { CheckDeselection(id, e); hideActionButtons(id, e, 'editor', false); };
+	acyJquery('#' + idIframe)[0].contentWindow.document.onclick = function (e) { CheckDeselection(id, e); hideActionButtons(id, e, 'editor', false); };
 
 	setTimeout(function() {
 		ResizeIframe(id);
@@ -494,41 +513,41 @@ function InitContent(id, texteSuppression, titleSuppression, titleEdition, urlAd
 
 	if (isBrowserIE())
 	{
-		jQuery('#' + idIframe).contents().find(".acyeditor_picture").hover(
+		acyJquery('#' + idIframe).contents().find(".acyeditor_picture").hover(
 			function () {
-				if (jQuery(this)[0].className.indexOf("acyeditor_enedition") < 0)
+				if (acyJquery(this)[0].className.indexOf("acyeditor_enedition") < 0)
 				{
-					jQuery(this).addClass('acyeditor_editablehover');
-					jQuery(this).find(".acyeditor_zoneeditionsuppression").addClass('acyeditor_zoneeditionsuppressionhover');
+					acyJquery(this).addClass('acyeditor_editablehover');
+					acyJquery(this).find(".acyeditor_zoneeditionsuppression").addClass('acyeditor_zoneeditionsuppressionhover');
 				}
 			},
 			function() {
-				jQuery(this).removeClass('acyeditor_editablehover');
-				jQuery(this).find(".acyeditor_zoneeditionsuppression").removeClass('acyeditor_zoneeditionsuppressionhover');
+				acyJquery(this).removeClass('acyeditor_editablehover');
+				acyJquery(this).find(".acyeditor_zoneeditionsuppression").removeClass('acyeditor_zoneeditionsuppressionhover');
 			}
 		);
-		jQuery('#' + idIframe).contents().find(".acyeditor_text").hover(
+		acyJquery('#' + idIframe).contents().find(".acyeditor_text").hover(
 			function () {
-				if (jQuery(this)[0].className.indexOf("acyeditor_enedition") < 0)
+				if (acyJquery(this)[0].className.indexOf("acyeditor_enedition") < 0)
 				{
-					jQuery(this).addClass('acyeditor_editablehover');
-					jQuery(this).find(".acyeditor_zoneeditionsuppression").addClass('acyeditor_zoneeditionsuppressionhover');
+					acyJquery(this).addClass('acyeditor_editablehover');
+					acyJquery(this).find(".acyeditor_zoneeditionsuppression").addClass('acyeditor_zoneeditionsuppressionhover');
 				}
 			},
 			function() {
-				jQuery(this).removeClass('acyeditor_editablehover');
-				jQuery(this).find(".acyeditor_zoneeditionsuppression").removeClass('acyeditor_zoneeditionsuppressionhover');
+				acyJquery(this).removeClass('acyeditor_editablehover');
+				acyJquery(this).find(".acyeditor_zoneeditionsuppression").removeClass('acyeditor_zoneeditionsuppressionhover');
 			}
 		);
-		jQuery('#' + idIframe).contents().find(".acyeditor_delete").hover(
+		acyJquery('#' + idIframe).contents().find(".acyeditor_delete").hover(
 			function () {
-				if (jQuery(this)[0].className.indexOf("acyeditor_enedition") < 0)
+				if (acyJquery(this)[0].className.indexOf("acyeditor_enedition") < 0)
 				{
-					jQuery(this).find(".acyeditor_zoneeditionsuppression").addClass('acyeditor_zoneeditionsuppressionhover');
+					acyJquery(this).find(".acyeditor_zoneeditionsuppression").addClass('acyeditor_zoneeditionsuppressionhover');
 				}
 			},
 			function() {
-				jQuery(this).find(".acyeditor_zoneeditionsuppression").removeClass('acyeditor_zoneeditionsuppressionhover');
+				acyJquery(this).find(".acyeditor_zoneeditionsuppression").removeClass('acyeditor_zoneeditionsuppressionhover');
 			}
 		);
 	}
@@ -536,7 +555,7 @@ function InitContent(id, texteSuppression, titleSuppression, titleEdition, urlAd
 
 function getPreviousSelection(){
 	var id = 'editor_body';
-	var acyframe =  jQuery('#' + id, window.parent.document)[0].parentElement.getElementsByTagName('iframe')[0];
+	var acyframe =  acyJquery('#' + id, window.parent.document)[0].parentElement.getElementsByTagName('iframe')[0];
 	var previousSelection = {}, sel = acyframe.contentWindow.getSelection();
 	for(var k in sel) {
 		if(typeof(sel[k]) != 'function')
@@ -563,7 +582,7 @@ function insertImageTag(tag,previousSelection){
 }
 
 function getSelectedHTML(editor){
-	var id = jQuery('#htmlfieldset')[0] != null ? jQuery('#htmlfieldset')[0].getElementsByTagName("textarea")[0].id : "edition_en_cours";
+	var id = acyJquery('#htmlfieldset')[0] != null ? acyJquery('#htmlfieldset')[0].getElementsByTagName("textarea")[0].id : "edition_en_cours";
 	var element = GetElement(id, editor)[0];
 	if (element == null || element == undefined)
 	{
@@ -573,7 +592,7 @@ function getSelectedHTML(editor){
 }
 
 function jInsertEditorText(text, editor, previousSelection){
-	var id = jQuery('#htmlfieldset')[0] != null ? jQuery('#htmlfieldset')[0].getElementsByTagName("textarea")[0].id : "edition_en_cours";
+	var id = acyJquery('#htmlfieldset')[0] != null ? acyJquery('#htmlfieldset')[0].getElementsByTagName("textarea")[0].id : "edition_en_cours";
 	var element = GetElement(id, editor)[0];
 	if (element == null || element == undefined)
 	{
@@ -584,7 +603,7 @@ function jInsertEditorText(text, editor, previousSelection){
 
 function insertAtCursor(myField, myValue, previousSelection){
 
-	var id = jQuery('#htmlfieldset')[0] != null ? jQuery('#htmlfieldset')[0].getElementsByTagName("textarea")[0].id : "edition_en_cours";
+	var id = acyJquery('#htmlfieldset')[0] != null ? acyJquery('#htmlfieldset')[0].getElementsByTagName("textarea")[0].id : "edition_en_cours";
 
 	if (myField.className.indexOf("acyeditor_picture") >= 0)
 	{
@@ -632,7 +651,7 @@ function insertAtCursor(myField, myValue, previousSelection){
 	}
 	else
 	{
-		var acyframe =  jQuery('#' + id)[0].parentElement.getElementsByTagName("iframe")[0];
+		var acyframe =  acyJquery('#' + id)[0].parentElement.getElementsByTagName("iframe")[0];
 		if (acyframe != null
 		 && acyframe != undefined
 		 && acyframe.contentWindow != null
@@ -729,7 +748,7 @@ function insertAtCursor(myField, myValue, previousSelection){
 }
 
 function AjoutTagDansSujet(myValue){
-	jQuery("#subject").val(jQuery("#subject").val() + myValue);
+	acyJquery("#subject").val(acyJquery("#subject").val() + myValue);
 }
 
 function isEnEdition(element){
@@ -753,11 +772,11 @@ function isEnEdition(element){
 function isInForm(id, element){
 	var inForm = false;
 	var parent = element;
-	var idForm = jQuery("#" + id)[0].parentElement.id;
-	var acyframe = jQuery("#" + id + "_ifr")[0].contentWindow;
+	var idForm = acyJquery("#" + id)[0].parentElement.id;
+	var acyframe = acyJquery("#" + id + "_ifr")[0].contentWindow;
 	if (acyframe == undefined)
 	{
-		acyframe = jQuery(".cke_wysiwyg_frame")[0].contentWindow;
+		acyframe = acyJquery(".cke_wysiwyg_frame")[0].contentWindow;
 	}
 	while (parent != null && parent != undefined)
 	{
@@ -774,7 +793,7 @@ function isInForm(id, element){
 }
 
 function isBrowserIE(){
-	return navigator.appName=="Microsoft Internet Explorer";
+	return (navigator.appName=="Microsoft Internet Explorer" || navigator.userAgent.indexOf('MSIE') !== -1 || navigator.appVersion.indexOf('Trident/') > 0);
 }
 
 function isBrowserIE7(){
@@ -791,8 +810,8 @@ function IeCursorFix(avecPosition){
 	debutSelection = -1;
 	finSelection = -1;
 	if (isBrowserIE()) {
-		var id = jQuery('#htmlfieldset')[0] != null ? jQuery('#htmlfieldset')[0].getElementsByTagName("textarea")[0].id : "edition_en_cours";
-		var acyframe =  jQuery('#' + id)[0].parentElement.getElementsByTagName("iframe")[0];
+		var id = acyJquery('#htmlfieldset')[0] != null ? acyJquery('#htmlfieldset')[0].getElementsByTagName("textarea")[0].id : "edition_en_cours";
+		var acyframe =  acyJquery('#' + id)[0].parentElement.getElementsByTagName("iframe")[0];
 		if (acyframe != null
 		 && acyframe != undefined
 		 && acyframe.contentWindow != null
@@ -891,7 +910,7 @@ function setEditorStylesheet(id, stylesheeturl, stylesheetpath){
 		if (editor != undefined)
 		{
 			editor.on('instanceReady',function(){
-				var iframe = jQuery('#' + id)[0].parentElement.getElementsByTagName("iframe")[0];
+				var iframe = acyJquery('#' + id)[0].parentElement.getElementsByTagName("iframe")[0];
 				if (iframe != undefined)
 				{
 					var headEditor = iframe.contentWindow.document;
@@ -930,8 +949,8 @@ function SetStyleSheet(linkCss, urlBase, stylesheetpath, date){
 function ResizeIframe(id){
 	if (acyeditor_listmode)
 	{
-		var iframe = jQuery('#' + id)[0].parentElement.getElementsByTagName("iframe")[0];
-		var textarea = jQuery('#edition_en_cours')[0];
+		var iframe = acyJquery('#' + id)[0].parentElement.getElementsByTagName("iframe")[0];
+		var textarea = acyJquery('#edition_en_cours')[0];
 		if (iframe != undefined && textarea != undefined)
 		{
 			var innerHeight = iframe.contentWindow.document.body.clientHeight;
@@ -941,15 +960,15 @@ function ResizeIframe(id){
 			}
 			iframe.parentElement.style.height = innerHeight + 90 + "px";
 			textarea.parentElement.style.height = "";
-			var editorBody = jQuery('#' + id + '_ifr')[0];
+			var editorBody = acyJquery('#' + id + '_ifr')[0];
 			editorBody.style.width = "100%";
 		}
 	}
 	else
 	{
-		var iframe = jQuery('#' + id)[0].parentElement.getElementsByTagName("iframe")[0];
-		var editorBody = jQuery('#' + id + '_ifr')[0];
-		var htmlfieldset = jQuery('#htmlfieldset')[0];
+		var iframe = acyJquery('#' + id)[0].parentElement.getElementsByTagName("iframe")[0];
+		var editorBody = acyJquery('#' + id + '_ifr')[0];
+		var htmlfieldset = acyJquery('#htmlfieldset')[0];
 		if (iframe != undefined && editorBody != undefined && htmlfieldset != undefined)
 		{
 
@@ -987,12 +1006,12 @@ function OnSubmit(id){
 		SetTitleTemplate(true);
 	}
 
-	jQuery('#' + id)[0].value = (editor != null && editor != undefined) ? editor.getData() : "";
+	acyJquery('#' + id)[0].value = (editor != null && editor != undefined) ? editor.getData() : "";
 }
 
 function SetEditablesElements(id){
 	var idIframe = id + "_ifr";
-	var elements = jQuery('#' + idIframe)[0].contentWindow.document.body.getElementsByTagName('*');
+	var elements = acyJquery('#' + idIframe)[0].contentWindow.document.body.getElementsByTagName('*');
 	for (i = 0; i < elements.length; ++i)
 	{
 		var element = elements[i];
@@ -1010,7 +1029,7 @@ function SetEditablesElements(id){
 
 function SetImagesId(id){
 	var idIframe = id + "_ifr";
-	var elements = jQuery('#' + idIframe)[0].contentWindow.document.body.getElementsByTagName('img');
+	var elements = acyJquery('#' + idIframe)[0].contentWindow.document.body.getElementsByTagName('img');
 	for (indexImagesId = 0; indexImagesId < elements.length; ++indexImagesId)
 	{
 		var element = elements[indexImagesId];
@@ -1027,7 +1046,10 @@ function SetImagesId(id){
 
 function CreationDesZones(id, texteSuppression, titleSuppression, titleEdition, urlBase){
 	var idIframe = id + "_ifr";
-	var elementsZones = jQuery('#' + idIframe)[0].contentWindow.document.body.getElementsByTagName('*');
+	var elementsZones = acyJquery('#' + idIframe)[0].contentWindow.document.body.getElementsByTagName('*');
+
+	CreateSortableAreas(id);
+
 	for (indexZone = 0; indexZone < elementsZones.length; ++indexZone)
 	{
 		var elementZone = elementsZones[indexZone];
@@ -1035,10 +1057,34 @@ function CreationDesZones(id, texteSuppression, titleSuppression, titleEdition, 
 	}
 }
 
+function CreateSortableAreas(id){
+	try{
+		var idIframe = id + "_ifr";
+		var test = acyJquery('#' + idIframe)[0].contentWindow.document.body;
+		if(acyJquery(test).find(".acyeditor_sortable").length <= 0){ return; }
+		acyJquery(test).find(".acyeditor_sortable").sortable({
+			revert: true,
+			scroll: false,
+			cursor: 'move',
+			handle: '.acyeditor_btnmove',
+			placeholder: "placeholder", // class added on drop area
+			stop: function(event, ui){
+				hideActionButtons(id, null, 'noClick', false);
+				InitContent(id, txtSup, titleSup, titleEd, urlSite);
+				Sauvegarde(id);
+				ResizeIframe(id);
+			}
+		});
+	} catch(err){
+		alert('Error can\'t add sortable areas: '+err);
+	}
+}
+
+
 function CreationZone(id, element , texteSuppression, titleSuppression, titleEdition, urlBase){
- 	if (jQuery(element).hasClass("acyeditor_delete")
-	 || jQuery(element).hasClass("acyeditor_text")
-	 || jQuery(element).hasClass("acyeditor_picture"))
+ 	if (acyJquery(element).hasClass("acyeditor_delete")
+	 || acyJquery(element).hasClass("acyeditor_text")
+	 || acyJquery(element).hasClass("acyeditor_picture"))
 	{
 		if (element.id == null || element.id == '' || element.id == undefined)
 		{
@@ -1047,9 +1093,9 @@ function CreationZone(id, element , texteSuppression, titleSuppression, titleEdi
 
 		if (element.tagName == "TR")
 		{
-			if (jQuery(element).hasClass("acyeditor_delete"))
+			if (acyJquery(element).hasClass("acyeditor_delete"))
 			{
-				var elementTDEditables = jQuery(element).find("td:not(td.acyeditor_text), td:not(td.acyeditor_picture)");
+				var elementTDEditables = acyJquery(element).find("td:not(td.acyeditor_text), td:not(td.acyeditor_picture)");
 				if (elementTDEditables.length == 0)
 				{
 					elementTDEditables = element.children;
@@ -1071,9 +1117,9 @@ function CreationZone(id, element , texteSuppression, titleSuppression, titleEdi
 				}
 			}
 		}
-		else if (jQuery(element).find(".acyeditor_delete").length
-				 + jQuery(element).find(".acyeditor_text").length
-				 + jQuery(element).find(".acyeditor_picture").length == 0)
+		else if (acyJquery(element).find(".acyeditor_delete").length
+				 + acyJquery(element).find(".acyeditor_text").length
+				 + acyJquery(element).find(".acyeditor_picture").length == 0)
 		{
 			if (Existe(id, "ZoneEditionSuppression_" + element.id) == false)
 			{
@@ -1082,35 +1128,35 @@ function CreationZone(id, element , texteSuppression, titleSuppression, titleEdi
 				zone.style.position = "absolute";
 				element.appendChild(zone);
 				GetElement(id, zone.id).addClass('acyeditor_zoneeditionsuppression');
-				if (jQuery(element).hasClass("acyeditor_text")
-				 || jQuery(element).hasClass("acyeditor_picture"))
+				if (acyJquery(element).hasClass("acyeditor_text")
+				 || acyJquery(element).hasClass("acyeditor_picture"))
 				{
-					if (jQuery(element).hasClass('acyeditor_picture'))
+					if (acyJquery(element).hasClass('acyeditor_picture'))
 					{
 						zone.onclick = function () {
-							if (!jQuery(element).hasClass('nepasediter'))
+							if (!acyJquery(element).hasClass('nepasediter'))
 							{
-								jQuery('#AcyLienImage')[0].href = jQuery('#AcyLienImage')[0].href.replace('ACY_NAME_AREA', element.id);
-								FireClick(jQuery('#AcyLienImage')[0]);
-								jQuery('#AcyLienImage')[0].href = jQuery('#AcyLienImage')[0].href.replace(element.id, 'ACY_NAME_AREA');
+								acyJquery('#AcyLienImage')[0].href = acyJquery('#AcyLienImage')[0].href.replace('ACY_NAME_AREA', element.id);
+								FireClick(acyJquery('#AcyLienImage')[0]);
+								acyJquery('#AcyLienImage')[0].href = acyJquery('#AcyLienImage')[0].href.replace(element.id, 'ACY_NAME_AREA');
 							}
 							else if (!isBrowserIE())
 							{
-								jQuery(element).removeClass('nepasediter');
+								acyJquery(element).removeClass('nepasediter');
 							}
 						};
 						if (isBrowserIE())
 						{
 							zone.parentElement.onclick = function () {
-								if (!jQuery(element).hasClass('nepasediter'))
+								if (!acyJquery(element).hasClass('nepasediter'))
 								{
-									jQuery('#AcyLienImage')[0].href = jQuery('#AcyLienImage')[0].href.replace('ACY_NAME_AREA', element.id);
-									FireClick(jQuery('#AcyLienImage')[0]);
-									jQuery('#AcyLienImage')[0].href = jQuery('#AcyLienImage')[0].href.replace(element.id, 'ACY_NAME_AREA');
+									acyJquery('#AcyLienImage')[0].href = acyJquery('#AcyLienImage')[0].href.replace('ACY_NAME_AREA', element.id);
+									FireClick(acyJquery('#AcyLienImage')[0]);
+									acyJquery('#AcyLienImage')[0].href = acyJquery('#AcyLienImage')[0].href.replace(element.id, 'ACY_NAME_AREA');
 								}
 								else
 								{
-									jQuery(element).removeClass('nepasediter');
+									acyJquery(element).removeClass('nepasediter');
 								}
 							};
 						}
@@ -1120,32 +1166,32 @@ function CreationZone(id, element , texteSuppression, titleSuppression, titleEdi
 					zoneBoutonEdition.id = "zone_bouton_edition_" + zone.id;
 					zoneBoutonEdition.style.position = "absolute";
 					zone.appendChild(zoneBoutonEdition);
-					jQuery(zoneBoutonEdition).addClass("acyeditor_zoneboutonedition");
+					acyJquery(zoneBoutonEdition).addClass("acyeditor_zoneboutonedition");
 					var boutonEdition = document.createElement("div");
 					boutonEdition.id = "BoutonEdition_" + element.id;
 					boutonEdition.title = titleEdition;
 					zoneBoutonEdition.appendChild(boutonEdition);
-					if (jQuery(element).hasClass('acyeditor_picture'))
+					if (acyJquery(element).hasClass('acyeditor_picture'))
 					{
-						jQuery(boutonEdition).addClass("acyeditor_editpicture");
+						acyJquery(boutonEdition).addClass("acyeditor_editpicture");
 					}
 					else
 					{
-						jQuery(boutonEdition).addClass("acyeditor_edittext");
+						acyJquery(boutonEdition).addClass("acyeditor_edittext");
 					}
 				}
-				if (jQuery(element).hasClass("acyeditor_delete"))
+				if (acyJquery(element).hasClass("acyeditor_delete"))
 				{
 					var zoneBoutonSuppression = document.createElement("div");
 					zoneBoutonSuppression.id = "zone_bouton_suppression_" + zone.id;
 					zoneBoutonSuppression.style.position = "absolute";
 					zone.appendChild(zoneBoutonSuppression);
-					jQuery(zoneBoutonSuppression).addClass("acyeditor_zoneeditdelete");
+					acyJquery(zoneBoutonSuppression).addClass("acyeditor_zoneeditdelete");
 					var boutonSuppression = document.createElement("div");
 					boutonSuppression.id = "BoutonSuppression_" + element.id;
 					boutonSuppression.title = titleSuppression;
 					boutonSuppression.onclick = function () {
-						Suppression(id, element, boutonSuppression, texteSuppression);
+						confirmSuppression(id, element, boutonSuppression, texteSuppression);
 					};
 					zoneBoutonSuppression.appendChild(boutonSuppression);
 					zone.onmousemove = function(e) { CheckToujoursAuDessus(id, e); };
@@ -1168,14 +1214,22 @@ function CreationZone(id, element , texteSuppression, titleSuppression, titleEdi
 }
 
 function CreateZoneMore(zone, element, id, zoneBoutonSuppression){
+	if(acyJquery(zoneBoutonSuppression).closest('.acyeditor_sortable').length > 0){
+		var btnMove = document.createElement("div");
+		btnMove.id = "BoutonMove_" + element.id;
+		btnMove.title = 'Move';
+		btnMove.className = "acyeditor_btnmove";
+		zoneBoutonSuppression.appendChild(btnMove);
+	}
+
 	var btnPlus = document.createElement("div");
 	btnPlus.id = "BoutonPlus_" + element.id;
-	btnPlus.title = titleBtnMore;
+	btnPlus.title = titleBtnDupliAfter; //titleBtnMore;
 	btnPlus.className = "acyeditor_btnplus";
-	jQuery(btnPlus).on('click', function (evt) {
-		var zoneBody = jQuery('#' + id + "_ifr")[0].contentWindow.document.body.getElementsByTagName('*');
-		jQuery(zoneBody).find('.acyeditor_text').addClass('nepasediter');
-		jQuery(zoneBody).find('.acyeditor_picture').addClass('nepasediter');
+    acyJquery(btnPlus).on('click', function (evt) {
+		var zoneBody = acyJquery('#' + id + "_ifr")[0].contentWindow.document.body.getElementsByTagName('*');
+		acyJquery(zoneBody).find('.acyeditor_text').addClass('nepasediter');
+		acyJquery(zoneBody).find('.acyeditor_picture').addClass('nepasediter');
 
 		try{
 			GetElement(id, btnPlus.parentElement.parentElement.parentElement.parentElement.id).children().addClass('noOpacity');
@@ -1185,99 +1239,200 @@ function CreateZoneMore(zone, element, id, zoneBoutonSuppression){
 
 		zoneActionActive = btnPlus;
 
-		addActionsButtons(id, zoneBoutonSuppression, evt);
-	});
-	zoneBoutonSuppression.appendChild(btnPlus);
+
+			acyJquery(zoneBoutonSuppression).closest('acyeditor_delete').addClass('nepasediter');
+			elem = acyJquery(zoneBoutonSuppression).closest('.acyeditor_delete');
+			elemCopy = elem.clone();
+			acyJquery(elemCopy).find('.acyeditor_zoneeditionsuppression').remove();
+
+			elemCopy[0].id = "";
+			elementsZones = acyJquery(elemCopy).find('*');
+			for (var indexZone = 0; indexZone < elementsZones.length; ++indexZone){
+				elementsZones[indexZone].id = "";
+			}
+			acyJquery(elem).after(elemCopy);
+			InitContent(id, txtSup, titleSup, titleEd, urlSite);
+			Sauvegarde(id);
+			ResizeIframe(id);
+
+
+    });
+    zoneBoutonSuppression.appendChild(btnPlus);
+
+    var lineTr = acyJquery(zoneBoutonSuppression).closest('tr');
+    if(lineTr.length != 0) {
+        var btnMore = document.createElement("div");
+        btnMore.id = "BoutonMore_" + element.id;
+        btnMore.title = titleBtnMore; //titleBtnMore;
+        btnMore.className = "acyeditor_btnMore";
+        acyJquery(btnMore).on('click', function (evt) {
+            var zoneBody = acyJquery('#' + id + "_ifr")[0].contentWindow.document.body.getElementsByTagName('*');
+            acyJquery(zoneBody).find('.acyeditor_text').addClass('nepasediter');
+            acyJquery(zoneBody).find('.acyeditor_picture').addClass('nepasediter');
+            acyJquery(zoneBoutonSuppression).closest('acyeditor_delete').addClass('nepasediter');
+            addActionsButtons(id, zoneBoutonSuppression, evt);
+        });
+        zoneBoutonSuppression.appendChild(btnMore);
+    }
 }
 
+var blockHide = false;
 function addActionsButtons(id, zoneBoutonSuppression, evt){
-	var zoneBody = jQuery('#' + id + "_ifr")[0].contentWindow.document.body;
-
+	var zoneBody = acyJquery('#' + id + "_ifr")[0].contentWindow.document.body;
+    var iframe = acyJquery('#' + id + "_ifr")[0];
 	hideActionButtons(id, null, 'noClick', true);
-	zoneBody.childNodes[0].className = "acyeditor_disable";
-
+	acyJquery(zoneBody.childNodes).addClass("acyeditor_disable");
 	var zoneFade = document.createElement("div");
 	zoneFade.style.position = "absolute";
 	zoneFade.className = "acyeditor_mask";
 	zoneFade.style.width = zoneBody.clientWidth + "px";
 	zoneFade.style.height = zoneBody.clientHeight + "px";
-	zoneFade.onclick = function(){ hideAll(id); };
+
+    var isColorPickEnabled = acyJquery('.colorPicker');
+	zoneFade.onclick = function(){ if(!blockHide && isColorPickEnabled.length == 0){ hideAll(id); }};
 	zoneFade.id = "zoneFade";
 
 	var zoneAction = document.createElement("div");
 	zoneAction.style.position = "absolute";
 	zoneAction.className = "acyeditor_action";
 	zoneAction.id = "zoneAction";
+    blockHide = true;
 	if (evt != null && evt != undefined){
-		if(evt.clientX + 100 <= zoneBody.clientWidth) zoneAction.style.left = evt.clientX - 50 + "px";
-		else zoneAction.style.left = zoneBody.clientWidth - 100 + "px";
+		if(evt.clientX + 142 <= iframe.clientWidth) zoneAction.style.left = evt.clientX - 50 + "px";
+		else zoneAction.style.left = iframe.clientWidth - 142 + "px";
 		if(evt.layerY != undefined && evt.layerY > 0 && evt.layerY != evt.clientY){ decaY = evt.layerY; }
 		else if(evt.offsetY != undefined){ decaY = evt.offsetY; }
 		else{ decaY = 0; }
 		zoneAction.style.top = evt.clientY - decaY + "px";
 	}
 
-	var zoneCopyAfterButton = document.createElement("div");
-	zoneCopyAfterButton.title = titleBtnDupliAfter;
-	zoneCopyAfterButton.id = "zoneCopyAfterButton";
-	zoneCopyAfterButton.className = "acyeditor_copyButton acyeditor_copyButtonAfter";
-	zoneCopyAfterButton.onclick = function(){ duplicateZone(id, zoneBoutonSuppression, 'after'); }
 
-	zoneAction.appendChild(zoneCopyAfterButton);
+    var lineTr = acyJquery(zoneBoutonSuppression).closest('tr');
+    if(lineTr.length != 0) {
+        var legendBground = document.createElement("p");
+        acyJquery(legendBground).text(bgroundColorTxt + ':');
+        legendBground.id = 'legendBground';
+        var colorSelector = document.createElement("div");
+        colorSelector.id = "colorSelector";
+        var colorStr = acyJquery(lineTr).find('td').css('background-color');
+        acyJquery(colorSelector).css('background-color', '#' + rgb2hex(colorStr));
+
+        acyJquery(colorSelector).ColorPicker({
+            color: rgb2hex(colorStr),
+            onSubmit: function(hsb, hex, rgb, el) {
+                blockHide = true;
+                acyJquery(el).ColorPickerHide();
+                hideColorPicker();
+                var elem = acyJquery(zoneBoutonSuppression).closest('.acyeditor_delete');
+                acyJquery(elem).find('td').css('background-color', '#' + hex);
+                InitContent(id, txtSup, titleSup, titleEd, urlSite);
+                Sauvegarde(id);
+                ResizeIframe(id);
+            },
+            onShow: function(colpkr){
+                var iframe = acyJquery('#' + id + "_ifr");
+                var offsetParent = iframe.offset().top;
+                var xButton = acyJquery(colpkr).css('top').replace('px', '');
+                var newTop = Number(xButton) + Number(offsetParent);
+                acyJquery(colpkr).css('top', newTop + 'px');
+				var zoneAction = acyJquery(iframe[0].contentWindow.document.body).find('#zoneAction');
+				var newLeft = zoneAction.css('left').replace('px', '');
+				acyJquery(colpkr).css('left', newLeft + 'px');
+                acyJquery(colpkr).fadeIn(500);
+                return false;
+            },
+            onHide: function(colpkr) {
+                acyJquery(colpkr).fadeOut(500);
+                return false;
+            },
+            onChange: function (hsb, hex, rgb) {
+                acyJquery(colorSelector).css('backgroundColor', '#' + hex);
+            }
+        });
+        zoneAction.appendChild(legendBground);
+        zoneAction.appendChild(colorSelector);
+    }
+    var closeButton = document.createElement('div');
+    closeButton.id = 'closeButton';
+    closeButton.className = 'acyeditor_closebutton';
+    acyJquery(closeButton).on('click', function (evt) {
+        hideColorPicker();
+        hideAll(id);
+        InitContent(id, txtSup, titleSup, titleEd, urlSite);
+        Sauvegarde(id);
+        ResizeIframe(id);
+		});
+    zoneAction.appendChild(closeButton);
+
+
 	zoneFade.appendChild(zoneAction);
-	zoneBody.appendChild(zoneFade);
+    zoneBody.appendChild(zoneFade);
+}
+
+function hideColorPicker() {
+    var pickers = acyJquery('.colorpicker');
+    for (var i = 0; i < pickers.length; i++) {
+        pickers[i].style.display = 'none';
+    }
+}
+function rgb2hex(rgb){
+    rgb = rgb.match(/^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?/i);
+    return (rgb && rgb.length === 4) ? ("0" + parseInt(rgb[1],10).toString(16)).slice(-2) +
+    ("0" + parseInt(rgb[2],10).toString(16)).slice(-2) +
+    ("0" + parseInt(rgb[3],10).toString(16)).slice(-2) : '';
 }
 
 function duplicateZone(id, zoneCopy, action){
-	jQuery(zoneCopy).closest('acyeditor_delete').addClass('nepasediter');
-	elem = jQuery(zoneCopy).closest('.acyeditor_delete');
+	acyJquery(zoneCopy).closest('acyeditor_delete').addClass('nepasediter');
+	elem = acyJquery(zoneCopy).closest('.acyeditor_delete');
 	elemCopy = elem.clone();
-	jQuery(elemCopy).find('.acyeditor_zoneeditionsuppression').remove();
+	acyJquery(elemCopy).find('.acyeditor_zoneeditionsuppression').remove();
 
 	elemCopy[0].id = "";
-	elementsZones = jQuery(elemCopy).find('*');
+	elementsZones = acyJquery(elemCopy).find('*');
 	for (indexZone = 0; indexZone < elementsZones.length; ++indexZone){
 		elementsZones[indexZone].id = "";
 	}
 
-	if(action == 'before'){ jQuery(elem).before(elemCopy); }
-	else{ jQuery(elem).after(elemCopy); }
+	if(action == 'before'){ acyJquery(elem).before(elemCopy); }
+	else{ acyJquery(elem).after(elemCopy); }
 
 	hideActionButtons(id, null, 'noClick', false);
 	InitContent(id, txtSup, titleSup, titleEd, urlSite);
 }
 
 function hideAll(id){
-	var zoneBody = jQuery('#' + id + "_ifr")[0].contentWindow.document.body;
-	zoneBody.childNodes[0].className = "";
+	var zoneBody = acyJquery('#' + id + "_ifr")[0].contentWindow.document.body;
+	acyJquery(zoneBody).children('.acyeditor_disable').removeClass('acyeditor_disable');
 	var zoneGlob = zoneBody.getElementsByTagName('*');
-	jQuery(zoneGlob).remove('.acyeditor_mask');
+    acyJquery(zoneGlob).remove('.acyeditor_mask');
 }
 
 function hideActionButtons(id, e, zoneClick, protectEditor){
-	canHide = false;
+    if(e && ((e.srcElement && acyJquery(e.srcElement).closest('.colorpicker').length > 0) || (e.target && acyJquery(e.target).closest('.colorpicker').length > 0))) return;
+	var canHide = false;
 	if(zoneClick == 'editor'){
-		if (e != null && e != undefined){
-			srcEvent = e.srcElement? e.srcElement : (e.target ? e.target : e);
-			parentDelete = jQuery(srcEvent).closest('.acyeditor_delete');
-			if(parentDelete == null || parentDelete == undefined){
-				canHide == true;
-			}else if(zoneActionActive != null){
-				childActive = jQuery(parentDelete).find('#'+zoneActionActive.id);
-				if(childActive[0] == null || childActive[0] == undefined) canHide = true;
-			}
-		}else{
-			canHide = true;
-		}
+        if (e != null && e != undefined) {
+            srcEvent = e.srcElement ? e.srcElement : (e.target ? e.target : e);
+            parentDelete = acyJquery(srcEvent).closest('.acyeditor_delete');
+            if (parentDelete == null || parentDelete == undefined) {
+                canHide == true;
+            } else if (zoneActionActive != null) {
+                childActive = acyJquery(parentDelete).find('#' + zoneActionActive.id);
+                if (childActive[0] == null || childActive[0] == undefined) canHide = true;
+            }
+        } else {
+            canHide = true;
+        }
 	}
 
 	if(zoneClick == 'outside' || zoneClick == 'noClick' || canHide){
-		zoneBody = jQuery('#' + id + "_ifr")[0].contentWindow.document.body;
-		zoneBody.childNodes[0].className = "";
+		zoneBody = acyJquery('#' + id + "_ifr")[0].contentWindow.document.body;
+		acyJquery(zoneBody).children('.acyeditor_disable').removeClass('acyeditor_disable');
 		var zoneGlob = zoneBody.getElementsByTagName('*');
-		jQuery('.acyeditor_action').remove();
-		jQuery(zoneGlob).find('.noOpacity').removeClass('noOpacity');
-		if(protectEditor == false) jQuery(zoneGlob).find('.nepasediter').removeClass('nepasediter');
+		acyJquery('.acyeditor_action').remove();
+		acyJquery(zoneGlob).find('.noOpacity').removeClass('noOpacity');
+		if(protectEditor == false) acyJquery(zoneGlob).find('.nepasediter').removeClass('nepasediter');
 	}
 	if(zoneClick == 'outside') hideAll(id);
 }
@@ -1353,7 +1508,7 @@ function FireClick(itemElement, arretRecursif){
 
 function CheckToujoursAuDessus(id, e){
 
-	var iframe = jQuery('#' + id + '_ifr');
+	var iframe = acyJquery('#' + id + '_ifr');
 
 	e = e || iframe[0].contentWindow.event;
 	var target = e.currentTarget || e.srcElement;
@@ -1385,34 +1540,78 @@ function EffaceZone(zone){
 		zone.style.borderStyle = "hidden";
 	}
 }
+function confirmSuppression(id, element, boutonSuppression, texteSuppression){
+	GetElement(id, boutonSuppression.parentElement.parentElement.parentElement.id).addClass('nepasediter');
+
+	var zoneBody = acyJquery('#' + id + "_ifr")[0].contentWindow.document.body;
+	var zoneFade = document.createElement("div");
+	zoneFade.style.position = "absolute";
+	zoneFade.className = "acyeditor_mask";
+	zoneFade.style.width = acyJquery('#htmlfieldset').width() - 20 + "px";
+	zoneFade.style.height = acyJquery('#htmlfieldset').height() - 20 + "px";
+	zoneFade.id = "zoneFade";
+
+	var offsettop = acyJquery(boutonSuppression).offset().top;
+	var offsetleft = acyJquery(boutonSuppression).offset().left - 400;
+
+    var confirmBox = document.createElement('div');
+    confirmBox.id = 'confirmBox';
+    confirmBox.className = 'confirmBox';
+	confirmBox.style.top = offsettop + 'px';
+	confirmBox.style.left = offsetleft + 'px';
+	var confirmContent = document.createElement('div');
+	confirmContent.id = 'acy_popup_content';
+    var confirmTxt = document.createElement('span');
+    confirmTxt.id = 'confirmTxt';
+    confirmTxt.className = 'confirmTxt';
+    confirmTxt.innerHTML = texteSuppression+'<br />';
+    var confirmOk = document.createElement('button');
+    confirmOk.id = 'confirmOk';
+    confirmOk.className = 'confirmOk';
+	confirmOk.innerHTML = confirmDeleteBtnTxt;
+    confirmOk.onclick = function(){
+		Suppression(id, element, boutonSuppression, texteSuppression);
+		acyJquery(zoneFade).remove();
+	};
+    var confirmCancel = document.createElement('button');
+    confirmCancel.id = 'confirmCancel';
+    confirmCancel.className = 'confirmCancel';
+	confirmCancel.innerHTML = confirmCancelBtnTxt;
+    confirmCancel.onclick = function(){
+		acyJquery(zoneFade).remove();
+    };
+	confirmContent.appendChild(confirmTxt);
+	confirmContent.appendChild(confirmOk);
+	confirmContent.appendChild(confirmCancel);
+    confirmBox.appendChild(confirmContent);
+
+	zoneFade.appendChild(confirmBox);
+	zoneBody.appendChild(zoneFade);
+}
 
 function Suppression(id, element, boutonSuppression, texteSuppression){
-	GetElement(id, boutonSuppression.parentElement.parentElement.parentElement.id).addClass('nepasediter');
-	if (confirm(texteSuppression))
+	var idParent = boutonSuppression.parentElement.parentElement.id;
+	if (element.tagName == "TD")
 	{
-		var idParent = boutonSuppression.parentElement.parentElement.id;
-		if (element.tagName == "TD")
+		var parentTR = element;
+		while (parentTR != null
+			&& parentTR != undefined
+			&& (parentTR.tagName != "TR"
+			 || !acyJquery(parentTR).hasClass("acyeditor_delete")))
 		{
-			var parentTR = element;
-			while (parentTR != null
-				&& parentTR != undefined
-				&& (parentTR.tagName != "TR"
-				 || !jQuery(parentTR).hasClass("acyeditor_delete")))
-			{
-				parentTR = parentTR.parentElement;
-			}
-			if (parentTR != null && parentTR != undefined)
-			{
-				parentTR.parentElement.removeChild(parentTR);
-			}
+			parentTR = parentTR.parentElement;
 		}
-		else
+		if (parentTR != null && parentTR != undefined)
 		{
-			element.parentElement.removeChild(element);
+			parentTR.parentElement.removeChild(parentTR);
 		}
-		Sauvegarde(id);
-		ResizeIframe(id);
 	}
+	else
+	{
+		element.parentElement.removeChild(element);
+	}
+	Sauvegarde(id);
+	ResizeIframe(id);
 }
 
 function SetMouseOver(id, zone){
@@ -1434,14 +1633,14 @@ function AdapteTaille(id, zone){
 			while (parentTR != null
 				&& parentTR != undefined
 				&& (parentTR.tagName != "TR"
-				 || !jQuery(parentTR).hasClass("acyeditor_delete")))
+				 || !acyJquery(parentTR).hasClass("acyeditor_delete")))
 			{
 				parentTR = parentTR.parentElement;
 			}
 			if (parentTR != null && parentTR != undefined)
 			{
 				parentZone = parentTR;
-				var zonesTaille = jQuery(parentZone).find(".acyeditor_zoneeditionsuppression");
+				var zonesTaille = acyJquery(parentZone).find(".acyeditor_zoneeditionsuppression");
 				for (indexZoneTaille = 0; indexZoneTaille < zonesTaille.length; ++indexZoneTaille)
 				{
 					if (zonesTaille[indexZoneTaille].id != zone.id)
@@ -1485,14 +1684,14 @@ function AdapteTaille(id, zone){
 		var zoneBoutonEdition = null;
 		try
 		{
-			zoneBoutonEdition = jQuery(zone).find(".acyeditor_zoneboutonedition")[0];
+			zoneBoutonEdition = acyJquery(zone).find(".acyeditor_zoneboutonedition")[0];
 		}
 		catch (err)
 		{
 			var enfantsZone = zone.children;
 			for (indexEnfantZone = 0; indexEnfantZone < enfantsZone.length; ++indexEnfantZone)
 			{
-				if (jQuery(enfantsZone[indexEnfantZone]).hasClass("acyeditor_zoneboutonedition"))
+				if (acyJquery(enfantsZone[indexEnfantZone]).hasClass("acyeditor_zoneboutonedition"))
 				{
 					zoneBoutonEdition = enfantsZone[indexEnfantZone];
 				}
@@ -1533,6 +1732,7 @@ function GetNewId(id) {
 }
 
 function Existe(id, itemId){
+	if(itemId == null || itemId == undefined || itemId == '') return false;
 	var idIframe = id + "_ifr";
 	var element = undefined;
 	var element2 = undefined;
@@ -1545,7 +1745,7 @@ function Existe(id, itemId){
 	}
 	try
 	{
-		element2 = jQuery('#' + idIframe)[0].contentWindow.document.getElementById(itemId);
+		element2 = acyJquery('#' + idIframe)[0].contentWindow.document.getElementById(itemId);
 	}
 	catch (err2)
 	{
@@ -1556,7 +1756,7 @@ function Existe(id, itemId){
 
 function GetElement(id, itemId){
 	var idIframe = id + "_ifr";
-	return jQuery('#' + idIframe).contents().find('#' + itemId);
+	return acyJquery('#' + idIframe).contents().find('#' + itemId);
 }
 
 function SetOnClick(id, element){
@@ -1595,88 +1795,75 @@ function ClickTemplateCKEditor(id, idElement, e){
 				okPourEdition = false;
 			}
 
-			if (okPourEdition)
-			{
-				var zone = GetElement(id, "ZoneEditionSuppression_" + elementToEdit.id);
+			if (okPourEdition) {
+                var zone = GetElement(id, "ZoneEditionSuppression_" + elementToEdit.id);
 
-				elementToEditJQ.removeClass('acyeditor_editablehover');
-				zone.removeClass('acyeditor_zoneeditionsuppressionhover');
+                elementToEditJQ.removeClass('acyeditor_editablehover');
+                zone.removeClass('acyeditor_zoneeditionsuppressionhover');
 
-				if (zone[0] != null && zone[0] != undefined)
-				{
-					zone.remove();
-				}
-				var code = elementToEdit.innerHTML;
+                if (zone[0] != null && zone[0] != undefined) {
+                    zone.detach();
+                }
+                var code = elementToEdit.innerHTML;
 
-				var iframeCKEDITOR = jQuery('#' + idIframe)[0].contentWindow.CKEDITOR;
+                var iframeCKEDITOR = acyJquery('#' + idIframe)[0].contentWindow.CKEDITOR;
 
-				var headerIFrame = jQuery('#' + idIframe)[0].contentWindow.document;
-				headerIFrame = headerIFrame.head || headerIFrame;
-				var urlBase = headerIFrame.getElementsByTagName("base")[0].href;
+                var headerIFrame = acyJquery('#' + idIframe)[0].contentWindow.document;
+                headerIFrame = headerIFrame.head || headerIFrame;
+                var urlBase = headerIFrame.getElementsByTagName("base")[0].href;
 
-				var borderSize = 1;
-				var left = elementToEditJQ.css("padding-left");
-				var right = elementToEditJQ.css("padding-right");
-				var top = elementToEditJQ.css("padding-top");
-				var bottom = elementToEditJQ.css("padding-bottom");
-				var leftPad = (elementToEditJQ.css("padding-left").replace("px", "") - borderSize);
-				var rightPad = (elementToEditJQ.css("padding-right").replace("px", "") - borderSize);
-				var topPad = (elementToEditJQ.css("padding-top").replace("px", "") - borderSize);
-				var bottomPad = (elementToEditJQ.css("padding-bottom").replace("px", "") - borderSize);
-				leftPad = leftPad < 0 ? 0 : leftPad;
-				rightPad = rightPad < 0 ? 0 : rightPad;
-				topPad = topPad < 0 ? 0 : topPad;
-				bottomPad = bottomPad < 0 ? 0 : bottomPad;
-				elementToEdit.innerHTML = "<div id='edition_en_cours' contenteditable='true' style='border:solid " + borderSize + "px orange;padding:" + topPad + "px " + rightPad + "px " + bottomPad + "px " + leftPad + "px;margin:-" + top + " -" + right + " -" + bottom + " -" + left + ";color:inherit;background:inherit;font:inherit;text-indent:inherit;text-decoration:inherit;text-transform:inherit;text-justify:inherit;text-kashida-space:inherit;text-overflow:inherit;text-shadow:inherit;text-underline-position:inherit;unicode-bidi:inherit;word-spacing:inherit;writing-mode:inherit;word-break:inherit;word-wrap:inherit;zoom:inherit;marker-offset:inherit;marks:inherit;quotes:inherit;table-layout:inherit;text-align-last:inherit;text-autospace:inherit;outline:inherit;overflow:inherit;min-height:inherit;max-height:inherit;line-break:inherit;letter-spacing:inherit;layout-flow:inherit;layout-grid:inherit;line-height:inherit;white-space:inherit;text-align:inherit;direction:inherit;list-style:inherit;float:inherit;ime-mode:inherit;layer-background-color:inherit;layer-background-image:inherit;filter:inherit;behavior:inherit;position:inherit;clear:inherit;clip:inherit;cursor:inherit;vertical-align:inherit'>" + code + "</div><div id='bottom' style='width:" + largeurMenuInline + "px;position:absolute'></div>";
-				iframeCKEDITOR.disableAutoInline = true;
+                var borderSize = 1;
+                var left = elementToEditJQ.css("padding-left");
+                var right = elementToEditJQ.css("padding-right");
+                var top = elementToEditJQ.css("padding-top");
+                var bottom = elementToEditJQ.css("padding-bottom");
+                var leftPad = (elementToEditJQ.css("padding-left").replace("px", "") - borderSize);
+                var rightPad = (elementToEditJQ.css("padding-right").replace("px", "") - borderSize);
+                var topPad = (elementToEditJQ.css("padding-top").replace("px", "") - borderSize);
+                var bottomPad = (elementToEditJQ.css("padding-bottom").replace("px", "") - borderSize);
+                leftPad = leftPad < 0 ? 0 : leftPad;
+                rightPad = rightPad < 0 ? 0 : rightPad;
+                topPad = topPad < 0 ? 0 : topPad;
+                bottomPad = bottomPad < 0 ? 0 : bottomPad;
+                elementToEdit.innerHTML = "<div id='edition_en_cours' contenteditable='true' style='border:solid " + borderSize + "px orange;padding:" + topPad + "px " + rightPad + "px " + bottomPad + "px " + leftPad + "px;margin:-" + top + " -" + right + " -" + bottom + " -" + left + ";color:inherit;background:inherit;font:inherit;text-indent:inherit;text-decoration:inherit;text-transform:inherit;text-justify:inherit;text-kashida-space:inherit;text-overflow:inherit;text-shadow:inherit;text-underline-position:inherit;unicode-bidi:inherit;word-spacing:inherit;writing-mode:inherit;word-break:inherit;word-wrap:inherit;zoom:inherit;marker-offset:inherit;marks:inherit;quotes:inherit;table-layout:inherit;text-align-last:inherit;text-autospace:inherit;outline:inherit;overflow:inherit;min-height:inherit;max-height:inherit;line-break:inherit;letter-spacing:inherit;layout-flow:inherit;layout-grid:inherit;line-height:inherit;white-space:inherit;text-align:inherit;direction:inherit;list-style:inherit;float:inherit;ime-mode:inherit;layer-background-color:inherit;layer-background-image:inherit;filter:inherit;behavior:inherit;position:inherit;clear:inherit;clip:inherit;cursor:inherit;vertical-align:inherit'>" + code + "</div><div id='bottom' style='width:" + largeurMenuInline + "px;position:absolute'></div>";
+                iframeCKEDITOR.disableAutoInline = true;
 
-				var extraPluginsCKEditor = 'sharedspace';
-				var toolbarGroupsCKEditor = [{ name: 'mode' },
-											 { name: 'undo' },
-											 { name: 'links' }];
+                var toolbarGroupsCKEditor = [{name: 'mode'},
+                    {name: 'undo'},
+                    {name: 'links'}];
 
-				extraPluginsCKEditor += ',acymediabrowser';
+                var extraPluginsCKEditor = '';
+                extraPluginsCKEditor += ',acymediabrowser';
 
-				if (!acyeditor_listmode && isTagAllowed)
-				{
-					extraPluginsCKEditor += ',addtag';
-					toolbarGroupsCKEditor.push({ name: 'insert', groups: [ "acymediabrowser", "addtag" ]});
-				}
-				else
-				{
-					toolbarGroupsCKEditor.push({ name: 'insert', groups: [ "acymediabrowser" ]});
-				}
-				toolbarGroupsCKEditor.push({ name: 'basicstyles' },
-											{ name: 'colors' },
-											'/',
-											{ name: 'paragraph',   groups: [ 'list', 'indent', 'blocks' ] },
-											{ name: 'align' },
-											{ name: 'styles' });
-				if (acyeditor_templatemode)
-				{
-					toolbarGroupsCKEditor.push({ name: 'templatemode', groups: [ "textarea", "picturearea", "deletearea", "-", "showarea" ] });
-				}
+                if (!acyeditor_listmode && isTagAllowed) {
+                    extraPluginsCKEditor += ',addtag';
+                    toolbarGroupsCKEditor.push({name: 'insert', groups: ["acymediabrowser", "addtag"]});
+                }
+                else {
+                    toolbarGroupsCKEditor.push({name: 'insert', groups: ["acymediabrowser"]});
+                }
+                toolbarGroupsCKEditor.push({name: 'basicstyles'},
+                    {name: 'colors'},
+                    '/',
+                    {name: 'paragraph', groups: ['list', 'indent', 'blocks']},
+                    {name: 'align'},
+                    {name: 'styles'});
+                if (acyeditor_templatemode) {
+                    toolbarGroupsCKEditor.push({name: 'templatemode', groups: ["textarea", "picturearea", "deletearea", "-", "showarea"]});
+                }
+                var elementEditor = GetElement(id, "edition_en_cours")[0];
+                var xEditor = elementEditor.offsetLeft;
+                var yEditor = elementEditor.offsetTop;
+                var parentOffset = elementEditor.offsetParent;
+                while (parentOffset != null && parentOffset != undefined) {
+                    xEditor = xEditor + parentOffset.offsetLeft;
+                    yEditor = yEditor + parentOffset.offsetTop;
+                    parentOffset = parentOffset.offsetParent;
+                }
+                var largeurEditor = elementEditor.clientWidth;
+                var newX = ((largeurEditor - largeurMenuInline) / 2);
+                var newX = ((largeurEditor - largeurMenuInline) / 2);
 
-				var elementEditor = GetElement(id, "edition_en_cours")[0];
-				var xEditor = elementEditor.offsetLeft;
-				var yEditor = elementEditor.offsetTop;
-				var parentOffset = elementEditor.offsetParent;
-				while (parentOffset != null && parentOffset != undefined)
-				{
-					xEditor = xEditor + parentOffset.offsetLeft;
-					yEditor = yEditor + parentOffset.offsetTop;
-					parentOffset = parentOffset.offsetParent;
-				}
-				var largeurEditor = elementEditor.clientWidth;
-				var newX = ((largeurEditor - largeurMenuInline) / 2);
-				if (newX + largeurMenuInline > window.outerWidth)
-				{
-					newX = window.outerWidth - largeurMenuInline;
-				}
-				else if (newX + xEditor < 0)
-				{
-					newX = 0;
-				}
 				GetElement(id, 'bottom')[0].style.marginLeft = newX + "px";
 				GetElement(id, 'bottom')[0].style.marginTop = (((GetElement(id, 'edition_en_cours').css("margin-bottom").replace("px", "") - 1) + 1) * -1) + "px";
 
@@ -1686,8 +1873,8 @@ function ClickTemplateCKEditor(id, idElement, e){
 					topValue = "bottom";
 				}
 
-				extraPluginsCKEditor += ',stylesheetparser';
-				if(inlineSource == 1) extraPluginsCKEditor += ',sourcedialog';
+				var pluginToRemove = '';
+				if(inlineSource == 0) pluginToRemove += ',sourcedialog';
 
 				if(pasteType == 'plain'){
 					pastePlain = true;
@@ -1701,18 +1888,96 @@ function ClickTemplateCKEditor(id, idElement, e){
 				else if(acyEnterMode == 'div'){ enterM = CKEDITOR.ENTER_DIV;}
 				else{ enterM = CKEDITOR.ENTER_BR; }
 
+				extraPluginsCKEditor += ',codemirror';
+				var codemirrorOptions = {
+					showFormatButton: false,
+					showCommentButton: false,
+					showUncommentButton: false,
+					showAutoCompleteButton: false
+				};
+
 				editor = iframeCKEDITOR.inline('edition_en_cours',
 				{
 					toolbarGroups: toolbarGroupsCKEditor,
-					removeButtons: 'Cut,Copy,Paste,Blockquote,RemoveFormat,Subscript,Superscript,Table,HorizontalRule,SpecialChar,Font,Symbol',
-					removePlugins: 'contextmenu,liststyle,tabletools,image,forms',
+					removeButtons: 'Cut,Copy,Paste,Blockquote,RemoveFormat,Subscript,Superscript,Table,HorizontalRule,SpecialChar,Font,Symbol,Source',
+					removePlugins: 'contextmenu,liststyle,tabletools,image,forms,sourcearea'+pluginToRemove,
 					filebrowserImageUploadUrl : urlBase + urlAcyeditor + 'kcfinder/upload.php?type=images',
 					extraPlugins: extraPluginsCKEditor,
 					floatSpaceDockedOffsetX : newX,
 					sharedSpaces: { top: topValue },
 					forcePasteAsPlainText: pastePlain,
 					pasteFromWordRemoveFontStyles: pasteWordSimple,
+					codemirror: codemirrorOptions,
 					enterMode: enterM
+				});
+
+				var previousScroll;
+				var editorOnScreen = function () {
+					var isScrollDown = true;
+					var iframe = acyJquery('#editor_body_ifr');
+					var toolbar = iframe.contents().find('#cke_edition_en_cours');
+					var offsetToolbar = toolbar.offset().top;
+					var scrollWindows = acyJquery(window).scrollTop();
+					var offsetParent = iframe.offset().top;
+					var newToolbarVerticalPosition;
+					var marginTop = 100;
+					var topValue = toolbar.css('top').replace('px', '');
+					var divEdited = iframe.contents().find('#edition_en_cours');
+					var divEditedHeight = divEdited.height();
+					var offsetdivEdited = divEdited.offset().top;
+					var windowHeight = acyJquery(window).height();
+					var divEditedBottomCoordinate;
+
+					if (isNaN(topValue)) topValue = 0;
+
+					offsetToolbar = Number(offsetToolbar);
+					scrollWindows = Number(scrollWindows);
+					offsetParent = Number(offsetParent);
+					topValue = Number(topValue);
+					divEditedHeight = Number(divEditedHeight);
+
+					isScrollDown = (previousScroll > scrollWindows) ? -1 : 1;
+
+					if ((offsetParent + offsetToolbar - toolbar.height() - marginTop) * isScrollDown < scrollWindows) {
+
+						divEditedBottomCoordinate = (offsetdivEdited + offsetParent + divEditedHeight) + toolbar.height();
+						if (divEditedBottomCoordinate > scrollWindows && divEditedBottomCoordinate < scrollWindows + windowHeight) {
+							toolbar.css('top', offsetdivEdited + divEditedHeight + 'px');
+						} else {
+							newToolbarVerticalPosition = (isScrollDown == 1) ? scrollWindows - (offsetToolbar + offsetParent) : (offsetToolbar + offsetParent) - scrollWindows;
+							topValue = topValue + (newToolbarVerticalPosition * isScrollDown) + marginTop;
+
+							if (topValue <= offsetdivEdited) {
+								toolbar.css('top', offsetdivEdited - toolbar.height() + 'px');
+							} else if (topValue <= offsetdivEdited + divEditedHeight) {
+								toolbar.css('position', 'absolute');
+								toolbar.css('top', topValue + 'px');
+
+							} else {
+								toolbar.css('top', offsetdivEdited + divEditedHeight + 'px');
+							}
+						}
+					}
+					previousScroll = scrollWindows;
+				};
+				acyJquery(window).on('scroll', function(e) {editorOnScreen()});
+
+				editor.on('dialogShow', function (e) {
+					var iframe = acyJquery('#editor_body_ifr');
+					var toolbar = iframe.contents().find('#cke_edition_en_cours');
+					var iFrameSize;
+					var position;
+					var newPosition;
+					var popupSize;
+
+					position = Number(toolbar.offset().top);
+					iFrameSize = Number(iframe.height());
+					popupSize = Number(e.data.getSize().height);
+
+					if (position + popupSize <= iFrameSize) newPosition = position;
+					else newPosition = position - (position + popupSize - iFrameSize);
+
+					e.data.move(e.data.getPosition().x, newPosition, true);
 				});
 
 				editor.on('instanceReady',function(){
@@ -1727,18 +1992,27 @@ function ClickTemplateCKEditor(id, idElement, e){
 
 					editor.on('selectionChange', function(e) { IeCursorFix(); });
 					editor.on('change', function(e) { ResizeIframe(id); });
+					editor.focus();
 
-					try
-					{
-						GetElement(id, "cke_edition_en_cours").find(".cke_inner .cke_toolbar .cke_button__bold")[0].click();
-						GetElement(id, "cke_edition_en_cours").find(".cke_inner .cke_toolbar .cke_button__bold")[0].click();
-					}
-					catch (e)
-					{
-						eval(GetElement(id, "cke_edition_en_cours").find(".cke_inner .cke_toolbar .cke_button__bold")[0].onclick);
-						eval(GetElement(id, "cke_edition_en_cours").find(".cke_inner .cke_toolbar .cke_button__bold")[0].onclick);
-					}
-					editor.resetUndo();
+					editorOnScreen();
+
+                    var iframe = acyJquery('#editor_body_ifr');
+                    var toolbar = iframe.contents().find('#cke_edition_en_cours');
+                    var iframeEditionWidth = window.document.getElementById(idIframe).clientWidth;
+                    if(toolbar.offset().left < 0){
+                        if((xEditor + newX) < 0){
+                            toolbar.css('left', '0px');
+                        }else{
+                           var newLeftToolbar = xEditor + newX;
+                            toolbar.css('left', newLeftToolbar + 'px');
+                        }
+                    } else if((toolbar.offset().left + largeurMenuInline) > iframeEditionWidth){
+                        var newLeftToolbar = iframeEditionWidth - largeurMenuInline;
+                        toolbar.css('left', newLeftToolbar + 'px');
+                        var bottomZone = iframe.contents().find('#bottom');
+                        bottomZone.css('left', newLeftToolbar + 'px');
+                        bottomZone.css('margin-left', '0px');
+                    }
 				});
 
 				if (zone[0] != null && zone[0] != undefined)
@@ -1780,7 +2054,7 @@ function IgnoreDeselection(id)
 	ignoreDeselection = true;
 
 	setTimeout(function() {
-		var popups = jQuery('#' + id + '_ifr').contents().find('.cke_editor_edition_en_cours_dialog');
+		var popups = acyJquery('#' + id + '_ifr').contents().find('.cke_editor_edition_en_cours_dialog');
 		if (popups != undefined && popups != null){
 			for (indexPopup = 0; indexPopup < popups.length; ++ indexPopup)
 			{
@@ -1841,18 +2115,18 @@ function ClickSurPopup(element){
 function CleanEditorContent(id, e){
 	var idIframe = id + "_ifr";
 	var code = (editor != null && editor != undefined) ? editor.getData() : "";
-	var fauxDiv = jQuery('#' + idIframe)[0].contentWindow.document.createElement("div");
+	var fauxDiv = acyJquery('#' + idIframe)[0].contentWindow.document.createElement("div");
 	fauxDiv.innerHTML = code;
-	code = fauxDiv.innerHTML;
 	var enfantsFauxDiv = fauxDiv.getElementsByTagName("*");
 	for (indexEnfantsFauxDiv = 0; indexEnfantsFauxDiv < enfantsFauxDiv.length; ++indexEnfantsFauxDiv)
 	{
 		if (enfantsFauxDiv[indexEnfantsFauxDiv].className != "")
 		{
-			jQuery(enfantsFauxDiv[indexEnfantsFauxDiv]).removeClass("acyeditor_delete");
-			jQuery(enfantsFauxDiv[indexEnfantsFauxDiv]).removeClass("acyeditor_picture");
-			jQuery(enfantsFauxDiv[indexEnfantsFauxDiv]).removeClass("acyeditor_text");
-			if (jQuery(enfantsFauxDiv[indexEnfantsFauxDiv]).hasClass("acyeditor_zoneeditionsuppression"))
+			acyJquery(enfantsFauxDiv[indexEnfantsFauxDiv]).removeClass("acyeditor_delete");
+			acyJquery(enfantsFauxDiv[indexEnfantsFauxDiv]).removeClass("acyeditor_picture");
+			acyJquery(enfantsFauxDiv[indexEnfantsFauxDiv]).removeClass("acyeditor_text");
+			acyJquery(enfantsFauxDiv[indexEnfantsFauxDiv]).removeClass("acyeditor_sortable");
+			if (acyJquery(enfantsFauxDiv[indexEnfantsFauxDiv]).hasClass("acyeditor_zoneeditionsuppression"))
 			{
 				enfantsFauxDiv[indexEnfantsFauxDiv].outerHTML = "";
 			}
@@ -1865,7 +2139,7 @@ function CleanEditorContent(id, e){
 
 	if (fauxDiv.innerHTML != code)
 	{
-		editor.setData(fauxDiv.innerHTML);
+		editor.setData(fauxDiv.innerHTML, {internal: true });
 	}
 }
 
@@ -1878,12 +2152,12 @@ function ValidationModifications(id){
 			rangeIE = undefined;
 		}
 		var idIframe = id + "_ifr";
-		var elementJQ = jQuery('#' + idIframe).contents().find('.acyeditor_enedition');
+		var elementJQ = acyJquery('#' + idIframe).contents().find('.acyeditor_enedition');
 		var element = elementJQ[0];
 		if (element != null && element != undefined)
 		{
 			var popup = false;
-			var popups = jQuery('#' + idIframe).contents().find('.cke_editor_edition_en_cours_dialog');
+			var popups = acyJquery('#' + idIframe).contents().find('.cke_editor_edition_en_cours_dialog');
 			if (popups != undefined && popups != null){
 				for (indexPopup = 0; indexPopup < popups.length; ++ indexPopup)
 				{
@@ -1904,7 +2178,7 @@ function ValidationModifications(id){
 					var zone = GetElement(id, "ZoneEditionSuppression_" + element.id);
 					if (zone != null && zone != undefined)
 					{
-						zone.remove();
+						zone.detach();
 					}
 					element.innerHTML = code;
 					if (zone[0] != null && zone[0] != undefined)
@@ -1918,6 +2192,9 @@ function ValidationModifications(id){
 				AdapteTaille(id, zone);
 
 				Sauvegarde(id);
+
+				acyJquery(window).unbind('scroll');
+
 			}
 		}
 	}
@@ -1930,17 +2207,17 @@ function ValidationModifications(id){
 function Sauvegarde(id)
 {
 	var idIframe = id + "_ifr";
-	var newNoeud = jQuery('#' + idIframe)[0].contentWindow.document.body.cloneNode(true);
+	var newNoeud = acyJquery('#' + idIframe)[0].contentWindow.document.body.cloneNode(true);
 	var elements = newNoeud.getElementsByTagName('*');
 	for (i = 0; i < elements.length; ++i)
 	{
-		if (jQuery(elements[i]).hasClass("acyeditor_zoneeditionsuppression"))
+		if (acyJquery(elements[i]).hasClass("acyeditor_zoneeditionsuppression") || acyJquery(elements[i]).hasClass("acyeditor_action") || acyJquery(elements[i]).hasClass("acyeditor_mask"))
 		{
 			elements[i].outerHTML = "";
 			i = i - 1;
 		}
 	}
-	jQuery('#' + id)[0].value = newNoeud.innerHTML;
+	acyJquery('#' + id)[0].value = newNoeud.innerHTML;
 }
 
 
@@ -1948,15 +2225,15 @@ function Sauvegarde(id)
 function SetTitleTemplate(onlyRemove){
 	if (acyeditor_templatemode)
 	{
-		var iframe = jQuery('#edition_en_cours')[0].parentElement.getElementsByTagName("iframe")[0];
-		iframe = jQuery(iframe);
+		var iframe = acyJquery('#edition_en_cours')[0].parentElement.getElementsByTagName("iframe")[0];
+		iframe = acyJquery(iframe);
 
 		if (iframe[0] != undefined)
 		{
 			var allZones = iframe[0].contentWindow.document.getElementsByTagName("*");
 			for (indexZone = 0; indexZone < allZones.length; ++indexZone)
 			{
-				jQuery(allZones[indexZone]).removeAttr("title");
+				acyJquery(allZones[indexZone]).removeAttr("title");
 			}
 
 			if (onlyRemove != true)
@@ -2016,26 +2293,31 @@ function SetTitleTemplate(onlyRemove){
 function SetStateForSelection(){
 	if (acyeditor_templatemode)
 	{
-		var alltemplatebuttons = jQuery(".boutontemplate_text");
+		var alltemplatebuttons = acyJquery(".boutontemplate_text");
 		for (indexTemplateButton = 0;indexTemplateButton < alltemplatebuttons.length; ++indexTemplateButton)
 		{
-			SetStateForSelectionForClasse(jQuery(alltemplatebuttons[indexTemplateButton]), "acyeditor_text");
+			SetStateForSelectionForClasse(acyJquery(alltemplatebuttons[indexTemplateButton]), "acyeditor_text");
 		}
-		alltemplatebuttons = jQuery(".boutontemplate_picture");
+		alltemplatebuttons = acyJquery(".boutontemplate_picture");
 		for (indexTemplateButton = 0;indexTemplateButton < alltemplatebuttons.length; ++indexTemplateButton)
 		{
-			SetStateForSelectionForClasse(jQuery(alltemplatebuttons[indexTemplateButton]), "acyeditor_picture");
+			SetStateForSelectionForClasse(acyJquery(alltemplatebuttons[indexTemplateButton]), "acyeditor_picture");
 		}
-		alltemplatebuttons = jQuery(".boutontemplate_delete");
+		alltemplatebuttons = acyJquery(".boutontemplate_delete");
 		for (indexTemplateButton = 0;indexTemplateButton < alltemplatebuttons.length; ++indexTemplateButton)
 		{
-			SetStateForSelectionForClasse(jQuery(alltemplatebuttons[indexTemplateButton]), "acyeditor_delete");
+			SetStateForSelectionForClasse(acyJquery(alltemplatebuttons[indexTemplateButton]), "acyeditor_delete");
+		}
+		alltemplatebuttons = acyJquery(".boutontemplate_sortable");
+		for (indexTemplateButton = 0;indexTemplateButton < alltemplatebuttons.length; ++indexTemplateButton)
+		{
+			SetStateForSelectionForClasse(acyJquery(alltemplatebuttons[indexTemplateButton]), "acyeditor_sortable");
 		}
 	}
 }
 
 function SetStateForSelectionForClasse(item, classe){
-	var acyframe = jQuery('#edition_en_cours')[0].parentElement.getElementsByTagName("iframe")[0];
+	var acyframe = acyJquery('#edition_en_cours')[0].parentElement.getElementsByTagName("iframe")[0];
 	var node = null;
 	if (isBrowserIE())
 	{
@@ -2058,13 +2340,20 @@ function SetStateForSelectionForClasse(item, classe){
 	if (node != null && node != undefined)
 	{
 		item.removeClass("cke_button_disabled");
-		if (jQuery(node).hasClass(classe))
+		if (acyJquery(node).hasClass(classe))
 		{
 			item.addClass("cke_button_on");
 		}
 		else
 		{
 			item.addClass("cke_button_off");
+		}
+		if(classe == 'acyeditor_sortable'){
+			if (acyJquery(node).closest('tbody.acyeditor_sortable').length>0){
+				item.addClass("cke_button_on");
+			} else{
+				item.addClass("cke_button_off");
+			}
 		}
 	}
 	else if (!item.hasClass("cke_button_disabled"))
@@ -2077,11 +2366,11 @@ function GetParentForClass(item, classe){
 	var parent = item;
 	while (parent != null && parent != undefined)
 	{
-		var elementModifiables = jQuery(parent).find(".acyeditor_delete, .acyeditor_text, .acyeditor_picture").length;
-		if (jQuery(parent).find(".acyeditor_delete, .acyeditor_text, .acyeditor_picture").length > 0)
+		var elementModifiables = acyJquery(parent).find(".acyeditor_delete, .acyeditor_text, .acyeditor_picture").length;
+		if (acyJquery(parent).find(".acyeditor_delete, .acyeditor_text, .acyeditor_picture").length > 0)
 		{
-			var tdEditableTotaux = jQuery(parent).find("td.acyeditor_text, td.acyeditor_picture").length;
-			var tdEditable = jQuery(parent).find("table td.acyeditor_text, table td.acyeditor_picture").length;
+			var tdEditableTotaux = acyJquery(parent).find("td.acyeditor_text, td.acyeditor_picture").length;
+			var tdEditable = acyJquery(parent).find("table td.acyeditor_text, table td.acyeditor_picture").length;
 			if (parent.tagName != "TR"
 			 || classe != "acyeditor_delete"
 			 || elementModifiables != tdEditableTotaux
@@ -2103,13 +2392,13 @@ function GetParentForClass(item, classe){
 			{
 				if (parent.tagName == "TD"
 				 && vraiParent.tagName == "TR"
-				 && jQuery(vraiParent).hasClass("acyeditor_delete"))
+				 && acyJquery(vraiParent).hasClass("acyeditor_delete"))
 				{
 					return parent;
 				}
-				if (jQuery(vraiParent).hasClass("acyeditor_delete")
-				 || jQuery(vraiParent).hasClass("acyeditor_text")
-				 || jQuery(vraiParent).hasClass("acyeditor_picture"))
+				if (acyJquery(vraiParent).hasClass("acyeditor_delete")
+				 || acyJquery(vraiParent).hasClass("acyeditor_text")
+				 || acyJquery(vraiParent).hasClass("acyeditor_picture"))
 				{
 					return vraiParent;
 				}
@@ -2147,7 +2436,7 @@ function AddRemoveTemplateCss(){
 function IsTemplateCssShown(){
 	if (acyeditor_templatemode)
 	{
-		var boutonShow = jQuery(".boutontemplate_show")[0];
+		var boutonShow = acyJquery(".boutontemplate_show")[0];
 		if (boutonShow != null
 		 && boutonShow != undefined
 		 && boutonShow.className != null
@@ -2163,9 +2452,9 @@ function IsTemplateCssShown(){
 function ShowTemplateCss(show){
 	if (acyeditor_templatemode)
 	{
-		var iframe = jQuery('#edition_en_cours')[0].parentElement.getElementsByTagName("iframe")[0];
-		iframe = jQuery(iframe);
-		var boutonShow = jQuery(".boutontemplate_show")[0];
+		var iframe = acyJquery('#edition_en_cours')[0].parentElement.getElementsByTagName("iframe")[0];
+		iframe = acyJquery(iframe);
+		var boutonShow = acyJquery(".boutontemplate_show")[0];
 		templateShown = show;
 
 		if (!show)
@@ -2174,12 +2463,12 @@ function ShowTemplateCss(show){
 			if (link != null
 			 && link != undefined)
 			{
-				jQuery(link).remove();
+				acyJquery(link).remove();
 			}
 			SetTitleTemplate(true);
 
-			jQuery(boutonShow).removeClass("cke_button_on");
-			jQuery(boutonShow).addClass("cke_button_off");
+			acyJquery(boutonShow).removeClass("cke_button_on");
+			acyJquery(boutonShow).addClass("cke_button_off");
 		}
 		else
 		{
@@ -2194,8 +2483,8 @@ function ShowTemplateCss(show){
 			headEditor.appendChild(link1);
 			SetTitleTemplate();
 
-			jQuery(boutonShow).removeClass("cke_button_off");
-			jQuery(boutonShow).addClass("cke_button_on");
+			acyJquery(boutonShow).removeClass("cke_button_off");
+			acyJquery(boutonShow).addClass("cke_button_on");
 		}
 	}
 }

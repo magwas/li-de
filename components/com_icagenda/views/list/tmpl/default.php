@@ -32,8 +32,6 @@ $number_per_page	= $this->number;
 $all_dates_with_id	= $this->getAllDates;
 $count_all			= count($all_dates_with_id);
 
-//foreach ($this->data->items as $fn => $fv) echo ' B '.$fn.'='.$fv.'<br>';
-
 // Header
 ?>
 <div id="icagenda" class="ic-list-view<?php echo $this->pageclass_sfx; ?>">
@@ -156,12 +154,11 @@ $count_all			= count($all_dates_with_id);
 				// Get id and date for each date to be displayed
 				$evt_date_id		= $all_dates_with_id[$i];
 				$ex_alldates_array	= explode('_', $evt_date_id);
-				$evt				= $ex_alldates_array['0'];  // időpont
-				$evt_id				= $ex_alldates_array['1'];  // id
+				$evt				= $ex_alldates_array['0'];
+				$evt_id				= $ex_alldates_array['1'];
 
 				if (in_array($evt_date_id, $recordsToBeDisplayed))
 				{
-					
 					foreach ($this->data->items as $item)
 					{
 						if ($evt_id == $item->id)

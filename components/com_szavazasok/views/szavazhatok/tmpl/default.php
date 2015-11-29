@@ -103,7 +103,6 @@ echo '
   <tbody>
   ';
   $rowClass = 'row0';
-  if (!is_array($this->Items)) $this->Items = Array();
   foreach ($this->Items as $item) { 
       if (($item->user_id  == '') | ($item->kepviselo_id > 0))
         $szavaztal = '';

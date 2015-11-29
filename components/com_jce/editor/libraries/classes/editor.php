@@ -2,7 +2,7 @@
 
 /**
  * @package   	JCE
- * @copyright 	Copyright (c) 2009-2013 Ryan Demmer. All rights reserved.
+ * @copyright 	Copyright (c) 2009-2015 Ryan Demmer. All rights reserved.
  * @license   	GNU/GPL 2 or later - http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
  * JCE is free software. This version may have been modified pursuant
  * to the GNU General Public License, and as distributed it includes or
@@ -21,7 +21,7 @@ defined('_JEXEC') or die('RESTRICTED');
 class WFEditor extends JObject {
 
     // Editor version
-    protected $_version = '2.3.4.4';
+    protected $_version = '2.5.2';
     
     // Editor instance 
     protected static $instance;
@@ -103,12 +103,12 @@ class WFEditor extends JObject {
             // get the Joomla! area (admin or site)
             $area = $mainframe->isAdmin() ? 2 : 1;
             
-            if (!class_exists('Mobile_Detect')) {
+            if (!class_exists('Wf_Mobile_Detect')) {
                 // load mobile detect class
                 require_once(dirname(__FILE__) . '/mobile.php');
             }
 
-            $mobile = new Mobile_Detect();
+            $mobile = new Wf_Mobile_Detect();
 
             // set device values
             if ($mobile->isMobile()) {
@@ -144,7 +144,7 @@ class WFEditor extends JObject {
                 }
 
                 // check component
-                if ($item->components && in_array($option, explode(',', $item->components)) === false) {
+                if ($option !== 'com_jce' && $item->components && in_array($option, explode(',', $item->components)) === false) {
                     continue;
                 }
 
@@ -173,6 +173,12 @@ class WFEditor extends JObject {
                         continue;
                     }
                 }
+                // decrypt params
+                if (!empty($item->params)) {
+                    wfimport('admin.helpers.encrypt');
+                    $item->params = WFEncryptHelper::decrypt($item->params);
+                }
+                
                 // assign item to profile
                 self::$profile = $item;
                 
@@ -283,7 +289,7 @@ class WFEditor extends JObject {
             }
             
             // merge data and convert to json string
-            $data = WFParameter::mergeParams($editor_params, $profile_params);
+            $data = WFParameter::mergeParams($editor_params, $profile_params, true, false);
 
             self::$params[$signature] = new WFParameter($data, $options['path'], $options['key']);
         }

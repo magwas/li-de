@@ -2,7 +2,7 @@
 /**
  * @package    FrameworkOnFramework
  * @subpackage form
- * @copyright  Copyright (C) 2010 - 2014 Akeeba Ltd. All rights reserved.
+ * @copyright   Copyright (C) 2010 - 2015 Nicholas K. Dionysopoulos / Akeeba Ltd. All rights reserved.
  * @license    GNU General Public License version 2 or later; see LICENSE.txt
  */
 // Protect from unauthorized access
@@ -187,7 +187,7 @@ class F0FFormFieldModel extends F0FFormFieldList implements F0FFormField
 
 		if (!empty($nonePlaceholder))
 		{
-			$options[] = JHtml::_('select.option', JText::_($nonePlaceholder), null);
+			$options[] = JHtml::_('select.option', null, JText::_($nonePlaceholder));
 		}
 
 		// Process field atrtibutes

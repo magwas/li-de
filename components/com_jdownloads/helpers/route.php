@@ -284,7 +284,7 @@ abstract class JdownloadsHelperRoute
         // Check if the active menuitem matches the requested language
         $active = $menus->getActive();
 
-        if ($active && $active->component == 'com_jdownloads' && ($language == '*' || in_array($active->language, array('*', $language)) || !JLanguageMultilang::isEnabled()))
+        if ($active && $active->component == 'com_jdownloads' && ($active->query['view'] != 'search') && ($language == '*' || in_array($active->language, array('*', $language)) || !JLanguageMultilang::isEnabled()))
         {
             return $active->id;
         }

@@ -15,9 +15,9 @@ JModelLegacy::addIncludePath(JPATH_SITE . '/components/com_jdownloads/models', '
 
 class ModJDownloadsLatestHelper
 {
-	static function getList(&$params)
+	static function getList($params)
 	{
-		$db = JFactory::getDbo();
+        $db = JFactory::getDbo();
 
         // Get an instance of the generic downloads model
         $model = JModelLegacy::getInstance ('downloads', 'jdownloadsModel', array('ignore_request' => true));
@@ -68,10 +68,8 @@ class ModJDownloadsLatestHelper
             if ($access || in_array($item->access, $authorised))
             {
                 // We know that user has the privilege to view the download
-                $item->link = JRoute::_(JdownloadsHelperRoute::getDownloadRoute($item->slug, $item->catslug));
-            }
-            else
-            {
+                $item->link = '-';
+            } else {
                 $item->link = JRoute::_('index.php?option=com_users&view=login');
             }
         }
@@ -98,6 +96,6 @@ class ModJDownloadsLatestHelper
         } else {    
             return $msg;
         }    
-    }    
+    }      
 }	
 ?>

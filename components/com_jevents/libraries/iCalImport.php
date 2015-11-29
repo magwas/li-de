@@ -124,8 +124,8 @@ class iCalImport
 							return false;
 						} else {
 							$fsock_path = ((array_key_exists('path', $parsed_url)) ? $parsed_url['path'] : '')
-							. ((array_key_exists('query', $parsed_url)) ? $parsed_url['query'] : '')
-							. ((array_key_exists('fragment', $parsed_url)) ? $parsed_url['fragment'] : '');
+							. ((array_key_exists('query', $parsed_url)) ? '?' . $parsed_url['query'] : '')
+							. ((array_key_exists('fragment', $parsed_url)) ? '#' . $parsed_url['fragment'] : '');
 							fputs($fh, "GET $fsock_path HTTP/1.0\r\n");
 							fputs($fh, "Host: ".$parsed_url['host']."\r\n\r\n");
 							while(!feof($fh)) {
@@ -193,6 +193,9 @@ class iCalImport
 		$skipuntil = null;
 		foreach ($this->rawData as $vcLine) {
 			//$vcLine = trim($vcLine); // trim one line
+			if (empty($vcLine)){
+				continue;
+			}
 			if (!empty($vcLine))
 			{
 				// skip unhandled block
@@ -302,6 +305,23 @@ class iCalImport
 			}
 			if (JString::stristr($key,"DTEND") == "DTEND" && JString::strlen($rawvalue) == 8) {
 				// all day event detected YYYYMMDD, set DTEND to last second of previous day
+				/* see section 3.6.1 of RFC https://tools.ietf.org/html/rfc5545
+				 *
+      The following is an example of the "VEVENT" calendar component
+      used to represent a multi-day event scheduled from June 28th, 2007
+      to July 8th, 2007 inclusively.  Note that the "DTEND" property is
+      set to July 9th, 2007, since the "DTEND" property specifies the
+      non-inclusive end of the event.
+
+       BEGIN:VEVENT
+       UID:20070423T123432Z-541111@example.com
+       DTSTAMP:20070423T123432Z
+       DTSTART;VALUE=DATE:20070628
+       DTEND;VALUE=DATE:20070709
+       SUMMARY:Festival International de Jazz de Montreal
+       TRANSP:TRANSPARENT
+       END:VEVENT
+				 */
 				$value -= 1;  // 1 second
 			}
 		}
@@ -358,7 +378,7 @@ class iCalImport
 				// convert URLs to links but NOT in uid field!!
 				//$value = ereg_replace("[[:alpha:]]+://[^<>[:space:]]+[[:alnum:]/]","<a href=\"\\0\">\\0</a>", $value);
 				//$value = preg_replace('@(?<![">])\b(?:(?:https?|ftp)://|www\.|ftp\.)[-A-Z0-9+&@#/%=~_|$?!:,.]*[A-Z0-9+&@#/%=~_|$]@',"<a href=\"\\0\">\\0</a>", $value);
-				if (is_string($value) && $key!="UID"){
+				if (is_string($value) && $key!="UID" && $key!="X-EXTRAINFO"){
 					if (JString::strpos(str_replace(" ","",JString::strtolower($value)),"<ahref=")===false && JString::strpos(str_replace(" ","",JString::strtolower($value)),"<img")===false){
 						$value = preg_replace('@(https?://([\w-.]+)+(:\d+)?(/([\w/_\-.]*(\?\S+)?)?)?)@', '<a href="$1">$1</a>', $value);
 					}

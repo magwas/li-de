@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	4.8.1
+ * @version	4.9.3
  * @author	acyba.com
- * @copyright	(C) 2009-2014 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2015 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -17,7 +17,6 @@ class plgAcymailingTemplate extends JPlugin
 	var $headerstyles = array();
 	var $others = array();
 	var $stylesheets = array();
-	var $donotclean = array();
 	var $templateClass = '';
 	var $config;
 
@@ -62,7 +61,7 @@ class plgAcymailingTemplate extends JPlugin
 				}
 
 				if(preg_match_all('#@media.*}[^{}]*}#Uis',$this->stylesheets[$email->tempid],$results)){
-					$this->donotclean[$email->tempid] = true;
+
 					foreach($results[0] as $oneResult){
 						$this->stylesheets[$email->tempid] = str_replace($oneResult,'',$this->stylesheets[$email->tempid]);
 						$this->headerstyles[$email->tempid][] = trim($oneResult);
@@ -130,16 +129,14 @@ class plgAcymailingTemplate extends JPlugin
 			}
 		}
 
-		if($addbody && !isset($this->donotclean[$email->tempid])){
-			$newbody = preg_replace('#(<[^>]*)(class|id)="[^"]*"#Ui','$1',$email->body);
-			if(!empty($newbody)) $email->body = $newbody;
-		}
-
 		$newbody = preg_replace('#(<(div|tr|td|table)[^>]*)title="[^"]*"#Uis','$1',$email->body);
 		if(!empty($newbody)) $email->body = $newbody;
 
-		$newbody = preg_replace('# *(acyeditor_text|acyeditor_picture|acyeditor_delete) *#is','',$email->body);
-		$newbody = preg_replace('#(class|title|style)=" *"#Ui','',$newbody);
+		$newbody = preg_replace('# id="zone_[0-9]+"#Uis',' ',$email->body);
+		if(!empty($newbody)) $email->body = $newbody;
+
+		$newbody = preg_replace('# *(acyeditor_text|acyeditor_picture|acyeditor_delete|acyeditor_sortable|ui-sortable) *#is','',$email->body);
+		$newbody = preg_replace('#(class|title|style|id)=" *"#Ui','',$newbody);
 		if(!empty($newbody)) $email->body = $newbody;
 
 	}

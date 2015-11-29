@@ -82,7 +82,7 @@ class jdownloadsModellogs extends JModelList
         $default_direction = 'desc';
         
         // Receive & set list options
-        $default_limit = $app->getUserStateFromRequest('global.list.limit', 'limit', $app->get('list_limit'), 'uint');
+        $default_limit = (int)$app->getUserStateFromRequest('global.list.limit', 'limit', $app->get('list_limit'), 'uint');
         if ($list = $app->getUserStateFromRequest($this->context . '.list', 'list', array(), 'array')){
             if (isset($list['limit'])){
                 $limit = (int)$list['limit'];
@@ -112,7 +112,7 @@ class jdownloadsModellogs extends JModelList
         }
         $this->setState('list.direction', $value);
 
-        $value = $app->getUserStateFromRequest($this->context . '.limitstart', 'limitstart', 0);
+        $value = (int)$app->getUserStateFromRequest($this->context . '.limitstart', 'limitstart', 0);
         $limitstart = ($limit != 0 ? (floor($value / $limit) * $limit) : 0);
         $this->setState('list.start', $limitstart);        
     }
@@ -170,6 +170,7 @@ class jdownloadsModellogs extends JModelList
         
         // Filter by search in title
         $search = $this->getState('filter.search');
+
         if (!empty($search)) {
             if (stripos($search, 'id:') === 0) {
                 $query->where('a.id = '.(int) substr($search, 3));
@@ -177,12 +178,7 @@ class jdownloadsModellogs extends JModelList
                 $where = array();                                                    
                 $where2 = array();
                 $search = $db->Quote('%'.$db->escape($search, true).'%');
-                $query->where(" a.log_ip LIKE $search 
-                                OR a.log_datetime LIKE $search 
-                                OR LOWER (a.log_title) LIKE $search
-                                OR LOWER (a.log_file_name) LIKE $search
-                                OR LOWER (uc.name) LIKE $search
-                              ");
+                $query->where(" LOWER (a.log_title) LIKE $search OR LOWER (a.log_file_name) LIKE $search OR LOWER (uc.name) LIKE $search");
            }                      
         }                   
         

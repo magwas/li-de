@@ -36,9 +36,7 @@ class TemakorokHelper {
       $result = JSON_decode('{
       "temakor_felvivok":1,
       "tobbszintu_atruhazas":1,
-      "atruhazas_lefele_titkos":0,
-	  "kepviselet_engedelyezett":1,
-	  "temakor_tagsag_csakadmin":0
+      "atruhazas_lefele_titkos":0
       }');
     }
     return $result;

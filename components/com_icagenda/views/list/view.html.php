@@ -44,11 +44,6 @@ class icagendaViewList extends JViewLegacy
 		$this->params		= $app->getParams();
 		$params				= $this->params;
 
-		//+ FT li-de integráció
-		if (JRequest::getVar('catid'))
-		  $params->set('mcatid',array(JRequest::getVar('catid')));
-		//+ FT li-de integráció
-		
 		// For Dev.
 		$time_loading = $params->get('time_loading', '');
 
@@ -59,19 +54,7 @@ class icagendaViewList extends JViewLegacy
 
 		// loading data
 		$this->data			= $this->getModel()->getData();
-		
-		echo count($this->data).'<br>';
-		
-		//+FT li-de témakör láthatóság kezeés
-		//$this->getAllDates	= icagendaEventsData::getAllDates();
-		// $this->getAllDates MYSQL -el az adott user által látható,
-		// a mai napon vagy késöbb lévő eseményeket kell kigyüjteni.
-		// tömb elem : éééé-hh-nn hh-ii_####
-		$this->getAllDates = iCModelItem::getAllDates();
-		//echo count($this->getAllDates).'<br>';
-		//-FT li-de témakör láthatóság
-
-
+		$this->getAllDates	= icagendaEventsData::getAllDates();
 		$this->form			= $this->getModel()->getForm(); // Registration Form
 
 		$this->state		= $this->get('State');

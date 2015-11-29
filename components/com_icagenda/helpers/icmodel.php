@@ -27,39 +27,6 @@ jimport('joomla.access.access');
 
 class iCModelItem extends JModelItem
 {
-
-    /**
-	  * li-de integrációban van ez a funkció használva
-	  * MYSQL -el az adott user által látható,
-	  * a mai napon vagy késöbb lévő eseményeket kell kigyüjteni.
-	  * @return array  tömb elem : éééé-hh-nn oo-pp_####
-	*/  
-    static function getAlldates() {
-		$user = JFactory::getUser();
-		$db = JFactory::getDBO();
-		$result = array();
-		$query = $db->getQuery();
-		$query->clear();
-		$query->select('e.id, e.startdate as date');
-		$query->from('`#__icagenda_events` AS e');
-		$query->leftJoin('#__szavazasok as lidesz on e.alias like concat("sz-", lidesz.id,"-%")');
-		$query->leftJoin('#__temakorok as lidet on lidet.id = lidesz.temakor_id');
-		$query->leftJoin('#__tagok as lideta on lideta.temakor_id = lidesz.temakor_id and lideta.user_id = "'.$user->id.'"');
-		$query->where('((lidet.lathatosag = 0) or
-		(lidet.lathatosag = 1 and "'.$user->id.'" > 0) or
-		(lidet.lathatosag = 2 and lideta.user_id is not null) 
-		)');
-		$query->where('e.startdate >= "'.date('Y-m-d 00:00:00').'"');
-		$query->order('e.startdate');
-		//DBG echo '<pre>'.$query.'</pre>';
-		$db->setQuery($query);
-		$res = $db->loadObjectList();
-		foreach ($res as $res1) {
-			$result[] = $res1->date.'_'.$res1->id;
-		}
-		return $result;
-	}
-
 	/**
 	 * @var
 	 */
@@ -186,18 +153,6 @@ class iCModelItem extends JModelItem
 
 		// join
 		$query->from('`#__icagenda_events` AS e');
-		
-		//+FT li-de témakör láthatóság ellenörzés
-		$user = JFactory::getUser();
-		$query->leftJoin('#__szavazasok as lidesz on e.alias like concat("sz-", lidesz.id,"-%")');
-		$query->leftJoin('#__temakorok as lidet on lidet.id = lidesz.temakor_id');
-		$query->leftJoin('#__tagok as lideta on lideta.temakor_id = lidesz.temakor_id and lideta.user_id = "'.$user->id.'"');
-		$query->where('((lidet.lathatosag = 0) or
-		(lidet.lathatosag = 1 and "'.$user->id.'" > 0) or
-		(lidet.lathatosag = 2 and lideta.user_id is not null) 
-		)');
-		//+FT li-de témakör láthatóság ellenörzés
-		
 		$query->leftJoin('`#__icagenda_category` AS c ON c.id = e.catid');
 		$query->where('c.state = 1');
 

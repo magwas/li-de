@@ -42,6 +42,7 @@ class JFormFieldjdCustomField7 extends JFormField
         // Build the class for the label.
         $class = !empty($this->description) ? 'hasTip' : '';
         $class = $this->required == true ? $class.' required' : $class;
+        $req   = $this->required == true ? '<span class="star">&#160;*</span>' : '';
  
         // Add the opening label tag and main attributes attributes.
         $label .= '<label id="'.$this->id.'-lbl" for="'.$this->id.'" class="'.$class.'"';
@@ -53,7 +54,7 @@ class JFormFieldjdCustomField7 extends JFormField
         }
  
         // Add the label text and closing tag.
-        $label .= '>'.JText::_($text).'</label>';
+        $label .= '>'.JText::_($text).$req.'</label>';
  
         return $label; 
     }    

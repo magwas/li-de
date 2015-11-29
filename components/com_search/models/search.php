@@ -153,10 +153,6 @@ class SearchModelSearch extends JModelLegacy
 				$rows = array_merge((array) $rows, (array) $result);
 			}
 
-			//+FT 2015.09.30 li-de kapcsolt cikkek nem kellenek
-			//+FT 2015.09.30 li-de kapcsolt cikkek nem kellenek
-			
-			
 			$this->_total	= count($rows);
 
 			if ($this->getState('limit') > 0)

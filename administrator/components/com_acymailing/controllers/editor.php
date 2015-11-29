@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	4.8.1
+ * @version	5.0.1
  * @author	acyba.com
- * @copyright	(C) 2009-2014 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2015 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -23,7 +23,7 @@ class EditorController extends acymailingController{
 		$this->registerDefaultTask('browse');
 	}
 
- 	function browse(){
+	function browse(){
 		$this->_setCss();
 		$this->_setJs();
 		$this->_displayHTML();
@@ -49,6 +49,14 @@ class EditorController extends acymailingController{
 		}
 
 		$css="
+			#import_from_url, #upload_image {
+				display: none;
+			}
+
+			#acy_media_browser_hidden_elements, #acy_media_browser_buttons_block, #acy_media_browser_buttons_block {
+				transition: all 0.3s ease;
+			}
+
 			#acy_media_browser_table{
 				height:".$height_acy_media_browser_table."px;
 				width:100%;
@@ -112,7 +120,7 @@ class EditorController extends acymailingController{
 				height:".$height_acy_media_browser_list."px;
 				overflow-x:hidden;
 				margin:0px;
-					padding:5px;
+				padding:0px;
 				border-bottom: 1px solid rgb(233, 233, 233);
 			}
 
@@ -122,14 +130,15 @@ class EditorController extends acymailingController{
 
 			#acy_media_browser_actions{
 				text-align:center;
-					box-shadow: 0px -4px 4px -4px rgba(0, 0, 0, 0.3);
-					width:".$width_acy_media_browser_actions."px;
+				box-shadow: 0px -4px 4px -4px rgba(0, 0, 0, 0.3);
+				width:".$width_acy_media_browser_actions."px;
 				overflow:hidden;
+				height: 100px;
 			}
 
 			#acy_media_browser_containing_block{
 				height: 70px;
-					width:1044px;
+					width:522px;
 			}
 
 			#acy_media_browser_buttons_block{
@@ -140,9 +149,7 @@ class EditorController extends acymailingController{
 			}
 
 			#acy_media_browser_hidden_elements{
-				float:left;
 					width:".$width_acy_media_browser_hidden_elements."px;
-					display:inline-block;
 			}
 
 			#acy_media_browser_url_input{
@@ -212,6 +219,13 @@ class EditorController extends acymailingController{
 					color: rgb(70, 136, 71);
 			}
 
+			li.acy_media_browser_images {position: relative; height: 135px; width:135px; display:inline-block; margin:14px; margin-top:7px; text-align:center; border: 1px solid #eee;}
+			.acy_media_browser_images img{max-height:135px; width:auto; max-width:135px; vertical-align:top;}
+
+			.acy_media_browser_images img.acy_media_browser_delete{height:24px; width:24px; vertical-align:top; position:absolute; right:0px; top:0px; z-index:990; cursor: pointer;}
+			#acy_media_browser_list .acy_media_browser_image_size{color: #666; text-shadow:1px 1px 1px #ffffff; font-weight:normal}
+
+
 
 		";
 		if(!ACYMAILING_J30){
@@ -232,14 +246,7 @@ class EditorController extends acymailingController{
 		$config =& acymailing_config();
 		$websiteurl = rtrim(JURI::root(),'/').'/';
 
-
-		if (ACYMAILING_J16){
-			$doc->addScript($websiteurl.'plugins/editors/acyeditor/acyeditor/scripts/jquery-1.9.1.min.js?v='.str_replace('.','',$config->get('version')));
-		}
-		else{
-			$doc->addScript($websiteurl.'plugins/editors/acyeditor/scripts/jquery-1.9.1.min.js?v='.str_replace('.','',$config->get('version')));
-		}
-
+		$doc->addScript($websiteurl.'media/com_acymailing/js/jquery/jquery-1.9.1.min.js?v='.@filemtime(ACYMAILING_ROOT.'media'.DS.'com_acymailing'.DS.'js'.DS.'jquery'.DS.'jquery-1.9.1.min.js'));
 
 		$imageZone = JRequest::getVar( 'image_zone', array(), '', 'array' );
 		if(empty($imageZone)){
@@ -263,22 +270,22 @@ class EditorController extends acymailingController{
 							";
 			$sizeAndAlignTags = " style=\"' + height + width + align + border + margin +'\" ";
 
-			$insertImage="window.parent.insertImageTag(tag, previousSelection);";
+			$insertImage = "window.parent.insertImageTag(tag, previousSelection);";
 		}else{
 			$getAdditionalTags = "var selectedImageRef = document.getElementById('acy_media_browser_image_target').value; ";
 			$sizeAndAlignTags = "";
-			$insertImage="window.parent.jInsertEditorText(tag, this.editor);";
+			$insertImage = "window.parent.jInsertEditorText(tag, this.editor);";
 		}
 
 		if(JRequest::getVar('inpopup','')=='true'){
 			$imgMaxHeight = 150;
-			$slideValue=-395;
+			$slideValue = -395;
 		}else{
 			$imgMaxHeight = 190;
-			$slideValue=-522;
+			$slideValue = -522;
 		}
 
-			$js="
+		$js="
 				var previousSelection = window.parent.getPreviousSelection();
 
 				function checkSelected(imageZone) {
@@ -442,12 +449,22 @@ class EditorController extends acymailingController{
 				function displayAppropriateField(id){
 					if(id==\"import_from_url_btn\"){
 							document.getElementById('upload_image').style.display=\"none\";
-							document.getElementById('import_from_url').style.display=\"\";
-							jQuery('#acy_media_browser_containing_block').stop().animate({marginLeft: '".$slideValue."px' }, 400);
+							document.getElementById('import_from_url').style.display=\"block\";
+
+							jQuery('#acy_media_browser_buttons_block').css('width', '0');
+							jQuery('#acy_media_browser_buttons_block').css('opacity', '0');
+							jQuery('#acy_media_browser_hidden_elements').css('width', '522px');
+							jQuery('#acy_media_browser_hidden_elements').css('opacity', '1');
+
 					}else if(id==\"upload_image_btn\"){
-							document.getElementById('upload_image').style.display=\"\";
+							document.getElementById('upload_image').style.display=\"block\";
 							document.getElementById('import_from_url').style.display=\"none\";
-							jQuery('#acy_media_browser_containing_block').stop().animate({marginLeft: '".$slideValue."px' }, 400);
+
+							jQuery('#acy_media_browser_buttons_block').css('width', '0');
+							jQuery('#acy_media_browser_buttons_block').css('opacity', '0');
+							jQuery('#acy_media_browser_hidden_elements').css('width', '522px');
+							jQuery('#acy_media_browser_hidden_elements').css('opacity', '1');
+
 					}else if(id == \"create_folder_btn\"){
 						if(document.getElementById('acy_media_browser_area_create_folder').style.display == \"none\"){
 							document.getElementById('acy_media_browser_area_create_folder').style.display = \"\";
@@ -457,7 +474,11 @@ class EditorController extends acymailingController{
 							jQuery('#acy_media_browser_area_create_folder').stop().animate({height: '0px'},400);
 						}
 					}else{
-							jQuery('#acy_media_browser_containing_block').stop().animate({marginLeft: '-0px' }, 400);
+							jQuery('#acy_media_browser_hidden_elements').css('width', '0');
+							jQuery('#acy_media_browser_hidden_elements').css('opacity', '0');
+							jQuery('#acy_media_browser_buttons_block').css('width', '522px');
+							jQuery('#acy_media_browser_buttons_block').css('opacity', '1');
+
 					}
 				}
 
@@ -531,6 +552,17 @@ class EditorController extends acymailingController{
 					var url = window.location.href;
 					if (url.indexOf('?') > -1){
 							var lastParam = url.substring(url.lastIndexOf('&') + 1);
+							if(url.indexOf('pictName') > -1){
+								var temp = url.split('&');
+								for(var i=0;i<temp.length;i++){
+									if(temp[i].indexOf('pictName') > -1){
+										temp.splice(i, 1);
+										i--;
+									}
+								}
+								url = temp.join('&');
+								lastParam = url.substring(url.lastIndexOf('&') + 1);
+							}
 							if(lastParam == 'task=createFolder')url = url.replace(lastParam,'task=browse&e_name=ACY_NAME_AREA');
 							lastParam = lastParam.split('=');
 							if(lastParam=='selected_folder')
@@ -543,17 +575,39 @@ class EditorController extends acymailingController{
 					window.location.href = url;
 				}
 
+				function confirmDeletePicture(pictName){
+					var divText = document.getElementById('confirmTxtMM');
+					divText.innerHTML = '".JText::_('ACY_VALIDDELETEITEMS')."<br /><span class=\"acy_folder_name\">('+pictName+')</span><br />';
+					var divDelete = document.getElementById('confirmOkMM');
+					divDelete.onclick = function(){
+						deletePicture(pictName);
+					}
+					var divConfirm = document.getElementById('confirmBoxMM');
+					divConfirm.style.display = 'inline';
+				}
+
+				function deletePicture(pictName){
+					var urlPict = window.location.href;
+					var lastParam = urlPict.substring(urlPict.lastIndexOf('&') + 1);
+					if(lastParam.indexOf('pictName=') > -1){
+						urlPict = urlPict.substring(0, urlPict.indexOf('pictName=')-1);
+					}
+					if (urlPict.indexOf('?') > -1){
+						window.location.href = window.location.href + '&pictName=' + pictName;
+					} else{
+						window.location.href = window.location.href + '?pictName=' + pictName;
+					}
+				}
+
 			";
 
-			$doc->addScriptDeclaration($js);
-		}
+		$doc->addScriptDeclaration($js);
+	}
 
 	private function _displayHTML(){
-		$config =& acymailing_config();
 		$app = JFactory::getApplication();
 
-		$mediaFolders = explode(',', $config->get('mediafolder','media/com_acymailing/upload'));
-		$mediaFolders = $this->_generateSpecificFolders($mediaFolders);
+		$mediaFolders = acymailing_getFilesFolder('media', true);
 
 		$receivedFolder = $app->getUserStateFromRequest( ACYMAILING_COMPONENT.".acyeditor.selected_folder", 'selected_folder','','string' );
 		$defaultFolder = reset($mediaFolders);
@@ -561,7 +615,7 @@ class EditorController extends acymailingController{
 		if(!empty($receivedFolder)){
 			$allowed = false;
 			foreach($mediaFolders as $oneMedia){
-				if(preg_match('#^'.preg_quote($oneMedia).'[a-z_0-9\-/]*$#i',$receivedFolder)){
+				if(preg_match('#^'.preg_quote(rtrim($oneMedia,'/')).'[a-z_0-9\-/]*$#i',$receivedFolder)){
 					$allowed = true;
 					break;
 				}
@@ -578,159 +632,201 @@ class EditorController extends acymailingController{
 		$uploadedImage = JRequest::getVar( 'uploadedImage', array(), 'files', 'array' );
 		if(!empty($uploadedImage)){
 			if(!empty($uploadedImage['name'])){
-				if($this->_importImage($uploadedImage, $uploadPath)) $uploadMessage='success';
-				else $uploadMessage='error';
-			} else{
+				$this->imageName = acymailing_importFile($uploadedImage, $uploadPath, true);
+				if(!empty($this->imageName)) $uploadMessage = 'success';
+				else $uploadMessage = 'error';
+			}else{
 				$uploadMessage = 'error';
 				$this->message = JText::_('BROWSE_FILE');
 			}
 		}
 
-			?>
+		$pictToDelete = JRequest::getString('pictName', '');
+		if(!empty($pictToDelete) && file_exists($uploadPath.DS.$pictToDelete)){
+			$db = JFactory::getDBO();
+			$db->setQuery('SELECT mailid FROM #__acymailing_mail WHERE body LIKE \'%src="'.ACYMAILING_LIVE.$defaultFolder.'/'.$pictToDelete.'"%\'');
+			$checkPictNews = acymailing_loadResultArray($db);
+			$db->setQuery('SELECT tempid FROM #__acymailing_template WHERE body LIKE \'%src="'.ACYMAILING_LIVE.$defaultFolder.'/'.$pictToDelete.'"%\'');
+			$checkPictTemplate = acymailing_loadResultArray($db);
 
-			<div id="acy_media_browser" >
-				<!-- <br style="font-size:1px"/> -->
-				<table id="acy_media_browser_table" style="height:420px;">
-					<tr>
-						<td style="width:65%; vertical-align:top;">
-							<?php
+			if(!empty($checkPictNews) || !empty($checkPictTemplate)){
+				foreach($checkPictNews as $k=>$oneNews){
+					$checkPictNews[$k] = '<a href="" onclick="window.parent.document.location.href=\''.acymailing_completeLink(($app->isAdmin() ? '' : 'front').'newsletter&task=edit&mailid='.$oneNews).'\'">'.$oneNews.'</a>';
+				}
+				if($app->isAdmin()){
+					foreach($checkPictTemplate as $k => $oneTmpl){
+						$checkPictTemplate[$k] = '<a href="" onclick="window.parent.document.location.href=\''.acymailing_completeLink('template&task=edit&tempid='.$oneTmpl).'\'">'.$oneTmpl.'</a>';
+					}
+				}
+				acymailing_display(JText::sprintf('ACY_CANT_DELETE', (!empty($checkPictNews)?implode($checkPictNews, ', '):'-'), (!empty($checkPictTemplate)?implode($checkPictTemplate, ', '):'-')),'error');
+			} else{
+				if(JFile::delete($uploadPath.DS.$pictToDelete)){
+					acymailing_display(JText::_('ACY_DELETED_PICT_SUCCESS'),'success');
+				} else{
+					acymailing_display(JText::_('ACY_DELETED_PICT_ERROR'),'error');
+				}
+			}
+		}
+		?>
 
-							$folders = $this->_generateArborescence($mediaFolders);
+		<div id="acy_media_browser" >
+			<!-- <br style="font-size:1px"/> -->
+			<table id="acy_media_browser_table" style="height:420px;">
+				<tr>
+					<td style="width:65%; vertical-align:top;">
+						<?php
 
-							foreach($folders as $folder){
-								$this->values[] = JHTML::_('select.option', $folder, $folder);
-							}
+						$folders = acymailing_generateArborescence($mediaFolders);
 
-							echo '<div style="display:inline-block;width:100%;">';
-							echo '<form method="post" action="index.php?option=com_acymailing&ctrl='.(JFactory::getApplication()->isAdmin()?'':'front').'editor&task=createFolder" >';
-							echo '<div id="acy_media_browser_path_dropdown" >';
-							echo JHTML::_('select.genericlist',   $this->values, 'acy_media_browser_files_path', 'class="inputbox chzn-done" size="1" onchange="changeFolder(this.value)" style="width:350px" ', 'value', 'text', $defaultFolder).'<br />';
-							echo '</div>';
+						foreach($folders as $folder){
+							$this->values[] = JHTML::_('select.option', $folder, $folder);
+						}
 
-							echo '<div id="acy_media_browser_global_create_folder" >';
+						echo '<div style="display:inline-block;width:100%;">';
+						echo '<form method="post" action="index.php?option=com_acymailing&ctrl='.(JFactory::getApplication()->isAdmin()?'':'front').'editor&task=createFolder" >';
+						echo '<div id="acy_media_browser_path_dropdown" >';
+						echo JHTML::_('select.genericlist',   $this->values, 'acy_media_browser_files_path', 'class="inputbox chzn-done" size="1" onchange="changeFolder(this.value)" style="width:350px; min-height:19px;" ', 'value', 'text', $defaultFolder).'<br />';
+						echo '</div>';
 
-							echo '<div id="acy_media_browser_create_folder" >';
-							echo '<button id="create_folder_btn" class="btn" onclick="displayAppropriateField(this.id)" type="button" style="width:100%;" >'.JText::_('CREATE_FOLDER').'</button>';
-							echo '</div>';
+						echo '<div id="acy_media_browser_global_create_folder" >';
 
-							echo '<div id="acy_media_browser_area_create_folder" style=\'display:none;\'>';
-							echo '<input id="subFolderName" name="subFolderName" type="text" placeholder="'.JText::_('FOLDER_NAME').'" name="text" required="required" />';
-							echo '<input type="submit" class="btn btn-primary" value="'.JText::_('ACY_APPLY').'" />';
-							echo '</div>';
+						echo '<div id="acy_media_browser_create_folder" >';
+						echo '<button id="create_folder_btn" class="btn" onclick="displayAppropriateField(this.id)" type="button" style="width:100%;" >'.JText::_('CREATE_FOLDER').'</button>';
+						echo '</div>';
 
-							echo '</div>';
-							echo JHTML::_( 'form.token' );
-							echo '</form>';
-							echo '</div>';
+						echo '<div id="acy_media_browser_area_create_folder" style=\'display:none;\'>';
+						echo '<input id="subFolderName" name="subFolderName" type="text" placeholder="'.JText::_('FOLDER_NAME').'" name="text" required="required" />';
+						echo '<input type="submit" class="btn btn-primary" value="'.JText::_('ACY_APPLY').'" />';
+						echo '</div>';
+
+						echo '</div>';
+						echo JHTML::_( 'form.token' );
+						echo '</form>';
+						echo '</div>';
 
 
-							acymailing_createDir($uploadPath);
+						acymailing_createDir($uploadPath);
 
-							$files = JFolder::files($uploadPath);
+						$files = JFolder::files($uploadPath);
 
-							echo '<ul id="acy_media_browser_list">';
+						echo '<ul id="acy_media_browser_list">';
 
-							if(!empty($uploadMessage)){
-								 if($uploadMessage=='success') acymailing_display($this->message);
-								 else if($uploadMessage=='error') acymailing_display($this->message, 'error');
-							}
+						if(!empty($uploadMessage) && !empty($this->message)){
+							if($uploadMessage == 'success') acymailing_display($this->message);
+							elseif($uploadMessage == 'error') acymailing_display($this->message, 'error');
+						}
 
-							$images = array();
-							$imagesFound=false;
-							foreach($files as $k => $file){
-								if(strrpos($file, '.') === false)
-									continue;
+						$images = array();
+						$imagesFound=false;
+						foreach($files as $k => $file){
+							if(strrpos($file, '.') === false)
+								continue;
 
-								$ext = strtolower(substr($file, strrpos($file, '.') + 1));
-								$extensions = array('jpg', 'jpeg', 'png', 'gif');
-								if(!in_array($ext, $extensions))
-									continue;
+							$ext = strtolower(substr($file, strrpos($file, '.') + 1));
+							$extensions = array('jpg', 'jpeg', 'png', 'gif');
+							if(!in_array($ext, $extensions))
+								continue;
 
-								$imagesFound = true;
-								$images[] = $file;
-								$imageSize = getimagesize ($uploadPath.DS.$file);
-								?>
-								<li id="acy_media_browser_images_<?php echo $k; ?>" style="position: relative; height: 135px; width:135px; display:inline-block; margin:14px; margin-top:7px; box-shadow: 0px 2px 2px 2px rgba(0, 0, 0, 0.2);"  onmouseover="toggleImageInfo(<?php echo $k; ?>, 'display')" onmouseout="toggleImageInfo(<?php echo $k; ?>, 'hide')" >
-									<img id="acy_media_browser_image_<?php echo $k; ?>" src="<?php echo ACYMAILING_LIVE.$defaultFolder.'/'.$file; ?>" height="135" width="135" style="height: 135px; width:135px;"></img>
-									<a href="#" onclick="displayImageFromUrl('<?php echo ACYMAILING_LIVE.$defaultFolder.'/'.$file; ?>', 'success', '<?php echo $file; ?>', '<?php echo $imageSize[0]; ?>', '<?php echo $imageSize[1]; ?>'); return false;" >
-											<div id="acy_media_browser_image_info_<?php echo $k; ?>" style="box-shadow: 0px 3px 3px 3px rgba(0, 0, 0, 0.3); padding-top:40px; text-align:center; vertical-align:middle; color: white; position:absolute; top:0px; left:0px; bottom:0px; right:0px; display:none; background-color: rgba(0,0,0,0.5);">
-												<?php echo $file; ?><br />
-												<span class="acy_media_browser_image_size" ><?php echo $imageSize[0].'x'.$imageSize[1]; ?> - <?php echo round((filesize($uploadPath.DS.$file)* 0.0009765625),2).' ko'; ?><br /></span>
-											</div>
-									</a>
-								</li>
-								<?php
-							}
-
-							if(!$imagesFound){
-								acymailing_display(JText::_( 'NO_FILE_FOUND' ),'warning');
-							}
+							$imagesFound = true;
+							$images[] = $file;
+							$imageSize = getimagesize($uploadPath.DS.$file);
 							?>
-
-							</ul>
-
-							<!-- Here we give the possibility to import a file or specify and url -->
-							<div id="acy_media_browser_actions" >
-								<div id="acy_media_browser_containing_block">
-									<div id="acy_media_browser_buttons_block" >
-										<button type="button"  class="btn" id="upload_image_btn" onclick="displayAppropriateField(this.id)"> <?php echo JText::_('UPLOAD_NEW_IMAGE'); ?></button>
-										<?php echo JText::_('ACY_OR'); ?>
-										<button type="button"  class="btn" id="import_from_url_btn" onclick="displayAppropriateField(this.id)"> <?php echo JText::_('INSERT_IMAGE_FROM_URL'); ?> </button>
+							<li class="acy_media_browser_images" id="acy_media_browser_images_<?php echo $k; ?>" onmouseover="toggleImageInfo(<?php echo $k; ?>, 'display')" onmouseout="toggleImageInfo(<?php echo $k; ?>, 'hide')" >
+								<img class="acy_media_browser_image" id="acy_media_browser_image_<?php echo $k; ?>" src="<?php echo ACYMAILING_LIVE.$defaultFolder.'/'.$file; ?>" />
+								<a href="#" onclick="displayImageFromUrl('<?php echo ACYMAILING_LIVE.$defaultFolder.'/'.$file; ?>', 'success', '<?php echo $file; ?>', '<?php echo $imageSize[0]; ?>', '<?php echo $imageSize[1]; ?>'); return false;" >
+									<div id="acy_media_browser_image_info_<?php echo $k; ?>" style="box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, 0.2); text-shadow:1px 1px 1px #ffffff; border:2px solid #fff; padding-top:40px; text-align:center; vertical-align:middle; color:#333; font-weight:bold; position:absolute; top:0px; left:0px; bottom:0px; right:0px; display:none; background-color: rgba(255,255,255,0.8);">
+										<img class="acy_media_browser_delete" id="acy_media_browser_delete_<?php echo $k; ?>" src="<?php echo ACYMAILING_LIVE.'media'.DS.ACYMAILING_COMPONENT.DS.'images'.DS.'editor'.DS.'delete.png'; ?>" onclick="confirmDeletePicture('<?php echo $file; ?>')"/>
+										<?php echo $file; ?><br />
+										<span class="acy_media_browser_image_size" ><?php echo $imageSize[0].'x'.$imageSize[1]; ?> - <?php echo round((filesize($uploadPath.DS.$file)* 0.0009765625),2).' ko'; ?><br /></span>
 									</div>
-									<div id="acy_media_browser_hidden_elements">
-										<div id="upload_image" style="position: relative; padding-top:5px;	display:none; text-align: center;">
-											<form method="post"  name="adminForm" id="adminForm" enctype="multipart/form-data" style="margin:0px; margin-top:3px;" >
-												<input type="file" style="width:auto;" name="uploadedImage" /><br />
-												<input type="hidden" name="task" value="browse" />
-												<input type="hidden" name="selected_folder" value="<?php echo htmlspecialchars($defaultFolder, ENT_COMPAT, 'UTF-8'); ?>" />
-												<?php echo JHTML::_( 'form.token' ); ?>
-											</form>
-											<button class="btn btn-primary" type="button" onclick="submitbutton();"> <?php echo JText::_('IMPORT'); ?> </button>
-											<span style="position:absolute; top:5px; left:5px;" id="acy_back_from_upload" onclick="displayAppropriateField(this.id)" ><a href="javascript:void(0);">&#8592 <?php echo JText::_('MEDIA_BACK'); ?></a></span>
-										</div>
-										<div id="import_from_url" style="padding-top:9px; position:relative; ">
-											<input type="text" id="acy_media_browser_url_input" class="inputbox" oninput="testImage(this.value, displayImageFromUrl)" value="http://" />
-											<?php  ?>
-											<div id="acy_media_browser_insert_message"></div>
-											<span style="position:absolute; top:5px; left:5px;" id="acy_back_from_url" onclick="displayAppropriateField(this.id)" ><a href="javascript:void(0);">&#8592 <?php echo JText::_('MEDIA_BACK'); ?></a></span>
-										</div>
+								</a>
+							</li>
+						<?php
+						}
+
+						if(!$imagesFound){
+							acymailing_display(JText::_( 'NO_FILE_FOUND' ),'warning');
+						}
+						?>
+
+						</ul>
+
+						<!-- Here we give the possibility to import a file or specify and url -->
+						<div id="acy_media_browser_actions" >
+							<div id="acy_media_browser_containing_block">
+								<div id="acy_media_browser_buttons_block" >
+									<button type="button"  class="btn" id="upload_image_btn" onclick="displayAppropriateField(this.id)"> <?php echo JText::_('UPLOAD_NEW_IMAGE'); ?></button>
+									<?php echo JText::_('ACY_OR'); ?>
+									<button type="button"  class="btn" id="import_from_url_btn" onclick="displayAppropriateField(this.id)"> <?php echo JText::_('INSERT_IMAGE_FROM_URL'); ?> </button>
+								</div>
+								<div id="acy_media_browser_hidden_elements">
+									<div id="upload_image" style="position: relative; padding-top:5px;	display:none; text-align: center;">
+										<form method="post"  name="adminForm" id="adminForm" enctype="multipart/form-data" style="margin:0px; margin-top:3px;" >
+											<input type="file" style="width:auto;" name="uploadedImage" /><br />
+											<input type="hidden" name="task" value="browse" />
+											<input type="hidden" name="selected_folder" value="<?php echo htmlspecialchars($defaultFolder, ENT_COMPAT, 'UTF-8'); ?>" />
+											<?php echo JHTML::_( 'form.token' ); ?>
+										</form>
+										<button class="btn btn-primary" type="button" onclick="submitbutton();"> <?php echo JText::_('IMPORT'); ?> </button>
+										<span style="position:absolute; top:5px; left:5px;" id="acy_back_from_upload" onclick="displayAppropriateField(this.id)" ><a href="javascript:void(0);">&#8592 <?php echo JText::_('MEDIA_BACK'); ?></a></span>
+									</div>
+									<div id="import_from_url" style="padding-top:9px; position:relative; ">
+										<input type="text" id="acy_media_browser_url_input" class="inputbox" oninput="testImage(this.value, displayImageFromUrl)" value="http://" />
+										<?php  ?>
+										<div id="acy_media_browser_insert_message"></div>
+										<span style="position:absolute; top:5px; left:5px;" id="acy_back_from_url" onclick="displayAppropriateField(this.id)" ><a href="javascript:void(0);">&#8592 <?php echo JText::_('MEDIA_BACK'); ?></a></span>
 									</div>
 								</div>
 							</div>
-						</td>
-						<!-- IMAGE INFORMATION -->
-						<td id="acy_media_browser_image_details_row" >
-							<div id="acy_media_browser_image_details"  >
-								<div id="acy_media_browser_image_selected" style=" max-width:230px; max-height:190px; display:none;	margin:auto; margin-bottom:10px;"></div>
-								<div id="acy_media_browser_image_selected_info" style=""></div>
-								<div id="acy_media_browser_image_selected_details" >
-									<label for="acy_media_browser_image_title" style="float:left;"><?php echo JText::_( 'ACY_TITLE' ); ?></label>
-									<input type="text" id="acy_media_browser_image_title" class="inputbox" style="width:100%"  value="" />
-									<?php $imageZone = JRequest::getVar( 'image_zone', array(), '', 'array' );
-									if(!empty($imageZone)){ ?>
-										<label for="acy_media_browser_image_target"><?php echo JText::_( 'ACY_LINK' ); ?></label>
-										<input type="text" id="acy_media_browser_image_target" placeholder="<?php echo ACYMAILING_LIVE; ?>..." class="inputbox" style="width:100%"  value="" />
-									<?php }else{ ?>
-										<label for="acy_media_browser_image_width" style="display:inline;"><?php echo JText::_( 'CAPTCHA_WIDTH' ); ?></label>	<input type="text" id="acy_media_browser_image_width"  style="width:23%;"  value="" oninput="calculateSize(0, this.value)" />
-										<br /><label for="acy_media_browser_image_height" style="display:inline;"><?php echo JText::_( 'CAPTCHA_HEIGHT' ); ?></label>	<input type="text" id="acy_media_browser_image_height"  style="width:22%;"  value="" oninput="calculateSize(this.value, 0)" />
-										<br /><label for="acy_media_browser_image_align" style="display:inline;"><?php echo JText::_( 'ALIGNMENT' ); ?></label>
-										<select id="acy_media_browser_image_align" class="chzn-done" style="width:50%">
-											<option value=""><?php echo JText::_( 'NOT_SET' ); ?></option>
-											<option value="left"><?php echo JText::_( 'ACY_LEFT' ); ?></option>
-											<option value="right"><?php echo JText::_( 'ACY_RIGHT' ); ?></option>
-										</select><br />
-										<label for="acy_media_browser_image_margin" style="display:inline;"><?php echo JText::_( 'ACY_MARGIN' ); ?></label>	<input type="text" style="width:23%;"  id="acy_media_browser_image_margin"  value="" /><br />
-										<label for="acy_media_browser_image_border" style="display:inline;"><?php echo JText::_( 'ACY_BORDER' ); ?></label>	<input type="text" style="width:23%;"  id="acy_media_browser_image_border"  value="" /><br />
-										<label for="acy_media_browser_image_class" style="display:inline;"><?php echo JText::_( 'ACY_CLASS' ); ?></label>	<input type="text" style="width:50%;"  id="acy_media_browser_image_class"  value="" />
-										<input type="hidden" id="acy_media_browser_image_linkhref"  value="" />
-									<?php } ?>
-								</div>
-								<button class="btn btn-primary" type="button" onclick="validateImage();window.parent.SqueezeBox.close();" style=" position:absolute; bottom:6px; right:6px; "><?php echo JText::_('INSERT'); ?> </button>
-							 </div>
-						</td>
-					</tr>
-			 	</table>
+						</div>
+					</td>
+					<!-- IMAGE INFORMATION -->
+					<td id="acy_media_browser_image_details_row" >
+						<div id="acy_media_browser_image_details"  >
+							<div id="acy_media_browser_image_selected" style=" max-width:230px; max-height:190px; display:none;	margin:auto; margin-bottom:10px;"></div>
+							<div id="acy_media_browser_image_selected_info" style=""></div>
+							<div id="acy_media_browser_image_selected_details" >
+								<label for="acy_media_browser_image_title" style="float:left;"><?php echo JText::_( 'ACY_TITLE' ); ?></label>
+								<input type="text" id="acy_media_browser_image_title" class="inputbox" style="width:100%"  value="" />
+								<?php $imageZone = JRequest::getVar( 'image_zone', array(), '', 'array' );
+								if(!empty($imageZone)){ ?>
+									<label for="acy_media_browser_image_target"><?php echo JText::_( 'ACY_LINK' ); ?></label>
+									<input type="text" id="acy_media_browser_image_target" placeholder="<?php echo ACYMAILING_LIVE; ?>..." class="inputbox" style="width:100%"  value="" />
+								<?php }else{ ?>
+									<label for="acy_media_browser_image_width" style="display:inline;"><?php echo JText::_( 'CAPTCHA_WIDTH' ); ?></label>	<input type="text" id="acy_media_browser_image_width"  style="width:23%;"  value="" oninput="calculateSize(0, this.value)" />
+									<br /><label for="acy_media_browser_image_height" style="display:inline;"><?php echo JText::_( 'CAPTCHA_HEIGHT' ); ?></label>	<input type="text" id="acy_media_browser_image_height"  style="width:22%;"  value="" oninput="calculateSize(this.value, 0)" />
+									<br /><label for="acy_media_browser_image_align" style="display:inline;"><?php echo JText::_( 'ALIGNMENT' ); ?></label>
+									<select id="acy_media_browser_image_align" class="chzn-done" style="width:50%">
+										<option value=""><?php echo JText::_( 'NOT_SET' ); ?></option>
+										<option value="left"><?php echo JText::_( 'ACY_LEFT' ); ?></option>
+										<option value="right"><?php echo JText::_( 'ACY_RIGHT' ); ?></option>
+									</select><br />
+									<label for="acy_media_browser_image_margin" style="display:inline;"><?php echo JText::_( 'ACY_MARGIN' ); ?></label>	<input type="text" style="width:23%;"  id="acy_media_browser_image_margin"  value="" /><br />
+									<label for="acy_media_browser_image_border" style="display:inline;"><?php echo JText::_( 'ACY_BORDER' ); ?></label>	<input type="text" style="width:23%;"  id="acy_media_browser_image_border"  value="" /><br />
+									<label for="acy_media_browser_image_class" style="display:inline;"><?php echo JText::_( 'ACY_CLASS' ); ?></label>	<input type="text" style="width:50%;"  id="acy_media_browser_image_class"  value="" />
+									<input type="hidden" id="acy_media_browser_image_linkhref"  value="" />
+								<?php } ?>
+							</div>
+							<button class="btn btn-primary" type="button" onclick="validateImage();window.parent.SqueezeBox.close();" style=" position:absolute; bottom:6px; right:6px; "><?php echo JText::_('INSERT'); ?> </button>
+						</div>
+					</td>
+				</tr>
+			</table>
+
+			<div class="confirmBoxMM" id="confirmBoxMM" style="display: none;">
+				<div id="acy_popup_content">
+					<span class="confirmTxtMM" id="confirmTxtMM"></span>
+					<button class="acy_popup_cancel_button" id="confirmCancelMM" onclick="document.getElementById('confirmBoxMM').style.display='none';">
+						<?php echo JText::_('ACY_CANCEL'); ?>
+					</button>
+					<button class="acy_popup_delete_button" id="confirmOkMM">
+						<?php echo JText::_('ACY_DELETE'); ?>
+					</button>
+				</div>
 			</div>
+
+
+		</div>
 		<?php
 
 		$imageZone = JRequest::getVar( 'image_zone', array(), '', 'array' );
@@ -739,184 +835,49 @@ class EditorController extends acymailingController{
 		}else{
 			echo '<script>checkSelected();</script>';
 		}
-		if(isset($uploadMessage) && $uploadMessage=='success'){
-			$imageSize = getimagesize(ACYMAILING_LIVE.$defaultFolder. $this->imageName);
-			echo  '<script> displayImageFromUrl(\''.ACYMAILING_LIVE.$defaultFolder. $this->imageName.'\',\'success\', \''.$this->imageName.'\','.$imageSize[0].','.$imageSize[1].');</script>';
+		if(isset($uploadMessage) && $uploadMessage == 'success'){
+			$imageSize = getimagesize(ACYMAILING_LIVE.rtrim($defaultFolder, '/').'/'.$this->imageName);
+			echo '<script> displayImageFromUrl(\''.ACYMAILING_LIVE.rtrim($defaultFolder, '/').'/'.$this->imageName.'\',\'success\', \''.$this->imageName.'\','.$imageSize[0].','.$imageSize[1].');</script>';
 		}
 	}
 
-	private function _generateArborescence($folders){
-		$folderList = array();
-		foreach($folders as $folder){
-			$folderPath = JPath::clean(ACYMAILING_ROOT.trim(str_replace('/',DS,trim($folder)),DS));
-			if(!file_exists($folderPath)) acymailing_createDir($folderPath);
-			$subFolders = JFolder::listFolderTree($folderPath,'',15);
-			$folderList[] = trim($folder,'/ ');
-			foreach($subFolders as $oneFolder){
-				$subFolder = str_replace(ACYMAILING_ROOT,'',$oneFolder['relname']);
-				$subFolder = str_replace(DS,'/',$subFolder);
-				$folderList[] = ltrim($subFolder, '/');
-			}
-		}
-
-		return array_unique($folderList);
-	}
-
-	private function _generateSpecificFolders($folders){
-
-		$my = JFactory::getUser();
-		$db = JFactory::getDBO();
-		$newFolders = array();
-
-		foreach($folders as $k => $folder){
-			if(strpos($folder,'{userid}') !== false){
-				if(empty($my->id)){
-					$folders[$k] = str_replace('{userid}', '', $folders[$k]);
-				}else{
-					$folders[$k] = str_replace('{userid}', $my->id, $folders[$k]);
-				}
-			}
-
-			if(strpos($folder,'{groupid}') !== false || strpos($folder,'{groupname}') !== false){
-				if(!ACYMAILING_J16){
-					$groups = array($my->gid);
-				}else{
-					jimport('joomla.access.access');
-					$groups = JAccess::getGroupsByUser($my->id,false);
-				}
-
-				if(empty($groups)){
-					$folders[$k] = str_replace(array('{groupid}','{groupname}'), '', $folders[$k]);
-				}else{
-					JArrayHelper::toInteger($groups);
-
-					if(ACYMAILING_J16){
-						$db->setQuery('SELECT id, title FROM #__usergroups WHERE id IN ('.implode(',', $groups).')');
-						$completeGroups = $db->loadObjectList();
-					}else{
-						$groupObject = new stdClass();
-						$groupObject->id = $my->gid;
-						$groupObject->title = $my->usertype;
-						$completeGroups = array($groupObject);
-					}
-
-					foreach($completeGroups as $group){
-						$newFolders[] = str_replace(array('{groupid}', '{groupname}'), array($group->id, strtolower(str_replace(' ', '_', $group->title))), $folders[$k]);
-					}
-
-					$folders[$k] = '';
-				}
-			}
-		}
-
-		$folders = array_merge($folders, $newFolders);
-		$folders = array_filter( $folders );
-		sort($folders);
-
-		return $folders;
-	}
-
-		private function _importImage($image, $uploadPath){
-			JRequest::checkToken() or die( 'Invalid Token' );
-
-			$app = JFactory::getApplication();
-			$config =& acymailing_config();
-			$additionalMsg='';
-
-			if($image["error"] > 0){
-				$this->message = "Error Uploading code: ".htmlspecialchars($image["error"], ENT_COMPAT, 'UTF-8')."<br />";
-				return false;
-			}
-
-			if(!preg_match('#\.(jpg|jpeg|png|gif)$#Ui',$image["name"],$extension)){
-				$ext = substr($image["name"], strrpos($image["name"], '.')+1);
-				$this->message = JText::sprintf( 'ACCEPTED_TYPE', htmlspecialchars($ext, ENT_COMPAT, 'UTF-8'), 'jpg, jpeg, png, gif' );
-				return false;
-			}
-
-			$image["name"] = preg_replace('#[^a-z0-9]#i','_',strtolower(substr($image["name"], 0,strrpos($image["name"], '.')))).'.'.$extension[1];
-
-			$imageSize = getimagesize($image['tmp_name']);
-			if(empty($imageSize)){
-				$this->message = 'Invalid image';
-				return false;
-			}
-
-			if(file_exists($uploadPath.DS.$image["name"])){
-				$i = 1;
-				$nameFile = preg_replace("/\\.[^.\\s]{3,4}$/", "", $image["name"]);
-				$ext = substr($image["name"], strrpos($image["name"], '.')+1);
-				while(file_exists($uploadPath. DS . $nameFile.'_'.$i.'.'.$ext)){
-					$i++;
-				}
-
-				$image["name"] = $nameFile.'_'.$i.'.'.$ext;
-				$additionalMsg = '<br />'.JText::sprintf('FILE_RENAMED', $image["name"]);
-			}
-
-			if(!JFile::upload($image["tmp_name"],rtrim($uploadPath,DS).DS. $image["name"])){
-				if(!move_uploaded_file($image["tmp_name"],	rtrim($uploadPath,DS).DS. $image["name"])){
-					$this->message = JText::sprintf( 'FAIL_UPLOAD','<b><i>'.htmlspecialchars($image["tmp_name"], ENT_COMPAT, 'UTF-8').'</i></b>','<b><i>'.htmlspecialchars(rtrim($uploadPath,DS).DS.$image["name"], ENT_COMPAT, 'UTF-8').'</i></b>');
-					return false;
-				}
-			}
-
-			if($imageSize[0]>1000){
-				$pictureHelper = acymailing_get('helper.acypict');
-				if($pictureHelper->available()){
-					$pictureHelper->maxHeight=9999;
-					$pictureHelper->maxWidth=700;
-					$pictureHelper->destination =  $uploadPath;
-					$thumb = $pictureHelper->generateThumbnail(rtrim($uploadPath,DS).DS. $image["name"], $image["name"]);
-					$resize = JFile::move($thumb['file'],$uploadPath.DS.$image["name"]);
-					if($thumb) $additionalMsg .='<br />'.JText::_( 'IMAGE_RESIZED' );
-				}
-			}
-			$this->message = '<strong>'.JText::_( 'SUCCESS_FILE_UPLOAD' ).'</strong>'.$additionalMsg;
-			$this->imageName = $image["name"];
-			return true;
-		}
-
-		public function createFolder(){
-			JRequest::checkToken() or die( 'Invalid Token to create folder' );
-			$folderName = str_replace(array('.','-'),array('','_'),strtolower(JRequest::getCmd('subFolderName')));
-			if(empty($folderName)){
-				$this->browse();
-				return false;
-			}
-			$app = JFactory::getApplication();
-			$config = acymailing_config();
-
-			$directoryPath = JRequest::getString('acy_media_browser_files_path').'/'.$folderName;
-
-			$mediaFolders = explode(',', $config->get('mediafolder','media/com_acymailing/upload'));
-			$mediaFolders = $this->_generateSpecificFolders($mediaFolders);
-			$allowed = false;
-			foreach($mediaFolders as $oneMedia){
-				if(preg_match('#^'.preg_quote($oneMedia).'[a-z_0-9\-/]*$#i',$directoryPath)){
-					$allowed = true;
-					break;
-				}
-			}
-			if(!$allowed){
-				$app->enqueueMessage('You are not allowed to create this folder','error');
-				$this->browse();
-				return false;
-			}
-
-			$directoryPath = str_replace('/',DS,$directoryPath);
-
-			if(JFolder::exists(ACYMAILING_ROOT.$directoryPath)){
-				$app->enqueueMessage(JText::_('FOLDER_ALREADY_EXISTS'),'warning');
-				$this->browse();
-				return false;
-			}
-			if(!JFolder::create(ACYMAILING_ROOT.$directoryPath)){
-				$app->enqueueMessage(JText::sprintf('WRITABLE_FOLDER',substr(ACYMAILING_ROOT.$directoryPath,0,strrpos(ACYMAILING_ROOT.$directoryPath,DS)),'error'));
-				$this->browse();
-				return false;
-			}
-			JRequest::setVar('selected_folder',JRequest::getString('acy_media_browser_files_path').'/'.$folderName);
+	public function createFolder(){
+		JRequest::checkToken() or die( 'Invalid Token to create folder' );
+		$folderName = str_replace(array('.','-'),array('','_'),strtolower(JRequest::getCmd('subFolderName')));
+		if(empty($folderName)){
 			$this->browse();
+			return false;
 		}
+
+		$directoryPath = JRequest::getString('acy_media_browser_files_path').'/'.$folderName;
+
+		$mediaFolders = acymailing_getFilesFolder('media', true);
+		$allowed = false;
+		foreach($mediaFolders as $oneMedia){
+			if(preg_match('#^'.preg_quote($oneMedia).'[a-z_0-9\-/]*$#i',$directoryPath)){
+				$allowed = true;
+				break;
+			}
+		}
+		if(!$allowed){
+			acymailing_enqueueMessage('You are not allowed to create this folder','error');
+			$this->browse();
+			return false;
+		}
+
+		$directoryPath = str_replace('/',DS,$directoryPath);
+
+		if(JFolder::exists(ACYMAILING_ROOT.$directoryPath)){
+			acymailing_enqueueMessage(JText::_('FOLDER_ALREADY_EXISTS'),'warning');
+			$this->browse();
+			return false;
+		}
+		if(!JFolder::create(ACYMAILING_ROOT.$directoryPath)){
+			acymailing_enqueueMessage(JText::sprintf('WRITABLE_FOLDER',substr(ACYMAILING_ROOT.$directoryPath,0,strrpos(ACYMAILING_ROOT.$directoryPath,DS)),'error'));
+			$this->browse();
+			return false;
+		}
+		JRequest::setVar('selected_folder',JRequest::getString('acy_media_browser_files_path').'/'.$folderName);
+		$this->browse();
+	}
 }

@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	4.8.1
+ * @version	4.9.3
  * @author	acyba.com
- * @copyright	(C) 2009-2014 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2015 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -31,6 +31,35 @@ class plgSystemRegacymailing extends JPlugin
 			$this->_saveInSession();
 		}
 
+		if(!empty($_REQUEST['option']) && in_array($_REQUEST['option'], array('com_user', 'com_users')) && !empty($_REQUEST['view']) && in_array($_REQUEST['view'], array('register','registration','profile','user'))){
+			require_once(JPATH_ADMINISTRATOR.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_acymailing'.DIRECTORY_SEPARATOR.'helpers'.DIRECTORY_SEPARATOR.'helper.php');
+			$fieldsClass = acymailing_get('class.fields');
+			$fieldsClass->origin = 'joomla';
+			$user = new stdClass();
+			$app = JFactory::getApplication();
+
+			$taskVar = ACYMAILING_J16 ? 'layout' : 'task';
+
+			if($app->isAdmin()){
+				if($_REQUEST['view'] == 'user' && !empty($_REQUEST[$taskVar]) && $_REQUEST[$taskVar] == 'edit'){
+					$extraFields = $fieldsClass->getFields('joomlaprofile', $user);
+				}
+			}else{
+				if(in_array($_REQUEST['view'], array('register', 'registration'))){
+					$extraFields = $fieldsClass->getFields('frontjoomlaregistration',$user);
+				}elseif(in_array($_REQUEST['view'], array('user','profile')) && (!empty($_REQUEST[$taskVar]) && $_REQUEST[$taskVar] == 'edit')){
+					$extraFields = $fieldsClass->getFields('frontjoomlaprofile',$user);
+				}
+			}
+
+			if(!empty($extraFields)){
+				foreach($extraFields as $oneField){
+					if($oneField->type != 'date') continue;
+					JHTML::_('behavior.calendar');
+					break;
+				}
+			}
+		}
 	}
 
 
@@ -204,6 +233,7 @@ class plgSystemRegacymailing extends JPlugin
 		}
 
 		$fieldsClass = acymailing_get('class.fields');
+		$fieldsClass->origin = 'joomla';
 		$user = new stdClass();
 		$extraFields = $fieldsClass->getFields($area,$user);
 
@@ -280,6 +310,7 @@ class plgSystemRegacymailing extends JPlugin
 			}else{
 				$currentUserIdArray = JRequest::getVar('cid', array());
 				if(is_array($currentUserIdArray) && !empty($currentUserIdArray)) $currentUserId = array_shift($currentUserIdArray);
+				else $currentUserId = 0;
 			}
 		}else{
 			$user = JFactory::getUser();
@@ -294,7 +325,7 @@ class plgSystemRegacymailing extends JPlugin
 
 		foreach($newOrdering as $fieldName){
 			if(!empty($allFormats[$currentFormat]['tagfield'])) $text .= '<'.$allFormats[$currentFormat]['tagfield'].' id="acy'.$fieldName.'" class="acyregfield">';
-			if(!empty($allFormats[$currentFormat]['tagfieldname'])) $text .= '<'.$allFormats[$currentFormat]['tagfieldname'].' class="acyregfieldname'.(!empty($this->components[$option]['tdfieldlabelclass'])?' '.$this->components[$option]['tdfieldlabelclass']:'').'">';
+			if(!empty($allFormats[$currentFormat]['tagfieldname'])) $text .= '<'.$allFormats[$currentFormat]['tagfieldname'].' class="key acyregfieldname'.(!empty($this->components[$option]['tdfieldlabelclass'])?' '.$this->components[$option]['tdfieldlabelclass']:'').'">';
 			$text .= $fieldsClass->getFieldName($extraFields[$fieldName]);
 			if(!empty($allFormats[$currentFormat]['tagfieldname'])) $text .= '</'.$allFormats[$currentFormat]['tagfieldname'].'>';
 			if(!empty($allFormats[$currentFormat]['tagfieldvalue'])) $text .= '<'.$allFormats[$currentFormat]['tagfieldvalue'].' class="acyregfieldvalue'.(empty($this->components[$option]['fieldclass']) ? '' : ' '.$this->components[$option]['fieldclass']).'" >';
@@ -304,9 +335,47 @@ class plgSystemRegacymailing extends JPlugin
 			if(!empty($allFormats[$currentFormat]['tagfield'])) $text .= '</'.$allFormats[$currentFormat]['tagfield'].'>';
 		}
 
+		$doc = JFactory::getDocument();
+		if($app->isAdmin()){
+			if(ACYMAILING_J25) $formid = 'user-form';
+			else $formid = 'adminForm';
+		} elseif(empty($user->id)){
+			if(ACYMAILING_J25) $formid = 'member-registration';
+			else $formid = 'josForm';
+		} else{
+			if(ACYMAILING_J25) $formid = 'member-profile';
+			else $formid = 'userform';
+		}
+
+		$js = $fieldsClass->prepareConditionalDisplay($extraFields, 'regacy', 'joomlaProfile', $formid);
+		$js .= $this->_getAdditionalJs($extraFields);
+		$body = str_replace('</head>', '<script type="text/javascript">'.$js.'</script></head>', $body);
+
 		$body = preg_replace('#(name="'.preg_quote($after).'".{'.$this->components[$option]['lengthaftermin'].','.$this->components[$option]['lengthafter'].'}</'.$currentFormat.'>)#Uis','$1'.$text,$body,1);
 		JResponse::setBody($body);
 		return;
+	}
+
+	private function _getAdditionalJs($fields){
+		$js = '';
+		foreach($fields as $oneField){
+			if($oneField->type == 'date'){
+				if(ACYMAILING_J30){
+					$js .= 'jQuery(document).ready(function($) {Calendar.setup({';
+				}else{
+					$js .= 'window.addEvent(\'domready\', function() {Calendar.setup({';
+				}
+				if(empty($oneField->options['format'])) $oneField->options['format'] = "%Y-%m-%d";
+				$js .= 'inputField: "field_'.$oneField->namekey.'",
+						ifFormat: "'.$oneField->options['format'].'",
+						button: "field_'.$oneField->namekey.'_img",
+						align: "Tl",
+						singleClick: true,
+						firstDay: 0
+					});});';
+			}
+		}
+		return $js;
 	}
 
 	private function _addLists(){

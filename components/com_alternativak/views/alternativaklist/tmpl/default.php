@@ -80,22 +80,22 @@ if (($this->Szavazas->vita1==1) & ($user->id > 0)) {
 	if ($this->nem == '') $this->nem = 0;
 	echo '<div class="szavazas_in">
 	   Szavazásra javaslom 
-	   <button type="button" onclick="igenClick()" title="Igen">
+	   &nbsp;&nbsp;<button type="button" onclick="igenClick()" title="Igen">
 	   <div class="iconIgen" style="display:inline-block">&nbsp;</div>
-	   </button>
+	   </button>Igen
 	   '.$this->igen.'
-	   <button type="button" onclick="nemClick()" title="Nem">
+	   &nbsp;&nbsp;<button type="button" onclick="nemClick()" title="Nem">
 	   <div class="iconNem" style="display:inline-block">&nbsp;</div>
-	   </button>
+	   </button>Nem
 	   '.$this->nem.'
 	</div>
 	';
 } else if (($this->igen > 0) | ($this->nem > 0)) {
 	echo '<div class="szavazas_in">
 	   Szavazásra javasolták 
-	   <div class="iconIgen" style="display:inline-block">&nbsp;</div>
+	   &nbsp;&nbsp;<div class="iconIgen" style="display:inline-block">&nbsp;</div>Igen
 	   '.$this->igen.'
-	   <div class="iconNem" style="display:inline-block">&nbsp;</div>
+	   &nbsp;&nbsp;<div class="iconNem" style="display:inline-block">&nbsp;</div>Nem
 	   '.$this->nem.'
 	</div>
 	';

@@ -2,7 +2,7 @@
 
 /**
  * @package   	JCE
- * @copyright 	Copyright (c) 2009-2013 Ryan Demmer. All rights reserved.
+ * @copyright 	Copyright (c) 2009-2015 Ryan Demmer. All rights reserved.
  * @license   	GNU/GPL 2 or later - http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
  * JCE is free software. This version may have been modified pursuant
  * to the GNU General Public License, and as distributed it includes or
@@ -27,7 +27,7 @@ class WFModelEditor extends WFModelBase {
      * Editor version
      * @var string
      */
-    private static $version = null;
+    public static $version = null;
 
     /**
      * Profile object
@@ -165,19 +165,27 @@ class WFModelEditor extends WFModelBase {
             $stylesheets = (array) self::getStyleSheets();
             // set stylesheets as string
             $settings['content_css'] = implode(',', $stylesheets);
-			if(JRequest::getCmd('option') == 'com_acymailing'){
-				$acycssfile = JRequest::getString('acycssfile');
-				if(!empty($acycssfile)) $settings['content_css'] = $acycssfile;
-			}
-			
 
             // Editor Toggle
             $settings['toggle'] = $wf->getParam('editor.toggle', 1, 1);
             $settings['toggle_label'] = htmlspecialchars($wf->getParam('editor.toggle_label', '[Toggle Editor]', '[Toggle Editor]'));
             $settings['toggle_state'] = $wf->getParam('editor.toggle_state', 1, 1);
         }// end profile
+        // check for joomla debug mode
+        $config = JFactory::getConfig();
+
+        if (defined('JPATH_PLATFORM')) {
+            $debug = $config->get('debug');
+        } else {
+            $debug = $config->getValue('config.debug');
+        }
+
+        $compress = array('javascript' => false, 'css' => false);
+
         // set compression states
-        $compress = array('javascript' => intval($wf->getParam('editor.compress_javascript', 0)), 'css' => intval($wf->getParam('editor.compress_css', 0)));
+        if ((int) $debug === 0) {
+            $compress = array('javascript' => (int) $wf->getParam('editor.compress_javascript', 1), 'css' => (int) $wf->getParam('editor.compress_css', 1));
+        }
 
         // set compression
         if ($compress['css']) {
@@ -185,8 +193,6 @@ class WFModelEditor extends WFModelBase {
         } else {
             // CSS
             $this->addStyleSheet($this->getURL(true) . '/libraries/css/editor.css');
-
-            //$this->addStyleSheet($this->getURL(true) . '/libraries/bootstrap/css/bootstrap.css?version=' . $version);
             // get plugin styles
             $this->getPluginStyles($settings);
         }
@@ -462,13 +468,16 @@ class WFModelEditor extends WFModelBase {
 
         // merge plugins and commands
         $icons = array_merge($commands, $plugins);
+
         // create an array of rows
         $lists = explode(';', $this->profile->rows);
 
         // backwards compatability map
         $map = array(
-            'paste'     => 'clipboard',
-            'spacer'    => '|'
+            'paste' => 'clipboard',
+            'spacer' => '|',
+            'forecolor' => 'fontcolor',
+            'backcolor' => 'backcolor'
         );
 
         $x = 0;
@@ -490,7 +499,7 @@ class WFModelEditor extends WFModelBase {
                     if (array_key_exists($item, $icons) === false) {
                         continue;
                     }
-                    
+
                     // assign icon
                     $item = $icons[$item]->icon;
                 }
@@ -553,7 +562,38 @@ class WFModelEditor extends WFModelBase {
                 $wf = WFEditor::getInstance();
 
                 $plugins = explode(',', $this->profile->plugins);
-                $plugins = array_unique(array_merge(array('autolink', 'cleanup', 'core', 'code', 'colorpicker', 'upload', 'format'), $plugins));
+                $core = array('autolink', 'cleanup', 'core', 'code', 'colorpicker', 'upload', 'format');
+                $plugins = array_unique(array_merge($core, $plugins));
+
+                // add formatselect
+                if (in_array('formatselect', $plugins) === false && strpos($this->profile->rows, 'formatselect') !== false) {
+                    $plugins[] = 'formatselect';
+                }
+
+                // add styleselect
+                if (in_array('styleselect', $plugins) === false && strpos($this->profile->rows, 'styleselect') !== false) {
+                    $plugins[] = 'styleselect';
+                }
+
+                // add fontselect
+                if (in_array('fontselect', $plugins) === false && strpos($this->profile->rows, 'fontselect') !== false) {
+                    $plugins[] = 'fontselect';
+                }
+
+                // add formatselect
+                if (in_array('fontsizeselect', $plugins) === false && strpos($this->profile->rows, 'fontsizeselect') !== false) {
+                    $plugins[] = 'fontsizeselect';
+                }
+
+                // add font colours
+                if (in_array('fontcolor', $plugins) === false && preg_match('#(forecolor|backcolor)#', $this->profile->rows)) {
+                    $plugins[] = 'fontcolor';
+                }
+
+                // add importcss
+                if (in_array('styleselect', $plugins) || in_array('fontselect', $plugins)) {
+                    $plugins[] = 'importcss';
+                }
 
                 // add advlists plugin if lists are loaded
                 if (in_array('lists', $plugins)) {
@@ -571,6 +611,10 @@ class WFModelEditor extends WFModelBase {
                 }
 
                 foreach ($plugins as $k => $v) {
+                    if (in_array($v, $core)) {
+                        continue;
+                    }
+
                     // check plugin is correctly installed and is a tinymce plugin, ie: it has an editor_plugin.js file
                     if (!JFile::exists(WF_EDITOR_PLUGINS . '/' . $v . '/editor_plugin.js')) {
                         unset($plugins[$k]);
@@ -727,6 +771,23 @@ class WFModelEditor extends WFModelBase {
         return $assigned;
     }
 
+    private static function getYoothemePath($template) {
+        $warp7 = JPATH_SITE . '/templates/' . $template . '/warp.php';
+
+        if (is_file($warp7)) {
+            // get warp
+            $warp = require($warp7);
+            $layouts = $warp['config']->get('layouts');
+            $style = $layouts['default']['style'];
+
+            if (!empty($style)) {
+                return "templates/" . $template . "/styles/" . $style . "/css";
+            }
+        }
+
+        return "templates/" . $template . "/css";
+    }
+
     private static function getStyleSheetsList($absolute = false) {
         jimport('joomla.filesystem.folder');
         jimport('joomla.filesystem.file');
@@ -753,8 +814,15 @@ class WFModelEditor extends WFModelBase {
             if (is_dir($path)) {
                 // assign template
                 $template = $item;
-                // assign url
-                $url = "templates/" . $template . "/css";
+
+                if (substr($template, 0, 4) === "yoo_") {
+                    $url = self::getYoothemePath($template);
+                    $path = JPATH_SITE . '/' . $url;
+                } else {
+                    // assign url
+                    $url = "templates/" . $template . "/css";
+                }
+
                 break;
             }
         }
@@ -771,8 +839,28 @@ class WFModelEditor extends WFModelBase {
                 $global_custom = $wf->getParam('editor.content_css_custom', '');
                 // Replace $template variable with site template name
                 $global_custom = str_replace('$template', $template, $global_custom);
-                // explode to array
-                $files = explode(',', $global_custom);
+
+                foreach (explode(',', $global_custom) as $tmp) {
+                    $file = JPATH_SITE . '/' . $tmp;
+                    $list = array();
+
+                    // check if path is a file
+                    if (is_file($file)) {
+                        $list[] = $file;
+                        // find files using pattern
+                    } else {
+                        $list = glob($file);
+                    }
+
+                    if (!empty($list)) {
+                        foreach ($list as $item) {
+                            if (is_file($item) && preg_match('#\.(css|less)$#', $item)) {
+                                $files[] = substr($item, strlen(JPATH_SITE) + 1);
+                            }
+                        }
+                    }
+                }
+
                 break;
             // Template css (template.css or template_css.css)
             case 1 :
@@ -781,7 +869,7 @@ class WFModelEditor extends WFModelBase {
                 $css = array();
 
                 if (JFolder::exists($path)) {
-                    $css = JFolder::files($path, '(base|core|template|template_css)\.(css|less)$', false, true);
+                    $css = JFolder::files($path, '(base|core|theme|template|template_css)\.(css|less)$', false, true);
                 }
 
                 if (!empty($css)) {
@@ -809,14 +897,36 @@ class WFModelEditor extends WFModelBase {
                 $profile_custom = $wf->getParam('editor.profile_content_css_custom', '');
                 // Replace $template variable with site template name (defaults to 'system')
                 $profile_custom = str_replace('$template', $template, $profile_custom);
-                // explode to array
-                $profile_custom = explode(',', $profile_custom);
+
+                $custom = array();
+
+                foreach (explode(',', $profile_custom) as $tmp) {
+                    $file = JPATH_SITE . '/' . $tmp;
+                    $list = array();
+
+                    // check if path is a file
+                    if (is_file($file)) {
+                        $list[] = $file;
+                        // find files using pattern
+                    } else {
+                        $list = glob($file);
+                    }
+
+                    if (!empty($list)) {
+                        foreach ($list as $item) {
+                            if (is_file($item) && preg_match('#\.(css|less)$#', $item)) {
+                                $custom[] = substr($item, strlen(JPATH_SITE) + 1);
+                            }
+                        }
+                    }
+                }
+
                 // add to existing list
-                if ($profile == 0) {
-                    $files = array_merge($files, $profile_custom);
+                if ($profile === 0) {
+                    $files = array_merge($files, $custom);
                     // overwrite global config value	
                 } else {
-                    $files = (array) $profile_custom;
+                    $files = (array) $custom;
                 }
                 break;
             // inherit global config value
@@ -831,11 +941,14 @@ class WFModelEditor extends WFModelBase {
 
         // check for existence of each file and make array of stylesheets
         foreach ($files as $file) {
+            if (empty($file)) {
+                continue;
+            }
+
             // remove leading slash
             $file = ltrim($file, '/');
 
-            if ($file && JFile::exists(JPATH_SITE . '/' . $file)) {
-
+            if (JFile::exists(JPATH_SITE . '/' . $file)) {
                 $etag = "";
 
                 // add etag
@@ -938,13 +1051,22 @@ class WFModelEditor extends WFModelBase {
                 // add core file
                 $files[] = WF_EDITOR . "/tiny_mce/tiny_mce" . $suffix . ".js";
 
-                // Add themes
-                foreach ($themes as $theme) {
-                    $files[] = WF_EDITOR . "/tiny_mce/themes/" . $theme . "/editor_template" . $suffix . ".js";
+                // Add themes in dev mode
+                if (!self::$version) {
+                    foreach ($themes as $theme) {
+                        $files[] = WF_EDITOR . "/tiny_mce/themes/" . $theme . "/editor_template" . $suffix . ".js";
+                    }
                 }
+
+                $core = array('autolink', 'cleanup', 'core', 'code', 'colorpicker', 'upload', 'format');
 
                 // Add plugins
                 foreach ($plugins as $plugin) {
+                    // skip core plugins in production mode
+                    if (self::$version && in_array($plugin, $core)) {
+                        continue;
+                    }
+
                     $files[] = WF_EDITOR . "/tiny_mce/plugins/" . $plugin . "/editor_plugin" . $suffix . ".js";
                 }
 

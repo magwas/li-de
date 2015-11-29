@@ -149,7 +149,7 @@ class TemakorokModelTemakorok  extends JModelItem {
            
            // tárolás a beallitasok táblába
            $db->setQuery('insert into #__beallitasok
-           values ((10+'.$table->id.'),'.$db->quote($item->json).')');
+           values ((10+'.$table->id.'),"'.$item->json.'")');
            $db->query();
            
            // usergroup létrehozása
@@ -195,7 +195,7 @@ class TemakorokModelTemakorok  extends JModelItem {
            $db->setQuery('delete from #__beallitasok where id=(10+'.$table->id.')');
            $db->query();
            $db->setQuery('insert into #__beallitasok
-           values ((10+'.$table->id.'),'.$db->quote($item->json).')');
+           values ((10+'.$table->id.'),"'.$item->json.'")');
            $db->query();
 
            // usergroup modositása

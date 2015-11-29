@@ -4,7 +4,7 @@
  * @package Kunena.Administrator
  * @subpackage Controllers
  *
- * @copyright (C) 2008 - 2013 Kunena Team. All rights reserved.
+ * @copyright (C) 2008 - 2014 Kunena Team. All rights reserved.
  * @license http://www.gnu.org/copyleft/gpl.html GNU/GPL
  * @link http://www.kunena.org
  **/
@@ -29,12 +29,14 @@ class KunenaAdminControllerTrash extends KunenaController {
 			$this->app->redirect ( KunenaRoute::_($this->baseurl, false) );
 		}
 
-		$cids = JRequest::getVar ( 'cid', array (), 'post', 'array' );
+		$cid = JRequest::getVar('cid', array(), 'post', 'array'); // Array of integers
+		JArrayHelper::toInteger($cid);
+
 		$type = JRequest::getCmd ( 'type', 'topics', 'post' );
 		$md5 = JRequest::getString ( 'md5', null );
 
-		if ( !empty($cids) ) {
-			$this->app->setUserState('com_kunena.purge', $cids);
+		if ( !empty($cid) ) {
+			$this->app->setUserState('com_kunena.purge', $cid);
 			$this->app->setUserState('com_kunena.type', $type);
 
 		} elseif ( $md5 ) {
@@ -77,7 +79,9 @@ class KunenaAdminControllerTrash extends KunenaController {
 			$this->app->redirect ( KunenaRoute::_($this->baseurl, false) );
 		}
 
-		$cid = JRequest::getVar ( 'cid', array (), 'post', 'array' );
+		$cid = JRequest::getVar('cid', array(), 'post', 'array'); // Array of integers
+		JArrayHelper::toInteger($cid);
+
 		$type = JRequest::getCmd ( 'type', 'topics', 'post' );
 
 		if (empty ( $cid )) {

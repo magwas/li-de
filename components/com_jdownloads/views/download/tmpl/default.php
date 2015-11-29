@@ -24,8 +24,25 @@ setlocale(LC_ALL, 'C.UTF-8', 'C');
     $jinput     = JFactory::getApplication()->input;
     $app        = JFactory::getApplication();    
     $user       = JFactory::getUser();
+
+    // get jD user limits and settings
+    $jd_user_settings = JDHelper::getUserRules();
     
     $jdownloads_root_dir_name = basename($jlistConfig['files.uploaddir']);
+    
+    $file_path = '';
+    if ($this->item->url_download){
+        if ($this->item->cat_id > 1){
+            if ($this->item->category_cat_dir_parent){
+                $file_path = $jlistConfig['files.uploaddir'].'/'.$this->item->category_cat_dir_parent.'/'.$this->item->category_cat_dir.'/'.$this->item->url_download;
+            } else {
+                $file_path = $jlistConfig['files.uploaddir'].'/'.$this->item->category_cat_dir.'/'.$this->item->url_download;
+            }
+        } else {
+           // Download is 'uncategorized'
+           $file_path = $jlistConfig['files.uploaddir'].'/'.$jlistConfig['uncategorised.files.folder.name'].'/'.$this->item->url_download; 
+        }    
+    }
     
     if ($this->item->category_cat_dir_parent){
         $category_dir = $this->item->category_cat_dir_parent.'/'.$this->item->category_cat_dir;
@@ -52,6 +69,8 @@ setlocale(LC_ALL, 'C.UTF-8', 'C');
     $footer_text    = '';
     $layout         = '';
     $is_admin   = false;
+    
+    $date_format = JDHelper::getDateFormat();
 
     if (JDHelper::checkGroup('8', true) || JDHelper::checkGroup('7', true)){
         $is_admin = true;
@@ -123,7 +142,7 @@ setlocale(LC_ALL, 'C.UTF-8', 'C');
         
         // components description
         if ($jlistConfig['downloads.titletext'] != '') {
-            $header_text = stripslashes($jlistConfig['downloads.titletext']);
+            $header_text = stripslashes(JDHelper::getOnlyLanguageSubstring($jlistConfig['downloads.titletext']));
             if ($jlistConfig['google.adsense.active'] && $jlistConfig['google.adsense.code'] != ''){
                 $header_text = str_replace( '{google_adsense}', stripslashes($jlistConfig['google.adsense.code']), $header_text);
             } else {
@@ -137,15 +156,16 @@ setlocale(LC_ALL, 'C.UTF-8', 'C');
         if (!isset($menuItemids['upload'])) $menuItemids['upload'] = $menuItemids['root'];
         
         // build home link        
-        $home_link = '<a href="'.JRoute::_('index.php?option=com_jdownloads&amp;Itemid='.$menuItemids['root']).'">'.'<img src="'.JURI::base().'components/com_jdownloads/assets/images/home_fe.png" width="32" height="32" border="0" alt="'.JText::_('COM_JDOWNLOADS_HOME_LINKTEXT').'" /></a> <a href="'.JRoute::_('index.php?option=com_jdownloads&amp;Itemid='.$menuItemids['root']).'">'.JText::_('COM_JDOWNLOADS_HOME_LINKTEXT').'</a>';
+        $home_link = '<a href="'.JRoute::_('index.php?option=com_jdownloads&amp;Itemid='.$menuItemids['root']).'">'.'<img src="'.JURI::base().'components/com_jdownloads/assets/images/home_fe.png" width="32" height="32" style="border:0px;" alt="'.JText::_('COM_JDOWNLOADS_HOME_LINKTEXT').'" /></a> <a href="'.JRoute::_('index.php?option=com_jdownloads&amp;Itemid='.$menuItemids['root']).'">'.JText::_('COM_JDOWNLOADS_HOME_LINKTEXT').'</a>';
         // build search link
-        $search_link = '<a href="'.JRoute::_('index.php?option=com_jdownloads&amp;view=search&amp;Itemid='.$menuItemids['search']).'">'.'<img src="'.JURI::base().'components/com_jdownloads/assets/images/search.png" width="32" height="32" border="0" alt="'.JText::_('COM_JDOWNLOADS_SEARCH_LINKTEXT').'" /></a> <a href="'.JRoute::_('index.php?option=com_jdownloads&amp;view=search&amp;Itemid='.$menuItemids['search'].'').'">'.JText::_('COM_JDOWNLOADS_SEARCH_LINKTEXT').'</a>';
+        $search_link = '<a href="'.JRoute::_('index.php?option=com_jdownloads&amp;view=search&amp;Itemid='.$menuItemids['search']).'">'.'<img src="'.JURI::base().'components/com_jdownloads/assets/images/search.png" width="32" height="32" style="border:0px;" alt="'.JText::_('COM_JDOWNLOADS_SEARCH_LINKTEXT').'" /></a> <a href="'.JRoute::_('index.php?option=com_jdownloads&amp;view=search&amp;Itemid='.$menuItemids['search'].'').'">'.JText::_('COM_JDOWNLOADS_SEARCH_LINKTEXT').'</a>';
         // build frontend upload link
-        $upload_link = '<a href="'.JRoute::_('index.php?option=com_jdownloads&amp;view=form&amp;layout=edit&amp;Itemid='.$menuItemids['upload']).'">'.'<img src="'.JURI::base().'components/com_jdownloads/assets/images/upload.png" width="32" height="32" border="0" alt="'.JText::_('COM_JDOWNLOADS_UPLOAD_LINKTEXT').'" /></a> <a href="'.JRoute::_('index.php?option=com_jdownloads&amp;view=form&amp;layout=edit&amp;Itemid='.$menuItemids['upload'].'').'">'.JText::_('COM_JDOWNLOADS_UPLOAD_LINKTEXT').'</a>';
+        $upload_link = '<a href="'.JRoute::_('index.php?option=com_jdownloads&amp;view=form&amp;layout=edit&amp;Itemid='.$menuItemids['upload']).'">'.'<img src="'.JURI::base().'components/com_jdownloads/assets/images/upload.png" width="32" height="32" style="border:0px;" alt="'.JText::_('COM_JDOWNLOADS_UPLOAD_LINKTEXT').'" /></a> <a href="'.JRoute::_('index.php?option=com_jdownloads&amp;view=form&amp;layout=edit&amp;Itemid='.$menuItemids['upload'].'').'">'.JText::_('COM_JDOWNLOADS_UPLOAD_LINKTEXT').'</a>';
 
         $header = str_replace('{home_link}', $home_link, $header);
         $header = str_replace('{search_link}', $search_link, $header);
-        if ($jlistConfig['frontend.upload.active']) {
+
+        if ($jd_user_settings->uploads_view_upload_icon){
             if ($this->view_upload_button){
                 $header = str_replace('{upload_link}', $upload_link, $header);
             } else {
@@ -164,19 +184,19 @@ setlocale(LC_ALL, 'C.UTF-8', 'C');
             } else {    
                 $upper_link = JRoute::_('index.php?option=com_jdownloads&amp;view=category&amp;catid='.$catid.'&amp;Itemid='.$menuItemids['root']);
             }    
-            $header = str_replace('{upper_link}', '<a href="'.$upper_link.'">'.'<img src="'.JURI::base().'components/com_jdownloads/assets/images/upper.png" width="32" height="32" border="0" alt="'.JText::_('COM_JDOWNLOADS_UPPER_LINKTEXT').'" /></a> <a href="'.$upper_link.'">'.JText::_('COM_JDOWNLOADS_UPPER_LINKTEXT').'</a>', $header);
+            $header = str_replace('{upper_link}', '<a href="'.$upper_link.'">'.'<img src="'.JURI::base().'components/com_jdownloads/assets/images/upper.png" width="32" height="32" style="border:0px;" alt="'.JText::_('COM_JDOWNLOADS_UPPER_LINKTEXT').'" /></a> <a href="'.$upper_link.'">'.JText::_('COM_JDOWNLOADS_UPPER_LINKTEXT').'</a>', $header);
         } else { 
             // get parent category (access must be present then we are always in a sub category from it)
             $db->setQuery("SELECT parent_id FROM #__jdownloads_categories WHERE id = '$catid'");
             $parent_cat_id = $db->loadResult();
             if ($parent_cat_id){
                 $upper_link = JRoute::_('index.php?option=com_jdownloads&amp;view=category&amp;catid='.$parent_cat_id.'&amp;Itemid='.$menuItemids['root']);
-                $header = str_replace('{upper_link}', '<a href="'.$upper_link.'">'.'<img src="'.JURI::base().'components/com_jdownloads/assets/images/upper.png" width="32" height="32" border="0" alt="'.JText::_('COM_JDOWNLOADS_UPPER_LINKTEXT').'" /></a> <a href="'.$upper_link.'">'.JText::_('COM_JDOWNLOADS_UPPER_LINKTEXT').'</a>', $header);    
+                $header = str_replace('{upper_link}', '<a href="'.$upper_link.'">'.'<img src="'.JURI::base().'components/com_jdownloads/assets/images/upper.png" width="32" height="32" style="border:0px;" alt="'.JText::_('COM_JDOWNLOADS_UPPER_LINKTEXT').'" /></a> <a href="'.$upper_link.'">'.JText::_('COM_JDOWNLOADS_UPPER_LINKTEXT').'</a>', $header);    
             } else {
                 // we are in a sub category - so we link to the main
                 if ($is_one_cat){
                     $upper_link = JRoute::_('index.php?option=com_jdownloads&amp;view=categories&amp;Itemid='.$menuItemids['root']);
-                    $header = str_replace('{upper_link}', '<a href="'.$upper_link.'">'.'<img src="'.JURI::base().'components/com_jdownloads/assets/images/upper.png" width="32" height="32" border="0" alt="'.JText::_('COM_JDOWNLOADS_UPPER_LINKTEXT').'" /></a> <a href="'.$upper_link.'">'.JText::_('COM_JDOWNLOADS_UPPER_LINKTEXT').'</a>', $header);            
+                    $header = str_replace('{upper_link}', '<a href="'.$upper_link.'">'.'<img src="'.JURI::base().'components/com_jdownloads/assets/images/upper.png" width="32" height="32" style="border:0px;" alt="'.JText::_('COM_JDOWNLOADS_UPPER_LINKTEXT').'" /></a> <a href="'.$upper_link.'">'.JText::_('COM_JDOWNLOADS_UPPER_LINKTEXT').'</a>', $header);            
                 } else {
                   $header = str_replace('{upper_link}', '', $header);
                 }  
@@ -216,7 +236,7 @@ setlocale(LC_ALL, 'C.UTF-8', 'C');
             
             $listbox = JHtml::_('select.genericlist', $data['options'], 'cat_list', 'class="inputbox" onchange="gocat(\''.$root_url.'\', \''.$uncat_url.'\', \''.$allfiles_url.'\', \''.$topfiles_url.'\',  \''.$newfiles_url.'\'  ,\''.$data['url'].'\')"', 'value', 'text', $data['selected'] ); 
             
-            $header = str_replace('{category_listbox}', '<form name="go_cat" id="go_cat" action="" method="post">'.$listbox.'</form>', $header);
+            $header = str_replace('{category_listbox}', '<form name="go_cat" id="go_cat" method="post">'.$listbox.'</form>', $header);
         } else {                                                                        
             $header = str_replace('{category_listbox}', '', $header);         
         }
@@ -358,7 +378,7 @@ setlocale(LC_ALL, 'C.UTF-8', 'C');
         }   
         
         $body = str_replace('{price_value}', $this->item->price, $body);
-        $body = str_replace('{views_value}',$this->item->views, $body);
+        $body = str_replace('{views_value}',JDHelper::strToNumber((int)$this->item->views), $body);
         $body = str_replace('{details_block_title}', JText::_('COM_JDOWNLOADS_FE_DETAILS_DATA_BLOCK_TITLE'), $body);
         if ($this->item->url_download){
             $body = str_replace('{file_name}', JDHelper::getShorterFilename($this->item->url_download), $body);
@@ -371,10 +391,19 @@ setlocale(LC_ALL, 'C.UTF-8', 'C');
         $body = str_replace('{filesize_value}', $this->item->size, $body);
         $body = str_replace('{created_by_value}', $this->item->creator, $body);    
         $body = str_replace('{modified_by_value}', $this->item->modifier, $body);
-        $body = str_replace('{hits_value}',$this->item->downloads, $body);         
+        $body = str_replace('{hits_value}',JDHelper::strToNumber((int)$this->item->downloads), $body);         
         $body = str_replace('{md5_value}',$this->item->md5_value, $body);
         $body = str_replace('{sha1_value}',$this->item->sha1_value, $body);
-        $body = str_replace('{changelog_value}', $this->item->changelog, $body);        
+        $body = str_replace('{changelog_value}', $this->item->changelog, $body);
+        
+        
+        if ($params->get('show_tags', 1) && !empty($this->item->tags->itemTags)){ 
+            $this->item->tagLayout = new JLayoutFile('joomla.content.tags');
+            $body = str_replace('{tags}', $this->item->tagLayout->render($this->item->tags->itemTags), $body);
+        } else {
+            $body = str_replace('{tags}', '', $body);
+        }
+        
         
         $body = str_replace('{cat_title}', $this->item->category_title, $body);  
       //$body = str_replace('{pathway_text}', JText::_('COM_JDOWNLOADS_FE_DETAILS_PATHWAY_TEXT'), $body);
@@ -398,7 +427,7 @@ setlocale(LC_ALL, 'C.UTF-8', 'C');
         if ($this->item->file_pic != '' ) {
             $fpicsize = $jlistConfig['file.pic.size'];
             $fpicsize_height = $jlistConfig['file.pic.size.height'];
-            $this->itempic = '<img src="'.JURI::base().'images/jdownloads/fileimages/'.$this->item->file_pic.'" align="top" width="'.$fpicsize.'" height="'.$fpicsize_height.'" border="0" alt="'.$this->item->file_title.'" /> ';
+            $this->itempic = '<img src="'.JURI::base().'images/jdownloads/fileimages/'.$this->item->file_pic.'" style="text-align:top;border:0px;" width="'.$fpicsize.'" height="'.$fpicsize_height.'"  alt="'.$this->item->file_title.'" /> ';
         } else {
             $this->itempic = '';
         }
@@ -427,7 +456,7 @@ setlocale(LC_ALL, 'C.UTF-8', 'C');
         }
         
         // place the images
-        $body = JDHelper::placeThumbs($body, $this->item->images);
+        $body = JDHelper::placeThumbs($body, $this->item->images, 'detail');
         
         // pics for: new file / hot file /updated
         $hotpic = '<img src="'.JURI::base().'images/jdownloads/hotimages/'.$jlistConfig['picname.is.file.hot'].'" alt="hotpic" />';
@@ -510,7 +539,7 @@ setlocale(LC_ALL, 'C.UTF-8', 'C');
         $body = str_replace('{license_text}', $lic_data, $body);
         
         if ($this->item->modified != '0000-00-00 00:00:00') {
-            $modified_data = JHtml::_('date',$this->item->modified, $jlistConfig['global.datetime']);
+            $modified_data = JHtml::_('date',$this->item->modified, $date_format['long']);
         } else {
             $modified_data = '';
         }
@@ -521,15 +550,19 @@ setlocale(LC_ALL, 'C.UTF-8', 'C');
 
         // file_date
         if ($this->item->file_date != '0000-00-00 00:00:00') {
-             $this->itemdate_data = JHtml::_('date',$this->item->file_date, $jlistConfig['global.datetime']);
+             $this->itemdate_data = JHtml::_('date',$this->item->file_date, $date_format['long']);
         } else {
-             $this->itemdate_data = '';
+             if ($file_path && JFile::exists($file_path)){
+                 $this->itemdate_data = JHtml::_('date',filemtime($file_path), $date_format['long']);
+             } else {
+                $this->itemdate_data = '';
+             }
         }
         $body = str_replace('{file_date}',$this->itemdate_data, $body);
 
         // date_added    
         if ($this->item->date_added != '0000-00-00 00:00:00') {
-            $date_data = JHtml::_('date',$this->item->date_added, $jlistConfig['global.datetime']);
+            $date_data = JHtml::_('date',$this->item->date_added, $date_format['long']);
         } else {
             $date_data = '';
         }
@@ -579,18 +612,18 @@ setlocale(LC_ALL, 'C.UTF-8', 'C');
                 if ($url_task == 'download.send'){
                     // is the old button used?
                     if ($jlistConfig['use.css.buttons.instead.icons'] == '0'){   
-                        $download_link_text = '<a '.$blank_window.' href="'.$download_link.'" class="jd_download_url"><img src="'.JURI::base().'images/jdownloads/downloadimages/'.$jlistConfig['download.pic.details'].'" border="0" alt="'.JText::_('COM_JDOWNLOADS_LINKTEXT_DOWNLOAD_URL').'" /></a>';
+                        $download_link_text = '<a '.$blank_window.' href="'.$download_link.'" class="jd_download_url"><img src="'.JURI::base().'images/jdownloads/downloadimages/'.$jlistConfig['download.pic.details'].'" style="border:0px;" alt="'.JText::_('COM_JDOWNLOADS_LINKTEXT_DOWNLOAD_URL').'" /></a>';
                     } else {
                         // we use the new css button
-                         $download_link_text = '<a '.$blank_window.' href="'.$download_link.'" alt="'.JText::_('COM_JDOWNLOADS_LINKTEXT_DOWNLOAD_URL').'" class="jdbutton '.$download_color.' '.$download_size.'">'.JText::_('COM_JDOWNLOADS_LINKTEXT_DOWNLOAD_URL').'</a>';
+                         $download_link_text = '<a '.$blank_window.' href="'.$download_link.'" class="jdbutton '.$download_color.' '.$download_size.'">'.JText::_('COM_JDOWNLOADS_LINKTEXT_DOWNLOAD_URL').'</a>';
                     }    
                 } else {
                     // is the old button used?
                     if ($jlistConfig['use.css.buttons.instead.icons'] == '0'){ 
-                        $download_link_text = '<a href="'.$download_link.'" class="jd_download_url"><img src="'.JURI::base().'images/jdownloads/downloadimages/'.$jlistConfig['download.pic.details'].'" border="0" alt="'.JText::_('COM_JDOWNLOADS_LINKTEXT_DOWNLOAD_URL').'" title="'.JText::_('COM_JDOWNLOADS_LINKTEXT_DOWNLOAD_URL').'" /></a>';
+                        $download_link_text = '<a href="'.$download_link.'" class="jd_download_url"><img src="'.JURI::base().'images/jdownloads/downloadimages/'.$jlistConfig['download.pic.details'].'" style="border:0px;" alt="'.JText::_('COM_JDOWNLOADS_LINKTEXT_DOWNLOAD_URL').'" title="'.JText::_('COM_JDOWNLOADS_LINKTEXT_DOWNLOAD_URL').'" /></a>';
                     } else {
                         // we use the new css button                    
-                        $download_link_text = '<a '.$blank_window.' href="'.$download_link.'" alt="'.JText::_('COM_JDOWNLOADS_LINKTEXT_DOWNLOAD_URL').'" class="jdbutton '.$download_color.' '.$download_size.'">'.JText::_('COM_JDOWNLOADS_LINKTEXT_DOWNLOAD_URL').'</a>';
+                        $download_link_text = '<a '.$blank_window.' href="'.$download_link.'" class="jdbutton '.$download_color.' '.$download_size.'">'.JText::_('COM_JDOWNLOADS_LINKTEXT_DOWNLOAD_URL').'</a>';
                     }    
                 }
                 $body = str_replace('{url_download}', $download_link_text, $body);
@@ -604,10 +637,10 @@ setlocale(LC_ALL, 'C.UTF-8', 'C');
                     //$mirror1_link_dum = JRoute::_(JDownloadsHelperRoute::getOtherRoute($this->item->slug, $this->item->cat_id, $this->item->language, $url_task, 1));
                     // is the old button used?
                     if ($jlistConfig['use.css.buttons.instead.icons'] == '0'){                
-                        $mirror1_link = '<a '.$blank_window1.' href="'.$mirror1_link_dum.'" class="jd_download_url"><img src="'.JURI::base().'images/jdownloads/downloadimages/'.$jlistConfig['download.pic.mirror_1'].'" border="0" alt="'.JText::_('COM_JDOWNLOADS_FRONTEND_MIRROR_URL_TITLE_1').'" /></a>';
+                        $mirror1_link = '<a '.$blank_window1.' href="'.$mirror1_link_dum.'" class="jd_download_url"><img src="'.JURI::base().'images/jdownloads/downloadimages/'.$jlistConfig['download.pic.mirror_1'].'" style="border:0px;" alt="'.JText::_('COM_JDOWNLOADS_FRONTEND_MIRROR_URL_TITLE_1').'" /></a>';
                     } else {
                         // we use the new css button 
-                        $mirror1_link = '<a '.$blank_window1.' href="'.$mirror1_link_dum.'" alt="'.JText::_('COM_JDOWNLOADS_LINKTEXT_DOWNLOAD_URL').'" class="jdbutton '.$download_color_mirror1.' '.$download_size_mirror.'">'.JText::_('COM_JDOWNLOADS_FRONTEND_MIRROR_URL_TITLE_1').'</a>'; 
+                        $mirror1_link = '<a '.$blank_window1.' href="'.$mirror1_link_dum.'" class="jdbutton '.$download_color_mirror1.' '.$download_size_mirror.'">'.JText::_('COM_JDOWNLOADS_FRONTEND_MIRROR_URL_TITLE_1').'</a>'; 
                     }    
                     $body = str_replace('{mirror_1}', $mirror1_link, $body);
                 } else {
@@ -621,10 +654,10 @@ setlocale(LC_ALL, 'C.UTF-8', 'C');
                     //$mirror2_link_dum = JRoute::_(JDownloadsHelperRoute::getOtherRoute($this->item->slug, $this->item->cat_id, $this->item->language, $url_task, 2));
                     // is the old button used?
                     if ($jlistConfig['use.css.buttons.instead.icons'] == '0'){                
-                        $mirror2_link = '<a '.$blank_window2.' href="'.$mirror2_link_dum.'" class="jd_download_url"><img src="'.JURI::base().'images/jdownloads/downloadimages/'.$jlistConfig['download.pic.mirror_2'].'" border="0" alt="'.JText::_('COM_JDOWNLOADS_FRONTEND_MIRROR_URL_TITLE_2').'" /></a>';
+                        $mirror2_link = '<a '.$blank_window2.' href="'.$mirror2_link_dum.'" class="jd_download_url"><img src="'.JURI::base().'images/jdownloads/downloadimages/'.$jlistConfig['download.pic.mirror_2'].'" style="border:0px;" alt="'.JText::_('COM_JDOWNLOADS_FRONTEND_MIRROR_URL_TITLE_2').'" /></a>';
                     } else {
                         // we use the new css button 
-                        $mirror2_link = '<a '.$blank_window2.' href="'.$mirror2_link_dum.'" alt="'.JText::_('COM_JDOWNLOADS_LINKTEXT_DOWNLOAD_URL').'" class="jdbutton '.$download_color_mirror2.' '.$download_size_mirror.'">'.JText::_('COM_JDOWNLOADS_FRONTEND_MIRROR_URL_TITLE_2').'</a>'; 
+                        $mirror2_link = '<a '.$blank_window2.' href="'.$mirror2_link_dum.'" class="jdbutton '.$download_color_mirror2.' '.$download_size_mirror.'">'.JText::_('COM_JDOWNLOADS_FRONTEND_MIRROR_URL_TITLE_2').'</a>'; 
                     }                
                     $body = str_replace('{mirror_2}', $mirror2_link, $body);
                 } else {
@@ -736,10 +769,10 @@ setlocale(LC_ALL, 'C.UTF-8', 'C');
             } else {        
                 if ($is_preview){
                     // we need the path to the "previews" folder
-                    $mp3_path = $jdownloads_root_dir_name.'/'.$jlistConfig['preview.files.folder.name'].'/'.$this->item->preview_filename;
+                    $mp3_path = JUri::base().$jdownloads_root_dir_name.'/'.$jlistConfig['preview.files.folder.name'].'/'.$this->item->preview_filename;
                 } else {
                     // we use the normal download file for the player
-                    $mp3_path = $jdownloads_root_dir_name.'/'.$category_dir.'/'.$this->item->url_download;
+                    $mp3_path = JUri::base().$jdownloads_root_dir_name.'/'.$category_dir.'/'.$this->item->url_download;
                 }   
             }    
             $mp3_config = trim($jlistConfig['mp3.player.config']);
@@ -845,15 +878,15 @@ setlocale(LC_ALL, 'C.UTF-8', 'C');
                     $mp3_info = str_replace('{name}', $this->item->url_download, $mp3_info);
                 } 
                 $mp3_info = str_replace('{album_title}', JText::_('COM_JDOWNLOADS_FE_VIEW_ID3_ALBUM'), $mp3_info);
-                $mp3_info = str_replace('{album}', $info[TALB], $mp3_info);
+                $mp3_info = str_replace('{album}', $info['TALB'], $mp3_info);
                 $mp3_info = str_replace('{artist_title}', JText::_('COM_JDOWNLOADS_FE_VIEW_ID3_ARTIST'), $mp3_info);
-                $mp3_info = str_replace('{artist}', $info[TPE1], $mp3_info);
+                $mp3_info = str_replace('{artist}', $info['TPE1'], $mp3_info);
                 $mp3_info = str_replace('{genre_title}', JText::_('COM_JDOWNLOADS_FE_VIEW_ID3_GENRE'), $mp3_info);
-                $mp3_info = str_replace('{genre}', $info[TCON], $mp3_info);
+                $mp3_info = str_replace('{genre}', $info['TCON'], $mp3_info);
                 $mp3_info = str_replace('{year_title}', JText::_('COM_JDOWNLOADS_FE_VIEW_ID3_YEAR'), $mp3_info);
-                $mp3_info = str_replace('{year}', $info[TYER], $mp3_info);
+                $mp3_info = str_replace('{year}', $info['TYER'], $mp3_info);
                 $mp3_info = str_replace('{length_title}', JText::_('COM_JDOWNLOADS_FE_VIEW_ID3_LENGTH'), $mp3_info);
-                $mp3_info = str_replace('{length}', $info[TLEN].' '.JText::_('COM_JDOWNLOADS_FE_VIEW_ID3_MINS'), $mp3_info);
+                $mp3_info = str_replace('{length}', $info['TLEN'].' '.JText::_('COM_JDOWNLOADS_FE_VIEW_ID3_MINS'), $mp3_info);
                 $body = str_replace('{mp3_id3_tag}', $mp3_info, $body); 
             }     
         }        
@@ -862,6 +895,15 @@ setlocale(LC_ALL, 'C.UTF-8', 'C');
         $body = str_replace('{preview_player}', '', $body);
         $body = str_replace('{mp3_id3_tag}', '', $body);             
 
+        // replace the {preview_url}
+        if ($this->item->preview_filename){
+            // we need the relative path to the "previews" folder
+            $media_path = $jdownloads_root_dir_name.'/'.$jlistConfig['preview.files.folder.name'].'/'.$this->item->preview_filename;
+            $body = str_replace('{preview_url}', $media_path, $body);
+        } else {
+            $body = str_replace('{preview_url}', '', $body);
+        }         
+        
         // insert rating system
         if ($jlistConfig['view.ratings']){
             $rating_system = JDHelper::getRatings($this->item->file_id, $this->item->rating_count, $this->item->rating_sum);
@@ -895,7 +937,7 @@ setlocale(LC_ALL, 'C.UTF-8', 'C');
 
     // components footer text
     if ($jlistConfig['downloads.footer.text'] != '') {
-        $footer_text = stripslashes($jlistConfig['downloads.footer.text']);
+        $footer_text = stripslashes(JDHelper::getOnlyLanguageSubstring($jlistConfig['downloads.footer.text']));
         if ($jlistConfig['google.adsense.active'] && $jlistConfig['google.adsense.code'] != ''){
             $footer_text = str_replace( '{google_adsense}', stripslashes($jlistConfig['google.adsense.code']), $footer_text);
         } else {
@@ -915,7 +957,12 @@ setlocale(LC_ALL, 'C.UTF-8', 'C');
     $html   .= $footer; 
     
     $html .= '</div>';
-    
+
+    // support for global content plugins - used only when the usage is not limited to the description.
+    if ($jlistConfig['activate.general.plugin.support'] && !$jlistConfig['use.general.plugin.support.only.for.descriptions']) {  
+        $html = JHtml::_('content.prepare', $html);
+    }
+
     // ==========================================
     // VIEW THE BUILDED OUTPUT
     // ==========================================

@@ -108,6 +108,25 @@ class jdownloadsModelcategory extends JModelAdmin
         return $form;
     }
     
+    /**
+     * Method to get a single record.
+     *
+     * @param    integer    The id of the primary key.
+     * @return    mixed    Object on success, false on failure.
+     */
+    public function getItem($pk = null)
+    {
+        $item = parent::getItem($pk);
+        
+        if ($item->id){
+            $registry = new JRegistry;
+            // get the tags
+            $item->tags = new JHelperTags;
+            $item->tags->getTagIds($item->id, 'com_jdownloads.category');         
+        }        
+
+        return $item;
+    }      
     
     /**
      * Method to get the data that should be injected in the form.
@@ -189,15 +208,29 @@ class jdownloadsModelcategory extends JModelAdmin
         // Include the content plugins for the on save events.
         JPluginHelper::importPlugin('content');        
         
+        // remove bad input values
+        $data['parent_id'] = (int)$data['parent_id'];
+       
         // Load the row if saving an existing category.
         if ($pk > 0) {
             $table->load($pk);
             $isNew = false;
             if ($table->parent_id != $data['parent_id']){
-                $catChanged = true;
+                // we must be here careful for the case that user has manipulated manually the parent_id
+                if ($data['parent_id'] == 0){
+                    // invalid value, so we do here nothing and use the old parent_id
+                   $data['parent_id'] = $table->parent_id;
+                } else {   
+                   $catChanged = true;
+                }   
             }
         }
 
+        // parent id must have at minimum a 1 for 'root' category
+        if ($data['parent_id'] == 0){
+            $data['parent_id'] = 1;
+        }         
+        
         // is title changed?
         $org_title = $jinput->get('cat_title_org', '', 'string');
         if ($org_title != '' && $org_title != $data['title']) {
@@ -251,6 +284,11 @@ class jdownloadsModelcategory extends JModelAdmin
             $data['title']    = $title;
             $data['alias']    = $alias;
         }
+        
+        if ((!empty($data['tags']) && $data['tags'][0] != ''))
+        {
+            $table->newTags = $data['tags'];
+        }         
 
         // Bind the data.
         if (!$table->bind($data)) {

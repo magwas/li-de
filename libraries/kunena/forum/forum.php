@@ -4,7 +4,7 @@
  * @package Kunena.Framework
  * @subpackage Forum
  *
- * @copyright (C) 2008 - 2013 Kunena Team. All rights reserved.
+ * @copyright (C) 2008 - 2014 Kunena Team. All rights reserved.
  * @license http://www.gnu.org/copyleft/gpl.html GNU/GPL
  * @link http://www.kunena.org
  **/
@@ -191,7 +191,7 @@ abstract class KunenaForum {
 	 * @return boolean True if Git repository is detected.
 	 */
 	public static function isDev() {
-		if ('3.0.5' == '@' . 'kunenaversion' . '@') {
+		if ('3.0.6' == '@' . 'kunenaversion' . '@') {
 			return true;
 		}
 		return false;
@@ -336,15 +336,15 @@ abstract class KunenaForum {
 	// Internal functions
 
 	protected static function buildVersion() {
-		if ('3.0.5' == '@' . 'kunenaversion' . '@') {
+		if ('3.0.6' == '@' . 'kunenaversion' . '@') {
 			$file = JPATH_MANIFESTS . '/packages/pkg_kunena.xml';
 			$manifest = simplexml_load_file($file);
 			self::$version = (string) $manifest->version . '-GIT';
 		} else {
-			self::$version = strtoupper ( '3.0.5' );
+			self::$version = strtoupper ( '3.0.6' );
 		}
 		self::$version_major = substr(self::$version, 0, 3);
-		self::$version_date = ('2014-03-09' == '@' . 'kunenaversiondate' . '@') ? JFactory::getDate()->format('Y-m-d') : '2014-03-09';
-		self::$version_name = ('Invecchiato' == '@' . 'kunenaversionname' . '@') ? 'Git Repository' : 'Invecchiato';
+		self::$version_date = ('2014-07-28' == '@' . 'kunenaversiondate' . '@') ? JFactory::getDate()->format('Y-m-d') : '2014-07-28';
+		self::$version_name = ('Tala' == '@' . 'kunenaversionname' . '@') ? 'Git Repository' : 'Tala';
 	}
 }

@@ -36,24 +36,36 @@ class jdownloadsViewDownloads extends JViewLegacy
         
         $app    = JFactory::getApplication();
         $user    = JFactory::getUser();
+        
+        $jd_user_settings = JDHelper::getUserRules();
 
         // Initialise variables
         $state        = $this->get('State');
         $items        = $this->get('Items');
         $pagination   = $this->get('Pagination');
         
+        // upload icon handling
+        $this->view_upload_button = false;
+        
+        if ($jd_user_settings->uploads_view_upload_icon){
+            // we must here check whether the user has the permissions to create new downloads 
+            // this can be defined in the components permissions but also in any category
+            // but the upload icon is only viewed when in the user groups settings is also activated the: 'display add/upload icon' option
+                            
+            // 1. check the component permissions
+            if (!$user->authorise('core.create', 'com_jdownloads')){
+                // 2. not global permissions so we must check now every category (for a lot of categories can this be very slow)
+                $this->authorised_cats = JDHelper::getAuthorisedJDCategories('core.create', $user);
+                if (count($this->authorised_cats) > 0){
+                    $this->view_upload_button = true;
+                }
+            } else {
+                $this->view_upload_button = true;
+            }        
+        }
+
         $this->ipad_user = false;
-        
-        // we must get all 'allowed' category IDs 
-        $this->authorised_cats = JDHelper::getAuthorisedJDCategories('core.create', $user);
-        $authorised = $user->authorise('core.create', 'com_jdownloads') || (count($this->authorised_cats));
-        if ($authorised === true) {
-            // It exist a global permissions or at minimum a single category where the user has the permission to 'create'.
-            $this->view_upload_button = true;                
-        } else {
-            $this->view_upload_button = false;
-        }         
-        
+                
         // check whether we have an ipad/iphone user for flowplayer aso...
         if ((bool) strpos($_SERVER['HTTP_USER_AGENT'], 'iPad') || (bool) strpos($_SERVER['HTTP_USER_AGENT'], 'iPhone')){        
             $this->ipad_user = true;
@@ -85,6 +97,7 @@ class jdownloadsViewDownloads extends JViewLegacy
         }       
         
         if ($jlistConfig['use.lightbox.function']){
+            JHtml::_('bootstrap.framework');            
             $document->addScript(JURI::base().'components/com_jdownloads/assets/lightbox/lightbox.js');
             $document->addStyleSheet( JURI::base()."components/com_jdownloads/assets/lightbox/lightbox.css", 'text/css', null, array() );
         }
@@ -110,10 +123,14 @@ class jdownloadsViewDownloads extends JViewLegacy
         
         $params = &$state->params;
                 
-        // Compute the download slugs and prepare introtext (runs content plugins).
+        // Compute the download slugs and prepare text (runs content plugins).
         for ($i = 0, $n = count($items); $i < $n; $i++)
         {
             $item = &$items[$i];
+            
+            $item->tags = new JHelperTags;
+            $item->tags->getItemTags('com_jdownloads.download', $item->file_id);            
+            
             $item->slug = $item->file_alias ? ($item->file_id . ':' . $item->file_alias) : $item->file_id;
 
             // No link for ROOT category
@@ -121,14 +138,17 @@ class jdownloadsViewDownloads extends JViewLegacy
                 $item->parent_slug = null;
             }
 
-            $item->event = new stdClass();
-
-            $item->text = ""; 
+            // required for some content plugins
+            $item->text = $item->description;
+            $item->id = $item->file_id;
+             
             $dispatcher = JDispatcher::getInstance();
 
             JPluginHelper::importPlugin('content');
-            $results = $dispatcher->trigger('onContentPrepare', array ('com_jdownloads.downloads', &$item, &$this->params, 0));
+            $dispatcher->trigger('onContentPrepare', array ('com_jdownloads.downloads', &$item, &$this->params, 0));
 
+            $item->event = new stdClass();
+                        
             $results = $dispatcher->trigger('onContentAfterTitle', array('com_jdownloads.downloads', &$item, &$item->params, 0));
             $item->event->afterDisplayTitle = trim(implode("\n", $results));
 
@@ -137,6 +157,11 @@ class jdownloadsViewDownloads extends JViewLegacy
 
             $results = $dispatcher->trigger('onContentAfterDisplay', array('com_jdownloads.downloads', &$item, &$item->params, 0));
             $item->event->afterDisplayContent = trim(implode("\n", $results));
+            
+            // we use a little trick to get always the changes from content plugins 
+            if ($item->text != $item->description){
+                $item->description = $item->text; 
+            }
         }        
         
         //Escape strings for HTML output

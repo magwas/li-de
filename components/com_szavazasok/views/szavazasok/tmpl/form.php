@@ -41,26 +41,6 @@ echo '
   <input type="hidden" name="id" value="'.JRequest::getVar('szavazas').'" />
  '; 
 ?>
-
-		<div style="float:right; width:150px">
-		    <b>Címkék</b><br />
-			<?php 
-			$db = JFactory::getDBO();
-			$db->setQuery('select * from #__cimkek order by cimke');
-			$res = $db->loadObjectList();
-			$i = 0;
-			foreach ($res as $res1) {
-				if (strpos($this->Item->cimkek, $res1->cimke) === false) {
-					echo '<input type="checkbox" name="cimke_'.$i.'" value="'.$res1->cimke.'" />&nbsp;'.$res1->cimke.'<br />'."\n";
-				} else {
-					echo '<input type="checkbox" name="cimke_'.$i.'" checked="checked" value="'.$res1->cimke.'" />&nbsp;'.$res1->cimke.'<br />'."\n";
-				}
-				$i++;
-			}
-			?>
-		</div>
-
-
 	 	<div class="col <?php if(version_compare(JVERSION,'3.0','lt')):  ?>width-60  <?php endif; ?>span8 form-horizontal fltlft">
 		  <fieldset class="adminform">
 			  <legend><?php echo JText::_( 'ADATOK' ); ?></legend>

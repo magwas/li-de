@@ -3,9 +3,13 @@
 defined('_JEXEC') or die;
 ?>
 <div class="tab-pane fade" id="absTabCheckBackups">
-<p>
-    <?php echo JText::_('COM_AKEEBA_SCHEDULE_LBL_HEADERINFO'); ?>
-</p>
+    <h3>
+        <?php echo JText::_('COM_AKEEBA_SCHEDULE_LBL_CHECK_BACKUPS'); ?>
+    </h3>
+
+    <p>
+        <?php echo JText::_('COM_AKEEBA_SCHEDULE_LBL_HEADERINFO'); ?>
+    </p>
 
 <fieldset>
     <legend><?php echo JText::_('COM_AKEEBA_SCHEDULE_LBL_CLICRON') ?></legend>
@@ -261,13 +265,17 @@ defined('_JEXEC') or die;
         </div>
 
         <?php
-        JFactory::getDocument()->addScriptDeclaration( <<<ENDJS
+        JFactory::getDocument()->addScriptDeclaration( <<<JS
+
+	;// This comment is intentionally put here to prevent badly written plugins from causing a Javascript error
+	// due to missing trailing semicolon and/or newline in their code.
     (function($) {
         $(document).ready(function(){
             $('#abschedulingCheckTabs a:first').tab('show');
         });
     })(akeeba.jQuery);
-ENDJS
+
+JS
         );
         ?>
 

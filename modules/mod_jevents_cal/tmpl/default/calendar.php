@@ -78,7 +78,7 @@ class DefaultModCalView
 		$jevents_config		= JEVConfig::getInstance();
 
 		$this->modparams	= & $params;
-		$this->aid			= $user->aid;
+		$this->aid			= isset($user->aid) ? $user->aid : 0;
 		$tmplang			= JFactory::getLanguage();
 
 		// get params exclusive to module
@@ -166,10 +166,14 @@ class DefaultModCalView
 
 	}
 
-	function getTheme(){	
-		$theme = JEV_CommonFunctions::getJEventsViewName();
-		return $theme;
+	function getTheme(){
+		$modtheme = $this->modparams->get("com_calViewName", "flat");
+		if ($modtheme == "" || $modtheme == "global")
+		{
+			$modtheme = JEV_CommonFunctions::getJEventsViewName();
+		}
 
+		return $modtheme;
 	}
 
 	/**

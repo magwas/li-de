@@ -2,7 +2,7 @@
 
 /**
  * @package   	JCE
- * @copyright 	Copyright (c) 2009-2013 Ryan Demmer. All rights reserved.
+ * @copyright 	Copyright (c) 2009-2015 Ryan Demmer. All rights reserved.
  * @license   	GNU/GPL 2 or later - http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
  * JCE is free software. This version may have been modified pursuant
  * to the GNU General Public License, and as distributed it includes or
@@ -48,6 +48,11 @@ class WFFileSystem extends WFExtension {
 
         if (!is_object($instance)) {
             $fs = parent::loadExtensions('filesystem', $type);
+            
+            if (is_array($fs)) {
+                $fs = array_shift($fs);
+            }
+            
             $classname = 'WF' . ucfirst($fs) . 'FileSystem';
 
             if (class_exists($classname)) {
@@ -134,9 +139,15 @@ class WFFileSystem extends WFExtension {
 
                 // split into path parts to preserve /
                 $parts = explode('/', $root);
+                
+                $textcase = $wf->getParam('editor.websafe_textcase');
+                
+                if (!empty($textcase)) {
+                    $textcase = array_shift($textcase);
+                }
 
                 // clean path parts
-                $parts = WFUtility::makeSafe($parts, $wf->getParam('editor.websafe_mode', 'utf-8'), $wf->getParam('editor.websafe_allow_spaces', 0));
+                $parts = WFUtility::makeSafe($parts, $wf->getParam('editor.websafe_mode', 'utf-8'), $wf->getParam('editor.websafe_allow_spaces', 0), $textcase);
 
                 //join path parts
                 $root = implode('/', $parts);
@@ -152,6 +163,14 @@ class WFFileSystem extends WFExtension {
 
     public function toRelative($path) {
         return $path;
+    }
+    
+    public function getTotalSize($path, $recurse = true) {
+        return 0;
+    }
+    
+    public function countFiles($path, $recurse = false) {
+        return 0;
     }
 
     public function getFiles($path, $filter) {

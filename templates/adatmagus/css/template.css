@@ -2860,7 +2860,7 @@ input[type="submit"].btn.btn-mini {
 }
 .nav-header {
 	display: block;
-	padding: 8px 3px;
+	padding: 8px 15px;
 	font-size: 13px;
 	font-weight: bold;
 	line-height: 18px;
@@ -7112,7 +7112,7 @@ h6 {
 }
 .navigation .nav-child {
 	position: absolute;
-	top: 70%;
+	top: 95%;
 	left: 0;
 	z-index: 1000;
 	display: none;
@@ -7202,7 +7202,6 @@ h6 {
 	background-repeat: repeat-x;
 	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff0088cc', endColorstr='#ff0076b2', GradientType=0);
 }
-.navigation .menuIcon {color:white; font-size:16px; padding:6px; cursor:pointer; float:left;}
 @media (max-width: 480px) {
 	.item-info > span {
 		display: block;
@@ -7586,22 +7585,3 @@ background-image:url(../images/like.jpg); background-position:0px 0px}
 .iconNem {width:32px; height:32px;
 background-image:url(../images/unlike.jpg); background-position:0px 0px}
 
-/* kapcsolattartó menüpont*/
-.item-786 {padding:3px 3px 3px 20px; 
-   background-image:url(../images/email.gif); background-repeat:no-repeat;
-   background-color:silver; color; red; font-weight:bold;}
-   
-/* filekezelő */
-.jd-item-page button {background-color:silver; padding:4px; border-radius:3px;}   
-
-/* ecommercewd web shop */
-.wd_shop_btn_Cassa {float:right;}
-.productLiUnpublished {background-color:silver;}
-#wd_shop_container .productUnPublished {background-color:silver;}
-#addProductLink {float:right;}
-#categoryLink {float:left;}
-#editProductLink {text-align:right;}
-#productForm label {display:inline-block; width:250px; text-align:right;}
-#productForm input {height:30px;}
-#productForm .productImage {float:left; width:300px; height:auto; min-height:300px; border-style:solid; border-width:1px; margin:1px; padding:5px;}
-#productForm .productImage img {width:280px; max-height:200px;}

@@ -95,24 +95,25 @@ class jIcalEventRepeat extends jIcalEventDB
 		if (!isset($this->_startday))
 		{
 			$this->_startday = JevDate::mktime(0, 0, 0, $this->mup(), $this->dup(), $this->yup());
+			$this->_startday_plus1 = JevDate::mktime(0, 0, 0, $this->mup(), $this->dup()+1, $this->yup());
 			$this->_endday = JevDate::mktime(0, 0, 0, $this->mdn(), $this->ddn(), $this->ydn());
 			// if ends on midnight then testing day should ignore the second day since no one wants this event to show
 			if ($this->hdn() + $this->mindn() + $this->sdn() == 0 && $this->_startday != $this->_endday)
 			{
-				$this->_endday -= 86400;
+				$this->_endday = JevDate::mktime(0, 0, 0, $this->mdn(), $this->ddn()-1, $this->ydn());
 			}
 		}
 		if ($this->_startday <= $testDate && $this->_endday >= $testDate)
 		{
 			// if only show on first day
-			if ($multidayTreatment == 2 && $testDate >= ($this->_startday + 86400))
+			if ($multidayTreatment == 2 && $testDate >= $this->_startday_plus1)
 			{
 				return false;
 			}
 			// don't show multiday suppressed events after the first day if multiday is not true
 			if ($multidayTreatment == 0)
 			{
-				if (!$this->_multiday && $testDate >= ($this->_startday + 86400))
+				if (!$this->_multiday && $testDate >= $this->_startday_plus1)
 				{
 					return false;
 				}
@@ -163,6 +164,7 @@ class jIcalEventRepeat extends jIcalEventDB
 		list($year, $month, $day) = JEVHelper::getYMD();
 		$link = "index.php?option=" . JEV_COM_COMPONENT . "&task=" . parent::editTask() . '&evid=' . parent::id() . '&Itemid=' . $Itemid . '&rp_id=' . $this->rp_id() . "&year=$year&month=$month&day=$day";
 		//$link = $sef?JRoute::_( $link ,true ):$link;
+		$link .= JRequest::getInt("pop",0)?"&tmpl=component&pop=1":"";
 		$link = JRoute::_($link, true);
 		return $link;
 
@@ -177,6 +179,7 @@ class jIcalEventRepeat extends jIcalEventDB
 		list($year, $month, $day) = JEVHelper::getYMD();
 		$link = "index.php?option=" . JEV_COM_COMPONENT . "&task=" . parent::editCopyTask() . '&evid=' . parent::id() . '&Itemid=' . $Itemid . '&rp_id=' . $this->rp_id() . "&year=$year&month=$month&day=$day";
 		//$link = $sef?JRoute::_( $link ,true ):$link;
+		$link .= JRequest::getInt("pop",0)?"&tmpl=component&pop=1":"";
 		$link = JRoute::_($link, true);
 		return $link;
 
@@ -189,6 +192,7 @@ class jIcalEventRepeat extends jIcalEventDB
 		$link = "index.php?option=" . JEV_COM_COMPONENT . "&task=" . $this->editTask() . '&evid=' . $this->id() . '&Itemid=' . $Itemid
 				. "&year=$year&month=$month&day=$day";
 		//$link = $sef?JRoute::_( $link ,true ):$link;
+		$link .= JRequest::getInt("pop",0)?"&tmpl=component&pop=1":"";
 		$link = JRoute::_($link, true);
 		return $link;
 
@@ -233,6 +237,47 @@ class jIcalEventRepeat extends jIcalEventDB
 	function viewDetailLink($year, $month, $day, $sef = true, $Itemid = 0)
 	{
 		$Itemid = $Itemid > 0 ? $Itemid : JEVHelper::getItemid($this);
+
+		static $menuitems = false;
+		if (!$menuitems){
+			$menu = JFactory::getApplication()->getMenu();
+			$menuitems = $menu->getItems("component",JEV_COM_COMPONENT);
+			$user = JFactory::getUser();
+			
+			// restrict this list to those accessible by the user
+			if (!is_null($menuitems)){
+				$lang = JFactory::getLanguage();
+				foreach ($menuitems as $index=>$menuitem) {
+					if ( !in_array($menuitem->access,JEVHelper::getAid($user, 'array'))){
+						unset($menuitems[$index]);
+					}
+					// also drop admin functions
+					else if (array_key_exists("task",$menuitem->query) && strpos($menuitem->query['task'],'admin')===0){
+						unset($menuitems[$index]);
+					}
+					else if ($menuitem->language !="*" && $menuitem->language !=$lang->getTag()){
+						unset($menuitems[$index]);
+					}
+					else if (!(array_key_exists("layout",$menuitem->query) && array_key_exists("view",$menuitem->query) && $menuitem->query['view'].".".$menuitem->query['layout']=='icalrepeat.detail')){
+						unset($menuitems[$index]);
+					}
+
+				}
+			}
+			else {
+				$menuitems = array();
+			}
+		}
+		// Is there a specific menu item for this ONE event - this overrides everything (if in the same language!)
+		foreach ($menuitems as $index=>$menuitem) {
+			if (array_key_exists("layout",$menuitem->query) && array_key_exists("view",$menuitem->query) && $menuitem->query['view'].".".$menuitem->query['layout']=='icalrepeat.detail'){
+				if (isset($menuitem->query["evid"]) && $menuitem->query["evid"]==$this->ev_id()){
+					$Itemid = $menuitem->id;
+					break;
+				}
+			}
+		}
+
 		// uid = event series unique id i.e. the actual event
 		$title = JApplication::stringURLSafe($this->title());
 		$link = "index.php?option=" . JEV_COM_COMPONENT . "&task=" . $this->detailTask() . "&evid=" . $this->rp_id() . '&Itemid=' . $Itemid

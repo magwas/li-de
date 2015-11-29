@@ -65,7 +65,7 @@ foreach ( $this->sections as $section ) :
             <?php 
                $s = KunenaHtmlParser::parseBBCode ($category->description);
                if (strlen($s) > 200) {
-                  $s = mb_substr($s,0,200,'utf-8').'...'; 
+                  $s = mb_substr(strip_tags($s,0,200),'utf-8').'...'; 
                }
                echo $s;               
             ?> 

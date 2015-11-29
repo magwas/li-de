@@ -10,40 +10,39 @@
 // Protect from unauthorized access
 defined('_JEXEC') or die();
 
+use Akeeba\Engine\Factory;
+use Akeeba\Engine\Platform;
+
 // Apply error container chrome if there are errors detected
 $quirks_style = $this->haserrors ? 'alert-error' : "";
 $formstyle = '';
 
-JHtml::_('behavior.framework');
-?>
-<!-- jQuery & jQuery UI detection. Also shows a big, fat warning if they're missing -->
-<div id="nojquerywarning" style="margin: 1em; padding: 1em; background: #ffff00; border: thick solid red; color: black; font-size: 14pt;">
-	<h1 style="margin: 1em 0; color: red; font-size: 22pt;"><?php echo JText::_('AKEEBA_CPANEL_WARN_ERROR') ?></h1>
-	<p><?php echo JText::_('AKEEBA_CPANEL_WARN_JQ_L1B'); ?></p>
-	<p><?php echo JText::_('AKEEBA_CPANEL_WARN_JQ_L2'); ?></p>
-</div>
+$configuration = Factory::getConfiguration();
 
-<script type="text/javascript" language="javascript">
-	if(typeof akeeba.jQuery == 'function')
-	{
-		if(typeof akeeba.jQuery.ui == 'object')
-		{
-			akeeba.jQuery('#nojquerywarning').css('display','none');
-		}
-	}
-</script>
+JHtml::_('formbehavior.chosen');
+?>
+<?php
+// Configuration Wizard prompt
+if (!\Akeeba\Engine\Factory::getConfiguration()->get('akeeba.flag.confwiz', 0))
+{
+	echo $this->loadAnyTemplate('admin:com_akeeba/config/confwiz_modal');
+}
+?>
 
 <script type="text/javascript" language="javascript">
 // Initialization
-
 var default_short_descr = "<?php echo $this->default_descr ?>";
 var config_angie_key    = "<?php echo $this->angiekey ?>";
 var jsp_key   = "<?php echo $this->showjpskey ? $this->jpskey : '' ?>";
 
+// Auto-resume setup
+var akeeba_autoresume_enabled = <?php echo (int)$configuration->get('akeeba.advanced.autoresume', 1); ?>;
+var akeeba_autoresume_timeout = <?php echo (int)$configuration->get('akeeba.advanced.autoresume_timeout', 10); ?>;
+var akeeba_autoresume_maxretries = <?php echo (int)$configuration->get('akeeba.advanced.autoresume_maxretries', 3); ?>;
+
 akeeba.jQuery(document).ready(function($){
 	// The return URL
 	akeeba_return_url = '<?php echo AkeebaHelperEscape::escapeJS($this->returnurl) ?>';
-	akeeba_is_stw = <?php echo ($this->isSTW) ? 'true' : 'false' ?>;
 
 	// Used as parameters to start_timeout_bar()
 	akeeba_max_execution_time = <?php echo $this->maxexec; ?>;
@@ -53,9 +52,18 @@ akeeba.jQuery(document).ready(function($){
 	akeeba_comment_editor_save = function() {
 	}
 
+	// Push the icon URL
+	akeeba_notification_icon_url = '<?php echo JUri::base() . '../media/com_akeeba/icons/logo-48.png' ?>'
+
 	// Push some translations
 	akeeba_translations['UI-LASTRESPONSE'] = '<?php echo AkeebaHelperEscape::escapeJS(JText::_('BACKUP_TEXT_LASTRESPONSE')) ?>';
-	akeeba_translations['UI-STW-CONTINUE'] = '<?php echo AkeebaHelperEscape::escapeJS(JText::_('STW_MSG_CONTINUE')) ?>';
+	akeeba_translations['UI-BACKUPSTARTED'] = '<?php echo AkeebaHelperEscape::escapeJS(JText::_('COM_AKEEBA_BACKUP_TEXT_BACKUPSTARTED')) ?>';
+	akeeba_translations['UI-BACKUPFINISHED'] = '<?php echo AkeebaHelperEscape::escapeJS(JText::_('COM_AKEEBA_BACKUP_TEXT_BACKUPFINISHED')) ?>';
+	akeeba_translations['UI-BACKUPHALT'] = '<?php echo AkeebaHelperEscape::escapeJS(JText::_('COM_AKEEBA_BACKUP_TEXT_BACKUPHALT')) ?>';
+	akeeba_translations['UI-BACKUPRESUME'] = '<?php echo AkeebaHelperEscape::escapeJS(JText::_('COM_AKEEBA_BACKUP_TEXT_BACKUPRESUME')) ?>';
+	akeeba_translations['UI-BACKUPHALT_DESC'] = '<?php echo AkeebaHelperEscape::escapeJS(JText::_('COM_AKEEBA_BACKUP_TEXT_BACKUPHALT_DESC')) ?>';
+	akeeba_translations['UI-BACKUPFAILED'] = '<?php echo AkeebaHelperEscape::escapeJS(JText::_('COM_AKEEBA_BACKUP_TEXT_BACKUPFAILED')) ?>';
+	akeeba_translations['UI-BACKUPWARNING'] = '<?php echo AkeebaHelperEscape::escapeJS(JText::_('COM_AKEEBA_BACKUP_TEXT_BACKUPWARNING')) ?>';
 
 	//Parse the domain keys
 	akeeba_domains = JSON.parse("<?php echo $this->domains ?>");
@@ -63,13 +71,18 @@ akeeba.jQuery(document).ready(function($){
 	// Setup AJAX proxy URL
 	akeeba_ajax_url = 'index.php?option=com_akeeba&view=backup&task=ajax';
 
+	// Setup base View Log URL
+	akeeba_logview_url = '<?php echo JUri::base() ?>index.php?option=com_akeeba&view=log';
+
 	// Setup the IFRAME mode
 	akeeba_use_iframe = <?php echo $this->useiframe ?>;
 
-	// Publish the SRP info
-	akeeba_srp_info = JSON.parse('<?php echo json_encode($this->srpinfo) ?>');
+	if (<?php echo $this->desktop_notifications; ?>)
+	{
+		akeebaBackup_notifications_askPermission();
+	}
 
-	<?php if( !$this->unwritableoutput && (($this->srpinfo['tag'] == 'restorepoint') || ($this->autostart)) ):?>
+	<?php if( !$this->unwritableoutput && $this->autostart ):?>
 	backup_start();
 	<?php else: ?>
 	// Bind start button's click event
@@ -85,7 +98,7 @@ akeeba.jQuery(document).ready(function($){
 });
 </script>
 
-<?php if(!version_compare(PHP_VERSION, '5.3.0', 'ge') && AEUtilComconfig::getValue('displayphpwarning', 1)): ?>
+<?php if(!version_compare(PHP_VERSION, '5.4.0', 'ge') && \Akeeba\Engine\Util\Comconfig::getValue('displayphpwarning', 1)): ?>
 <div class="alert">
 	<a class="close" data-dismiss="alert" href="#">×</a>
 	<p><strong><?php echo JText::_('COM_AKEEBA_CONFIG_LBL_OUTDATEDPHP_HEADER') ?></strong><br/>
@@ -94,7 +107,7 @@ akeeba.jQuery(document).ready(function($){
 
 	<?php
 	if(function_exists('base64_encode')) {
-		$returnurl = '&returnurl=' . base64_encode(JURI::getInstance()->toString());
+		$returnurl = '&returnurl=' . base64_encode(JUri::getInstance()->toString());
 	} else {
 		$returnurl = '';
 	}
@@ -132,11 +145,8 @@ akeeba.jQuery(document).ready(function($){
 
 	<?php if($this->unwritableoutput): $formstyle="style=\"display: none;\"" ?>
 	<div id="akeeba-fatal-outputdirectory" class="alert alert-error">
-	<?php if($this->srpinfo['tag'] == 'restorepoint'): ?>
-	<p>
-		<?php echo JText::_('BACKUP_ERROR_UNWRITABLEOUTPUT_SRP') ?>
-	</p>
-	<?php elseif($this->autostart): ?>
+
+	<?php if($this->autostart): ?>
 	<p>
 		<?php echo JText::_('BACKUP_ERROR_UNWRITABLEOUTPUT_AUTOBACKUP') ?>
 	</p>
@@ -170,7 +180,7 @@ akeeba.jQuery(document).ready(function($){
 		<label>
 			<?php echo JText::_('CPANEL_PROFILE_TITLE'); ?>: #<?php echo $this->profileid; ?>
 		</label>
-		<?php echo JHTML::_('select.genericlist', $this->profilelist, 'profileid', 'onchange="flipProfile();"', 'value', 'text', $this->profileid); ?>
+		<?php echo JHTML::_('select.genericlist', $this->profilelist, 'profileid', 'onchange="flipProfile();" class="advancedSelect"', 'value', 'text', $this->profileid); ?>
 		<button class="btn" onclick="flipProfile(); return false;">
 			<i class="icon-retweet"></i>
 			<?php echo JText::_('CPANEL_PROFILE_BUTTON'); ?>
@@ -284,14 +294,14 @@ akeeba.jQuery(document).ready(function($){
 			</p>
 
 			<?php if(empty($this->returnurl)): ?>
-			<button class="btn btn-primary btn-large" onclick="window.location='<?php echo JURI::base() ?>index.php?option=com_akeeba&view=buadmin'; return false;">
+			<a class="btn btn-primary btn-large" href="<?php echo JUri::base() ?>index.php?option=com_akeeba&view=buadmin">
 				<i class="icon-inbox icon-white"></i>
 				<?php echo JText::_('BUADMIN'); ?>
-			</button>
-			<button class="btn" onclick="window.location='<?php echo JURI::base() ?>index.php?option=com_akeeba&view=log'; return false;">
+			</a>
+			<a class="btn" id="ab-viewlog-success" href="<?php echo JUri::base() ?>index.php?option=com_akeeba&view=log">
 				<i class="icon-list-alt"></i>
 				<?php echo JText::_('VIEWLOG'); ?>
-			</button>
+			</a>
 			<?php endif; ?>
 		</div>
 	</div>
@@ -305,6 +315,36 @@ akeeba.jQuery(document).ready(function($){
 		<div id="warnings-list">
 		</div>
 	</div>
+</div>
+
+<div id="retry-panel" style="display: none">
+	<div class="alert alert-warning">
+		<h3 class="alert-heading"><?php echo JText::_('BACKUP_HEADER_BACKUPRETRY'); ?></h3>
+		<div id="retryframe">
+			<p><?php echo JText::_('BACKUP_TEXT_BACKUPFAILEDRETRY') ?></p>
+			<p>
+				<strong>
+					<?php echo JText::_('BACKUP_TEXT_WILLRETRY') ?>
+					<span id="akeeba-retry-timeout">0</span>
+					<?php echo JText::_('BACKUP_TEXT_WILLRETRYSECONDS') ?>
+				</strong>
+				<br/>
+				<button class="btn btn-danger btn-small" onclick="akeeba_cancel_resume_backup(); return false;">
+					<span class="icon-cancel"></span>
+					<?php echo JText::_('UI-MULTIDB-CANCEL'); ?>
+				</button>
+				<button class="btn btn-success btn-small" onclick="akeeba_resume_backup(); return false;">
+					<span class="icon-ok-circle"></span>
+					<?php echo JText::_('BACKUP_TEXT_BTNRESUME'); ?>
+				</button>
+			</p>
+
+			<p><?php echo JText::_('BACKUP_TEXT_LASTERRORMESSAGEWAS') ?></p>
+			<p id="backup-error-message-retry">
+			</p>
+		</div>
+	</div>
+
 </div>
 
 <div id="error-panel" style="display: none">
@@ -338,34 +378,25 @@ akeeba.jQuery(document).ready(function($){
 					<?php else: ?>
 					<?php echo JText::sprintf('BACKUP_TEXT_SOLVEISSUE_CORE', 'https://www.akeebabackup.com/subscribe.html?utm_source=akeeba_backup&utm_campaign=backuperrorcore','https://www.akeebabackup.com/support.html?utm_source=akeeba_backup&utm_campaign=backuperrorcore') ?>
 					<?php endif; ?>
-					<?php echo JText::sprintf('BACKUP_TEXT_SOLVEISSUE_LOG', 'index.php?option=com_akeeba&view=log&tag=backend') ?>
+					<?php echo JText::sprintf('BACKUP_TEXT_SOLVEISSUE_LOG', 'index.php?option=com_akeeba&view=log') ?>
 				</p>
 			</div>
 
 			<?php if(AKEEBA_PRO):?>
-			<button class="btn btn-large btn-primary" onclick="window.location='index.php?option=com_akeeba&view=alices'; return false;">
+			<a class="btn btn-large btn-success" href="index.php?option=com_akeeba&view=alices">
 				<i class="icon-list-alt icon-white"></i>
 				<?php echo JText::_('BACKUP_ANALYSELOG') ?>
-			</button>
-			<button class="btn btn-mini" onclick="window.location='https://www.akeebabackup.com/documentation/troubleshooter/abbackup.html?utm_source=akeeba_backup&utm_campaign=backuperrorbutton'; return false;">
-				<i class="icon-share-alt"></i>
-				<?php echo JText::_('BACKUP_TROUBLESHOOTINGDOCS') ?>
-			</button>
-			<button class="btn btn-mini" onclick="window.location='<?php echo JURI::base() ?>index.php?option=com_akeeba&view=log'; return false;">
-				<i class="icon-list-alt"></i>
-				<?php echo JText::_('VIEWLOG'); ?>
-			</button>
+			</a>
+			<?php endif; ?>
 
-			<?php else: ?>
 			<button class="btn btn-large btn-primary" onclick="window.location='https://www.akeebabackup.com/documentation/troubleshooter/abbackup.html?utm_source=akeeba_backup&utm_campaign=backuperrorbutton'; return false;">
 				<i class="icon-share-alt icon-white"></i>
 				<?php echo JText::_('BACKUP_TROUBLESHOOTINGDOCS') ?>
 			</button>
-			<button class="btn btn-mini" onclick="window.location='<?php echo JURI::base() ?>index.php?option=com_akeeba&view=log'; return false;">
+			<a class="btn" id="ab-viewlog-error" href="<?php echo JUri::base() ?>index.php?option=com_akeeba&view=log">
 				<i class="icon-list-alt"></i>
 				<?php echo JText::_('VIEWLOG'); ?>
-			</button>
-			<?php endif; ?>
+			</a>
 		</div>
 	</div>
 

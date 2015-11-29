@@ -4,7 +4,7 @@
  * @package Kunena.Site
  * @subpackage Views
  *
- * @copyright (C) 2008 - 2013 Kunena Team. All rights reserved.
+ * @copyright (C) 2008 - 2014 Kunena Team. All rights reserved.
  * @license http://www.gnu.org/copyleft/gpl.html GNU/GPL
  * @link http://www.kunena.org
  **/
@@ -883,6 +883,7 @@ class KunenaViewTopic extends KunenaView {
 
 		$this->history = KunenaForumMessageHelper::getMessagesByTopic($this->topic, 0, (int) $this->config->historylimit, $ordering='DESC');
 		$this->historycount = count ( $this->history );
+		$this->replycount = $this->topic->getTotal();
 		KunenaForumMessageAttachmentHelper::getByMessage($this->history);
 		$userlist = array();
 		foreach ($this->history as $message) {

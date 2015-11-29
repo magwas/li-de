@@ -74,28 +74,22 @@ JLoader::import( 'download', JPATH_ADMINISTRATOR . DS . 'components' . DS . 'com
 $jlistConfig = buildjlistConfig();
 $task = 'scan.files';
 
+$backend_lang = JComponentHelper::getParams('com_languages')->get('administrator');
 $language = JFactory::getLanguage();
-$language->load('com_jdownloads', JPATH_ADMINISTRATOR, 'en-GB', true);
-$language->load('com_jdownloads', JPATH_ADMINISTRATOR, null, true);
+$language->load('com_jdownloads', JPATH_ADMINISTRATOR, $backend_lang, true);
 
-$document->addCustomTag('<meta http-equiv="Expires" content="Fri, Jan 01 1900 00:00:00 GMT">
+?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="'.$backend_lang.'" lang="'.$backend_lang.'" dir="ltr">
+<head><meta http-equiv="Expires" content="Fri, Jan 01 1900 00:00:00 GMT">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Cache-Control" content="no-cache">
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<meta http-equiv="content-language" content="en">
-<title>jDownloads - Check Download Area Complete</title>');
-?>
+<meta http-equiv="Content-Type" content="text/html;  charset=utf-8">
+<meta http-equiv="content-language" content="en"
+<title>jDownloads</title>
+</head>
 
-<style type="text/css">
-BODY
-{
- FONT-FAMILY: Verdana;
- FONT-SIZE: 8pt;
- COLOR: #222222;
- background-color: #F5F6CE;
- padding: 15;
-}
-</style>
+<body style="FONT-FAMILY: Verdana; FONT-SIZE: 8pt; COLOR: #222222;  background-color: #F5F6CE; padding: 15;">
 
 <?php
 
@@ -111,7 +105,7 @@ if ($param != $secret){
     echo '<b>'.JText::_('COM_JDOWNLOADS_NOT_ALLOWED_ACTION_MSG').'</b>';
     exit;
 }
-
+echo '<br />';
 echo '<div  style="font-family:Verdana; font-size:10"><b>'.JText::_('COM_JDOWNLOADS_RUN_MONITORING_INFO2').'</b><br />'.JText::_('COM_JDOWNLOADS_RUN_MONITORING_INFO').'<br /><br /></div>';
 flush();
 
@@ -388,7 +382,7 @@ function checkFiles($task) {
                    
                    $new_cats_create++;
                    // copy index.html to the new folder
-                   $index_copied = JFile::copy($jlistConfig['files.uploaddir'].DS.'index.html', $jlistConfig['files.uploaddir'].DS.$searchdirs[$i].DS.'index.html');
+                   $index_copied = JFile::copy(JPATH_ROOT.DS.'administrator'.DS.'components'.DS.'com_jdownloads'.DS.'index.html', $jlistConfig['files.uploaddir'].DS.$searchdirs[$i].DS.'index.html');
                    $log_array[] = JText::_('COM_JDOWNLOADS_AUTO_CAT_CHECK_ADDED').' <b>'.$searchdirs[$i].'</b><br />';
                }
 
@@ -565,8 +559,9 @@ function checkFiles($task) {
                              }    
                                  
                              $date = JFactory::getDate();
-                             $date->setTimezone(JFactory::getApplication()->getCfg('offset'));
-
+                             $tz = JFactory::getConfig()->get( 'offset' );
+                             $date->setTimezone(new DateTimeZone($tz));
+                             
                              $file_extension = JFile::getExt($filename);
                             
                              // set file size
@@ -723,7 +718,7 @@ function checkFiles($task) {
        
           // build log message
           if (count($log_array) > 0){
-              array_unshift($log_array, date($jlistConfig['global.datetime']).':<br />');
+              array_unshift($log_array, date(JText::_('DATE_FORMAT_LC2')).':<br />');
           }          
           
           foreach ($log_array as $log) {

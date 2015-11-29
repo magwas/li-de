@@ -175,7 +175,7 @@ class jdownloadsModelDownload extends JModelAdmin
      * @param    boolean  $import   true when the data comes from 1.9.x import process   
      * @return    boolean    True on success.
      */
-    public function save($data, $auto = false, $import = false)
+    public function save($data, $auto = false, $import = false, $restore_in_progress = false)
     {
         global $jlistConfig;
         
@@ -193,7 +193,7 @@ class jdownloadsModelDownload extends JModelAdmin
         JPluginHelper::importPlugin('content');
         
         // Load the row if saving an existing download. Not when auto monitoring is activated (also use for import from old version)
-        if ($pk > 0 && !$auto) {
+        if ($pk > 0 && !$auto || ($pk > 0 && $restore_in_progress) ) {
             $table->load($pk);
             $isNew = false;
         }
@@ -205,6 +205,23 @@ class jdownloadsModelDownload extends JModelAdmin
             $data['file_alias']    = $alias;
         }
         
+        if (!isset($data['rules'])){
+            $data['rules'] = array(
+                'core.create' => array(),
+                'core.delete' => array(),
+                'core.edit' => array(),
+                'core.edit.state' => array(),
+                'core.edit.own' => array(),
+                'download' => array(),
+            ); 
+        }
+
+       
+        if ((!empty($data['tags']) && $data['tags'][0] != ''))
+        {
+            $table->newTags = $data['tags'];
+        } 
+
         // Bind the data.
         if (!$table->bind($data)) {
             $this->setError($table->getError());
@@ -666,7 +683,14 @@ class jdownloadsModelDownload extends JModelAdmin
      */
     public function getItem($pk = null)
     {
-        $item = parent::getItem($pk); 
+        $item = parent::getItem($pk);
+        
+        if ($item->file_id){
+            $registry = new JRegistry;
+            // get the tags
+            $item->tags = new JHelperTags;
+            $item->tags->getTagIds($item->file_id, 'com_jdownloads.download');         
+        }        
 
         return $item;
     }                           
@@ -712,14 +736,18 @@ class jdownloadsModelDownload extends JModelAdmin
         // Include the content plugins for the on delete events.
         JPluginHelper::importPlugin('content');
         
+        $can_delete = false;
+        
         // Iterate the items to delete each one.
         foreach ($pks as $i => $pk)
         {
 
             if ($table->load($pk))
             {
-
-                if ($this->canDelete($table))
+                if ($app->isAdmin()){
+                    $can_delete = $this->canDelete($table);
+                }    
+                if ($app->isSite() || $can_delete)
                 {
 
                     $context = $this->option . '.' . $this->name;

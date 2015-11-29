@@ -4,7 +4,7 @@
  * @package Kunena.Site
  * @subpackage Models
  *
- * @copyright (C) 2008 - 2013 Kunena Team. All rights reserved.
+ * @copyright (C) 2008 - 2014 Kunena Team. All rights reserved.
  * @license http://www.gnu.org/copyleft/gpl.html GNU/GPL
  * @link http://www.kunena.org
  **/
@@ -73,11 +73,11 @@ class KunenaModelSearch extends KunenaModel {
 		$this->setState ( 'query.topic_id', $value );
 
 		if (isset ( $_POST ['query'] ) || isset ( $_POST ['searchword'] )) {
-			$value = JRequest::getVar ( 'catids', array (0), 'post', 'array' );
+			$value = JRequest::getVar('catids', array(0), 'post', 'array'); // Array of integers
 			JArrayHelper::toInteger($value);
 		} else {
-			$value = JRequest::getString ( 'catids', '0', 'get' );
-			$value = explode ( ' ', $value );
+			$value = JRequest::getString('catids', '0', 'get'); // String of integers
+			$value = explode(' ', $value);
 			JArrayHelper::toInteger($value);
 		}
 		$this->setState ( 'query.catids', $value );

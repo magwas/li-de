@@ -227,6 +227,18 @@ class JDCategories
 		$query->select($case_when);
 
 		$query->from('#__jdownloads_categories as c');
+        
+        if (isset($this->_options['category_id'])){
+            if ($this->_options['category_id']){
+                $query->where($this->_options['category_id']);
+            }
+        }
+        
+        if (isset($this->_options['level'])){
+            if ($this->_options['level']){
+                $query->where('c.level <= '. $db->Quote($this->_options['level']));
+            }
+        }        
 
 		if ($this->_options['access'])
 		{
@@ -311,35 +323,37 @@ class JDCategories
 		$results = $db->loadObjectList('id');
 		$childrenLoaded = false;
         
-        $computed_ids = array();
-        
         if (count($results))
 		{
            
             // Foreach categories
 			foreach ($results as $result)
 			{
-                
                 $result->numitems = 0;                
                 $result->subcatitems = 0;
                 
                 if ($result->id > 1){
-                    if ($result->id > (int)$id){
+                    if ($result->id > (int)$id || $result->parent_id == (int)$id){
                         // we need for every category all childrens IDs
                         $count = 0;
                         // compute not already stored items again
-                        if (!in_array($result->id, $computed_ids)){ 
                             $query = $db->getQuery(true);
                             $query->select('cat.id');
                             $query->from('#__jdownloads_categories as cat');
-                            if ($this->_options['published'] == 1)
-                            {
+                            if ($this->_options['published'] == 1){
                                 $query->where('cat.lft BETWEEN '.$result->lft.' AND '.$result->rgt.' AND cat.published = 1 AND cat.access IN (' . implode(',', $user->getAuthorisedViewLevels()) . ')');
-                            }
-                            else                     
-                            {
+                            } else {
                                 $query->where('cat.lft BETWEEN '.$result->lft.' AND '.$result->rgt.' AND cat.access IN (' . implode(',', $user->getAuthorisedViewLevels()) . ')');
                             }    
+
+                            // use the category filter to get only the needed results
+                            if (isset($this->_options['category_id'])){
+                                if ($this->_options['category_id']){
+                                    $cat_filter = str_replace('c.id', 'cat.id', $this->_options['category_id']);
+                                    $query->where($cat_filter);
+                                }
+                            }    
+
                             $query->order('cat.id');
                             $db->setQuery($query);
                             $children_ids = $db->loadColumn();
@@ -347,8 +361,6 @@ class JDCategories
                             if ($children_ids)
                             {
                                 $result->subcatitems = (count($children_ids)-1);
-                                $computed_ids = array_merge($computed_ids, $children_ids);
-                                // add the current IDs to the check list 
                                 $ids = implode(',', $children_ids);                                                           
                                 // get the total amount of files
                                 $query = $db->getQuery(true);
@@ -362,8 +374,7 @@ class JDCategories
                                 $db->setQuery($query);
                                 $count = $db->loadResult();
                             }               
-                            $result->numitems = $count;
-                        } 
+                            $result->numitems = (int)$count;
                     }
                 }
                 

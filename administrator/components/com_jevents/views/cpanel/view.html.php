@@ -38,7 +38,21 @@ class AdminCpanelViewCpanel extends JEventsAbstractView
 		JEventsHelper::addSubmenu();
 
 		JHTML::_('behavior.tooltip');
+		if (JevJoomlaVersion::isCompatible("3.4")) {
+			JError::raiseNotice(340, JText::_("JEV_UPDATE_TO_JEVENTS32"));
+		}
+		else {
+			JError::raiseNotice(250, JText::_("JEV_VERSION_NO_LONGER_DEVELOPED32"));
+		}
 
+/*
+		if (JevJoomlaVersion::isCompatible("3.4")) {
+			JError::raiseNotice(340, JText::_("JEV_UPDATE_TO_JEVENTS34"));
+		}
+		else {
+			JError::raiseNotice(250, JText::_("JEV_VERSION_NO_LONGER_DEVELOPED"));
+		}
+*/
 		if (JevJoomlaVersion::isCompatible("3.0"))
 		{
 			$this->sidebar = JHtmlSidebar::render();
@@ -607,6 +621,7 @@ class AdminCpanelViewCpanel extends JEventsAbstractView
 			"layout_extplus" => 3,
 			"layout_iconic" => 3,
 			"layout_ruthin" => 3,
+			"layout_flatplus" => 3,
 			"layout_smartphone" => 3,
 			"layout_map" => 3,
 			"plugin_acymailing_tagjevents" => 41,
@@ -976,10 +991,21 @@ class AdminCpanelViewCpanel extends JEventsAbstractView
 			// Silver - layouts
 			array("element"=>"extplus","name"=>"extplus","type"=>"file"),
 			array("element"=>"ruthin","name"=>"ruthin","type"=>"file"),
+			array("element"=>"flatplus","name"=>"flatplus","type"=>"file"),
 			array("element"=>"iconic","name"=>"iconic","type"=>"file"),
 			array("element"=>"map","name"=>"map","type"=>"file"),
 			array("element"=>"smartphone","name"=>"smartphone","type"=>"file"),
 			array("element"=>"zim","name"=>"zim","type"=>"file"),
+
+			// These have been renamed in the XML file - need to be careful doing that!!!
+			array("element"=>"JEventsExtplusLayout","name"=>"extplus","type"=>"file"),
+			array("element"=>"JEventsRuthinLayout","name"=>"ruthin","type"=>"file"),
+			array("element"=>"JEventsFltplusLayout","name"=>"flatplus","type"=>"file"),
+			array("element"=>"JEventsIconicLayout","name"=>"iconic","type"=>"file"),
+			array("element"=>"JEventsMapLayout","name"=>"map","type"=>"file"),
+			array("element"=>"JEventsSmartphoneLayout","name"=>"smartphone","type"=>"file"),
+			array("element"=>"JEventsZimLayout","name"=>"zim","type"=>"file"),
+
 			// Silver - Jevents Categories
 			array("element"=>"mod_jevents_categories","name"=>"mod_jevents_categories","type"=>"module"),
 			// Silver - Newsletters - some TODO

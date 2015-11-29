@@ -29,8 +29,6 @@ echo '
 <h2>'.Jtext::_('TEMAKOROK').'</h2></div>
 <div class="kepviselo">
 ';
-$config = $this->temakorokHelper->getConfig();
-if ($config->kepviselet_engedelyezett != 0) {
       if ($this->Kepviselo['kepviselojeLink'] != '') {
         echo '<a class="btnKepviselo" href="'.$this->Kepviselo['kepviselojeLink'].'">
              '.$this->Kepviselo['image'].'
@@ -58,7 +56,6 @@ if ($config->kepviselet_engedelyezett != 0) {
              </a>
              ';
       };
-}	  
 echo '
 </div>
 <div class="akciogombok">

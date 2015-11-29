@@ -2,7 +2,7 @@
 
 /**
  * @package   	JCE
- * @copyright 	Copyright (c) 2009-2013 Ryan Demmer. All rights reserved.
+ * @copyright 	Copyright (c) 2009-2015 Ryan Demmer. All rights reserved.
  * @license   	GNU/GPL 2 or later - http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
  * JCE is free software. This version may have been modified pursuant
  * to the GNU General Public License, and as distributed it includes or
@@ -630,7 +630,15 @@ abstract class WFInstall {
             // remove tinymce langs
             $site . '/editor/tiny_mce/langs',
             // remove dragupload folder (ranamed to upload)
-            $site . '/editor/tiny_mce/plugins/dragupload'
+            $site . '/editor/tiny_mce/plugins/dragupload',
+            // remove googlemaps
+            $site . '/editor/extensions/aggregator/googlemaps',
+            
+            // remove extensions folder
+            $site . '/editor/libraries/js/extensions',
+            
+            // remove fullpage plugin
+            $site . '/editor/tiny_mce/plugins/fullpage'
         );
 
         foreach ($folders as $folder) {
@@ -675,6 +683,13 @@ abstract class WFInstall {
             $site . '/editor/tiny_mce/themes/advanced/langs/en_dlg.js',
             // remove old jquery UI
             $site . '/editor/libraries/jquery/js/jquery-ui-1.9.0.custom.min.js',
+            $site . '/editor/libraries/jquery/js/jquery-ui-1.10.3.custom.min.js',
+            // remove old jquery
+            $site . '/editor/libraries/jquery/js/jquery-1.10.2.min.js',
+            // remove "touch-punch"
+            $site . '/editor/libraries/jquery/js/jquery.ui.touch-punch.min.js',
+            // remove "tiny_mce_utils"
+            $site . '/editor/libraries/js/tiny_mce_utils.js',
             // remove "theme" files
             $site . '/editor/libraries/classes/theme.php',
             $site . '/editor/tiny_mce/themes/advanced/theme.php',
@@ -696,7 +711,57 @@ abstract class WFInstall {
             $site . '/editor/extensions/links/build.xml',
             $site . '/editor/extensions/popups/build.xml',
             // remove legend.css
-            $admin . '/media/css/legend.css'
+            $admin . '/media/css/legend.css',
+            // remove googlemaps
+            $site . '/editor/extensions/aggregator/googlemaps.php',
+            $site . '/editor/extensions/aggregator/googlemaps.xml',
+
+            // remove concat files
+            $admin . '/media/js/jce.js',
+            
+            $admin . '/media/js/profiles.js',
+            $admin . '/media/js/extensions.js',
+            $admin . '/media/js/checklist.js',
+            $admin . '/media/js/styleformat.js',
+            $admin . '/media/js/fonts.js',
+            $admin . '/media/js/blockformats.js',
+            
+            $admin . '/media/css/colorpicker.css',
+            $admin . '/media/css/bootstrap.min.css',
+            $admin . '/media/css/styles.css',
+            $admin . '/media/css/extensions.css',
+            $admin . '/media/css/styleformat.css',
+            $admin . '/media/css/fonts.css',
+            $admin . '/media/css/blockformats.css',
+            $admin . '/media/css/layout.css',
+            $admin . '/media/css/profile.css',
+            
+            $site . '/editor/libraries/js/html5.js',
+            $site . '/editor/libraries/js/select.js',
+            $site . '/editor/libraries/js/tips.js',
+            $site . '/editor/libraries/js/colorpicker.js',
+            $site . '/editor/libraries/js/plugin.js',
+
+            $site . '/editor/libraries/js/extensions.js',
+            $site . '/editor/libraries/js/aggregator.js',
+            $site . '/editor/libraries/js/mediaplayer.js',
+            $site . '/editor/libraries/js/popups.js',
+            $site . '/editor/libraries/plupload/plupload.full.js',
+            $site . '/editor/libraries/js/tree.js',
+            $site . '/editor/libraries/js/upload.js',
+            $site . '/editor/libraries/js/browser.js',
+            $site . '/editor/libraries/js/sort.js',
+            $site . '/editor/libraries/js/filter.js',
+            $site . '/editor/libraries/js/manager.js',
+            $site . '/editor/libraries/js/link.js',
+            
+            $site . '/editor/libraries/css/reset.css',
+            $site . '/editor/libraries/css/tips.css',
+            $site . '/editor/libraries/css/tree.css',
+            $site . '/editor/libraries/css/dialog.css',
+            $site . '/editor/libraries/css/upload.css',
+            $site . '/editor/libraries/css/browser.css',
+            $site . '/editor/libraries/css/bootstrap.min.css'
         );
 
         foreach ($files as $file) {
@@ -861,6 +926,44 @@ abstract class WFInstall {
                 }
             }
         }
+        
+        // transfer styleselect, fontselect, fontsize etc. to a plugin
+        if (version_compare($version, '2.3.5', '<')) {
+            $profiles = self::getProfiles();
+            $table = JTable::getInstance('Profiles', 'WFTable');
+
+            if (!empty($profiles)) {
+                foreach ($profiles as $item) {
+                    $table->load($item->id);
+                    
+                    $plugins = explode(',', $table->plugins);
+
+                    if (strpos($table->rows, 'formatselect') !== false) {
+                        $plugins[] = 'formatselect';
+                    }
+                    
+                    if (strpos($table->rows, 'styleselect') !== false) {
+                        $plugins[] = 'styleselect';
+                    }
+                    
+                    if (strpos($table->rows, 'fontselect') !== false) {
+                        $plugins[] = 'fontselect';
+                    }
+                    
+                    if (strpos($table->rows, 'fontsizeselect') !== false) {
+                        $plugins[] = 'fontsizeselect';
+                    }
+                    
+                    if (strpos($table->rows, 'forecolor') !== false || strpos($table->rows, 'backcolor') !== false) {
+                        $plugins[] = 'fontcolor';
+                    }
+                    
+                    $table->plugins = implode(',', $plugins);
+                    
+                    $table->store();
+                }
+            }
+        }
 
         return true;
     }
@@ -868,7 +971,7 @@ abstract class WFInstall {
     private static function getProfiles() {
         $db = JFactory::getDBO();
         
-        $query = $db->getQuery();
+        $query = $db->getQuery(true);
 
         if (is_object($query)) {
             $query->select('id')->from('#__wf_profiles');

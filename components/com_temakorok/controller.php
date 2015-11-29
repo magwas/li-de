@@ -60,8 +60,7 @@ class TemakorokController extends JControllerLegacy {
 	$this->view = $this->getView($this->_viewname,$viewType);
 	$this->model = $this->getModel($this->_mainmodel);
     $this->model->set('temakorokHelper',$this->temakorokHelper);
-	$this->view->setModel($this->model,true);
-    $this->view->set('temakorokHelper',$this->temakorokHelper);
+	$this->view->setModel($this->model,true);		
 	JRequest :: setVar('view', $this->_viewname);
     
     // automatikus szavazás állapot változtatás
@@ -391,16 +390,6 @@ class TemakorokController extends JControllerLegacy {
     $user = JFactory::getUser();
     $db = JFactory::getDBO();
     $item = $this->model->bind($_POST);
-	
-	// a $item->json adatai mezőnként érkeznek
-	$jsonObj = new stdclass();
-	$jsonObj->temakor_felvivok = JRequest::getVar('temakor_felvivok',1);
-	$jsonObj->tobbszintu_atruhazas = JRequest::getVar('tobbszintu_atruhazas',0);
-	$jsonObj->atruhazas_lefele_titkos = JRequest::getVar('atruhazas_lefele_titkos',0);
-	$jsonObj->kepviselet_engedelyezett = JRequest::getVar('kepviselet_engedelyezett',1);
-	$jsonObj->temakor_tagsag_csakadmin = JRequest::getVar('temakor_tagsag_csakadmin',0);
-	$item->json = JSON_encode($jsonObj);
-	
 
 	// a témakör fa hurkot mindenképpen meg kell akadályozni!
 	$i = 0;

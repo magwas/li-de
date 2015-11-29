@@ -2,7 +2,7 @@
 
 /**
  * @package   	JCE
- * @copyright 	Copyright (c) 2009-2013 Ryan Demmer. All rights reserved.
+ * @copyright 	Copyright (c) 2009-2015 Ryan Demmer. All rights reserved.
  * @license   	GNU/GPL 2 or later - http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
  * JCE is free software. This version may have been modified pursuant
  * to the GNU General Public License, and as distributed it includes or
@@ -683,31 +683,27 @@ abstract class WFMimeType {
      */
     public function check($name, $path) {
         $extension = strtolower(substr($name, strrpos($name, '.') + 1));
+        $mimetype = null;
 
         if (function_exists('finfo_open')) {
-            if ($finfo = @finfo_open(FILEINFO_MIME_TYPE)) {
-                if ($mimetype = @finfo_file($finfo, $path)) {
-                    @finfo_close($finfo);
-
-                    $mime = self::getMime($mimetype);
-
-                    if ($mime) {                        
-                        return in_array($extension, $mime);
-                    }
-                }
+            if (!$finfo = new finfo(FILEINFO_MIME_TYPE)) {
+                return true;
             }
+            $mimetype = $finfo->file($path);
         } else if (function_exists('mime_content_type')) {
-            if ($mimetype = @mime_content_type($path)) {
+            $mimetype = @mime_content_type($path);
+        }
 
-                $mime = self::getMime($mimetype);
+        if ($mimetype) {
 
-                if ($mime) {
-                    return in_array($extension, $mime);
-                }
+            $mime = self::getMime($mimetype);
+
+            if ($mime) {
+                return in_array($extension, $mime);
             }
         }
+
         // server doesn't support mime type check, let it through...
         return true;
     }
-
 }

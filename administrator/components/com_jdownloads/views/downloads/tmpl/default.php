@@ -90,7 +90,7 @@ $images_folder = JURI::root().'administrator/components/com_jdownloads/assets/im
 				<?php echo JHtml::_('grid.sort',   'COM_JDOWNLOADS_BACKEND_FILESLIST_PIC', 'a.file_pic', $listDirn, $listOrder ); ?>
 			</th> 
 			<th width="10%">
-				<?php echo JHtml::_('grid.sort',   'COM_JDOWNLOADS_BACKEND_FILESLIST_CAT', 'c.cat_title', $listDirn, $listOrder ); ?>
+				<?php echo JHtml::_('grid.sort',   'COM_JDOWNLOADS_BACKEND_FILESLIST_CAT', 'category_title', $listDirn, $listOrder ); ?>
 			</th> 
 			<th width="5%">
 				<?php echo JHtml::_('grid.sort',   'COM_JDOWNLOADS_DESCRIPTION', 'a.description', $listDirn, $listOrder ); ?>
@@ -180,7 +180,7 @@ $images_folder = JURI::root().'administrator/components/com_jdownloads/assets/im
 
                 <td class="center">
                     <?php if ($item->file_pic != '') { ?>
-                        <img src="<?php echo JURI::root().JRoute::_( "/images/jdownloads/fileimages/$item->file_pic" ); ?>" width="32px" height="32px" align="middle" border="0"/>
+                        <img src="<?php echo JURI::root().JRoute::_( "images/jdownloads/fileimages/$item->file_pic" ); ?>" width="32px" height="32px" align="middle" border="0"/>
                     <?php } ?>
                 </td>            
 
@@ -227,10 +227,10 @@ $images_folder = JURI::root().'administrator/components/com_jdownloads/assets/im
                 ?>         
                 </td>
                 
-                <td align="center"><?php echo JHtml::_('date',$item->date_added, $jlistConfig['global.datetime']); ?>
+                <td align="center"><?php echo JHtml::_('date',$item->date_added, JText::_('DATE_FORMAT_LC4')); ?>
                 </td>
                 
-                <td align="center"><?php echo $item->downloads;?>
+                <td align="center"><?php echo JDownloadsHelper::strToNumber((int)$item->downloads);?>
                 </td> 
                 
                 <td class="center">

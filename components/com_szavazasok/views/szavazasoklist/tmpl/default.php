@@ -34,12 +34,9 @@ echo '
       echo '<a href="'.$this->Akciok['temakoredit'].'" class="akcioIkon beallitasokGomb" title="'.JText::_('TEMAKORBEALLITASOK').'">&nbsp;</a>
       ';
   }
-  $config = $this->temakorokHelper->getConfig($this->Temakor->id);
-  if ($config->temakor_tagsag_csakadmin != 1) {
-    if (($this->Akciok['tagJelentkezes'] != '') & ($this->Temakor->id > 0)) {
+  if (($this->Akciok['tagJelentkezes'] != '') & ($this->Temakor->id > 0)) {
       echo '<a href="'.$this->Akciok['tagJelentkezes'].'" class="akcioIkon tagJelentkezoGomb" title="'.JText::_('TAGJELENTKEZES').'">&nbsp;</a>
       ';
-    }
   }
   if ($this->Temakor->allapot == 1) echo '('.JText::_('CLOSED').')';
   if ($this->Temakor->leiras != '')
@@ -54,8 +51,7 @@ echo '
 		</div>
 		<div class="kepviselo">
 		';
-  if ($config->kepviselet_engedelyezett != 0) {		
-      if ($this->AltKepviselo['kepviselojeLink'] != '') {
+  if ($this->AltKepviselo['kepviselojeLink'] != '') {
         echo '<a class="btnKepviselo" href="'.$this->AltKepviselo['kepviselojeLink'].'">
              '.$this->AltKepviselo['image'].'
              <br />'.$this->AltKepviselo['nev'].'
@@ -84,7 +80,6 @@ echo '
              </a>
              ';
       };
-  }	  
 echo '
 </div>
 <div class="clr"></div>
@@ -200,9 +195,7 @@ echo '
 	}
 	
   $rowClass = 'row0';
-  if (!is_array($this->Items)) $this->Items = Array();
-  if (count($this->Items) > 0) {
-    foreach ($this->Items as $item) { 
+  foreach ($this->Items as $item) { 
       if (($item->user_id  == '') | ($item->kepviselo_id > 0))
         $szavaztal = '';
       else
@@ -229,11 +222,7 @@ echo '
        '; 
        if ($rowClass == 'row0') $rowClass='row1'; else $rowClass='row0';
   } 
-  } else {
-	  echo '<tr><td colspan="10" align="center">'.JTEXT::_('SZAVAZASOK_NO_DATA').'</td></tr>
-	  ';
-  }
-  echo '
+echo '
 </tbody>
 </table>		
 <div class="lapozosor">

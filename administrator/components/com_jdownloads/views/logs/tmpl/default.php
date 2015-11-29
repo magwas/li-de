@@ -121,7 +121,7 @@ $listbox_type = JHtml::_('select.genericlist', $options, 'filter_type', 'class="
                 </td>
                 
                 <td>
-                     <?php echo $this->escape($item->log_datetime); ?>
+                     <?php echo JHtml::_('date',$this->escape($item->log_datetime), JText::_('DATE_FORMAT_LC2')); ?>
                 </td>
                 
                 <td align="left">

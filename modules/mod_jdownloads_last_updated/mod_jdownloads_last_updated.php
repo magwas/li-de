@@ -1,8 +1,8 @@
 <?php
 /**
-* @version $Id: mod_jdownloads_last_updated.php v3.2
+* @version $Id: mod_jdownloads_last_updated.php
 * @package mod_jdownloads_updated
-* @copyright (C) 2014 Arno Betz
+* @copyright (C) 2015 Arno Betz
 * @license http://www.gnu.org/copyleft/gpl.html GNU/GPL
 * @author Arno Betz http://www.jDownloads.com
 *
@@ -13,13 +13,25 @@ defined( '_JEXEC' ) or die( 'Restricted access' );
 
 require_once __DIR__ . '/helper.php';
 
-    $database = JFactory::getDBO();
-    JHTML::_('behavior.tooltip');
-    $current_itemid = JRequest::getVar("Itemid");
-	
+    $db = JFactory::getDBO();
+    JHtml::_('behavior.tooltip');
+    $Itemid  = JRequest::getVar("Itemid");
+    
     // get published root menu link
-    $database->setQuery("SELECT id from #__menu WHERE link = 'index.php?option=com_jdownloads&view=categories' and published = 1");
-    $root_itemid = $database->loadResult(); 
+    $db->setQuery("SELECT id from #__menu WHERE link = 'index.php?option=com_jdownloads&view=categories' and published = 1");
+    $root_itemid = $db->loadResult();
+    
+    if ($root_itemid){
+        $Itemid = $root_itemid;
+    }
+    
+    // get this option from configuration to see whether the links shall run the download without summary page
+    $db->setQuery("SELECT setting_value FROM #__jdownloads_config WHERE setting_name = 'direct.download'");
+    $direct_download_config = $db->loadResult();
+    
+    // get this option from configuration to see whether the links may going to the details page
+    $db->setQuery("SELECT setting_value FROM #__jdownloads_config WHERE setting_name = 'view.detailsite'");
+    $detail_view_config = $db->loadResult();
 
     $before                 = trim($params->get( 'text_before' ) );
     $text_before            = modJdownloadsLastUpdatedHelper::getOnlyLanguageSubstring($before);
@@ -35,7 +47,8 @@ require_once __DIR__ . '/helper.php';
 	$view_date_same_line    = ($params->get( 'view_date_same_line' ) );
 	$view_date_text         = ($params->get( 'view_date_text' ) );
     $view_date_text         = modJdownloadsLastUpdatedHelper::getOnlyLanguageSubstring($view_date_text);        
-	$date_format            = ($params->get( 'date_format' ) );
+	// We use the standard short date format from the activated language when here is not a format defined 
+    $date_format            = $params->get( 'date_format', JText::_('DATE_FORMAT_LC4') ); 
 	$date_alignment         = ($params->get( 'date_alignment' ) );
 	$view_pics              = ($params->get( 'view_pics' ) );
 	$view_pics_size         = ($params->get( 'view_pics_size' ) );

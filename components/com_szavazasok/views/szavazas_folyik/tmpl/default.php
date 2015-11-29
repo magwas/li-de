@@ -95,8 +95,7 @@ echo '
   <tbody>
   ';
   $rowClass = 'row0';
-  if (!is_array($this->Items)) $this->Items = Array();
-  if (count($this->Items) > 0) {
+  if (count($this->items) > 0) {
 	  foreach ($this->Items as $item) { 
 		  if (($item->user_id  == '') | ($item->kepviselo_id > 0))
 			$szavaztal = '';

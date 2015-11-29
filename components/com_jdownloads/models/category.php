@@ -312,7 +312,7 @@ class JdownloadsModelCategory extends JModelList
 	{
 		$params = $this->getState()->get('params');
 		$limit = $this->getState('list.limit');
-		
+
 		if ($this->_downloads === null && $category = $this->getCategory()) {
 			
             $model = JModelLegacy::getInstance('downloads', 'JdownloadsModel', array('ignore_request' => true));
@@ -322,11 +322,7 @@ class JdownloadsModelCategory extends JModelList
 			$model->setState('filter.published', $this->getState('filter.published'));
 			$model->setState('filter.access', $this->getState('filter.access'));
 			$model->setState('filter.language', $this->getState('filter.language'));
-			if (!$this->getState('list.ordering')){
-                $model->setState('list.ordering', $this->_buildContentOrderBy());  // $this->getState('list.ordering'));
-            } else {
-                $model->setState('list.ordering', $this->getState('list.ordering'));
-            }    
+            $model->setState('list.ordering', $this->_buildContentOrderBy());  // $this->getState('list.ordering'));
 			$model->setState('list.start', $this->getState('list.start'));
 			$model->setState('list.limit', $limit);
 			$model->setState('list.direction', $this->getState('list.direction'));
@@ -345,6 +341,7 @@ class JdownloadsModelCategory extends JModelList
             
             $this->_pagination = $model->getPagination();
 		}
+
 		return $this->_downloads;
 	}
 
@@ -457,6 +454,14 @@ class JdownloadsModelCategory extends JModelList
 				$this->_children = false;
 				$this->_parent = false;
 			}
+            
+            if (count($this->_children)){
+                for ($i = 0; $i < count($this->_children); $i++) { 
+                    // Get the tags
+                    $this->_children[$i]->tags = new JHelperTags;
+                    $this->_children[$i]->tags->getItemTags('com_jdownloads.category',  $this->_children[$i]->id);
+                }
+            }
 		}
 
 		return $this->_item;
@@ -531,55 +536,6 @@ class JdownloadsModelCategory extends JModelList
 				JArrayHelper::sortObjects($this->_children, 'title', ($params->get('orderby_pri') == 'alpha') ? 1 : -1);
 			}
 		}
-
-			//+FT li-de témakör láthatóság ellenörzés
-			$user = JFactory::getUser();
-			$db = JFactory::getDBO();
-			$item = 0;
-			$i = 0;
-			$lathato = true;
-			while ($i < count($this->_children)) {
-			    $lathato = true;
-				$item = $this->_children[$i];
-				//GBG echo $item->cat_dir.' '.$item->title.'<br>';
-				if (substr($item->cat_dir,0,2)=='SZ') {
-					$db->setQuery('select sz.id
-					from #__szavazasok sz
-					left outer join #__temakorok t on t.id = sz.temakor_id
-					left outer join #__tagok ta 
-					  on ta.temakor_id = sz.temakor_id and ta.user_id = "'.$user->id.'"
-					where sz.id = "'.trim(substr($item->cat_dir,2,6)).'" and
-                        ((t.lathatosag = 0) or 
-						 (t.lathatosag = 1 and "'.$user->id.'" > 0) or 
-						 (t.lathatosag = 2 and ta.user_id is not null) )					
-					');
-					//DBG echo '<pre>'.$db->getQuery().'</pre>';
-					$res = $db->loadObject();
-					if ($res == false) $lathato = false;
-				}
-				if (substr($item->cat_dir,0,1)=='T') {
-					$db->setQuery('select t.id
-					from #__temakorok t
-					left outer join #__tagok ta 
-					  on ta.temakor_id = t.id and ta.user_id = "'.$user->id.'"
-					where t.id = "'.trim(substr($item->cat_dir,1,6)).'" and
-                        ((t.lathatosag = 0) or 
-						 (t.lathatosag = 1 and "'.$user->id.'" > 0) or 
-						 (t.lathatosag = 2 and ta.user_id is not null) )					
-					');
-					//DBG echo '<pre>'.$db->getQuery().'</pre>';
-					$res = $db->loadObject();
-					if ($res == false) $lathato = false;
-				}
-				
-				if ($lathato) {
-					$i++;
- 			    } else {
-				   unset($this->_children[$i]);
-			    }	
-			}
-			//-FT li-de témakör láthatóság ellenörzés
-
 
 		return $this->_children;
 	}

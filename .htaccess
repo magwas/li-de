@@ -45,6 +45,16 @@ RewriteRule .* index.php [F]
 # www redirect (or vice versa), place that code here. Ensure those
 # redirects use the correct RewriteRule syntax and the [R=301,L] flags.
 #
+# li-de.tk van a fb és google integrációnál domain névnek beirva
+# ezért a más domainre érkezőket is átirányitom oda...
+#
+RewriteCond %{HTTP_HOST} ^li-de.adatmagus.hu [NC] 
+RewriteRule ^(.*)$ http://li-de.tk/$1 [L,R=301]
+RewriteCond %{HTTP_HOST} ^transform.hu [NC] 
+RewriteRule ^(.*)$ http://li-de.tk/$1 [L,R=301]
+RewriteCond %{HTTP_HOST} ^adatmagus.hu [NC] 
+RewriteRule ^(.*)$ http://li-de.tk/$1 [L,R=301]
+
 ## End - Custom redirects
 
 ##
@@ -54,6 +64,15 @@ RewriteRule .* index.php [F]
 ##
 
 # RewriteBase /
+
+##
+# REST API hivás kezelése   domain/api/poll/####[/result]
+##
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_URI} (.*/api/poll/.*)
+RewriteRule .* lideapi.php [L]
+
+
 
 ## Begin - Joomla! core SEF Section.
 #

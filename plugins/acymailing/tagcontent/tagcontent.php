@@ -1,9 +1,9 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	4.8.1
+ * @version	4.9.3
  * @author	acyba.com
- * @copyright	(C) 2009-2014 ACYBA S.A.R.L. All rights reserved.
+ * @copyright	(C) 2009-2015 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 defined('_JEXEC') or die('Restricted access');
@@ -48,6 +48,7 @@ class plgAcymailingTagcontent extends JPlugin
 		$paramBase = ACYMAILING_COMPONENT.'.tagcontent';
 		$pageInfo->filter->order->value = $app->getUserStateFromRequest( $paramBase.".filter_order", 'filter_order',	'a.id','cmd' );
 		$pageInfo->filter->order->dir	= $app->getUserStateFromRequest( $paramBase.".filter_order_Dir", 'filter_order_Dir',	'desc',	'word' );
+		if(strtolower($pageInfo->filter->order->dir) !== 'desc') $pageInfo->filter->order->dir = 'asc';
 		$pageInfo->search = $app->getUserStateFromRequest( $paramBase.".search", 'search', '', 'string' );
 		$pageInfo->search = JString::strtolower(trim($pageInfo->search));
 		$pageInfo->filter_cat = $app->getUserStateFromRequest( $paramBase.".filter_cat", 'filter_cat','','int' );
@@ -798,9 +799,7 @@ class plgAcymailingTagcontent extends JPlugin
 
 		if(empty($article)){
 			$app = JFactory::getApplication();
-			if($app->isAdmin()){
-				$app->enqueueMessage('The article "'.$tag->id.'" could not be loaded','notice');
-			}
+			if($app->isAdmin()) $app->enqueueMessage('The article "'.$tag->id.'" could not be loaded','notice');
 			return $result;
 		}
 
@@ -823,7 +822,11 @@ class plgAcymailingTagcontent extends JPlugin
 			}
 		}
 
-		$acypluginsHelper = acymailing_get('helper.acyplugins');
+		$varFields = array();
+		foreach($article as $fieldName => $oneField){
+			$varFields['{'.$fieldName.'}'] = $oneField;
+		}
+
 		$acypluginsHelper->cleanHtml($article->introtext);
 		$acypluginsHelper->cleanHtml($article->fulltext);
 
@@ -884,6 +887,7 @@ class plgAcymailingTagcontent extends JPlugin
 		}
 
 		$link = acymailing_frontendLink($link);
+		$varFields['{link}'] = $link;
 
 		$styleTitle = '';
 		$styleTitleEnd = '';
@@ -911,12 +915,14 @@ class plgAcymailingTagcontent extends JPlugin
 		$dateFormat = empty($tag->dateformat) ? JText::_('DATE_FORMAT_LC2') : $tag->dateformat;
 		if(!empty($tag->created)){
 			if($tag->type == 'title') $result .= '<br />';
-			$result .= '<span class="createddate">'.JHTML::_( 'date', $article->created, $dateFormat).'</span><br />';
+			$varFields['{createddate}'] = JHTML::_('date', $article->created, $dateFormat);
+			$result .= '<span class="createddate">'.$varFields['{createddate}'].'</span><br />';
 		}
 
 		if(!empty($tag->modified)){
 			if($tag->type == 'title') $result .= '<br />';
-			$result .= '<span class="modifieddate">'.JHTML::_( 'date', $article->modified, $dateFormat).'</span><br />';
+			$varFields['{modifieddate}'] = JHTML::_('date', $article->modified, $dateFormat);
+			$result .= '<span class="modifieddate">'.$varFields['{modifieddate}'].'</span><br />';
 		}
 
 		if(!isset($tag->pict) && $tag->type != 'title'){
@@ -984,6 +990,7 @@ class plgAcymailingTagcontent extends JPlugin
 					if(!empty($images->$altVar)) $alt = $images->$altVar;
 					$picthtml .= '<img'.(empty($tag->nopictstyle) ? ' style="'.$style.'"' : '').' alt="'.$alt.'" border="0" src="'.JURI::root().$images->$pictVar.'" />';
 					if(!empty($tag->link) && empty($tag->nopictlink)) $picthtml .= '</a>';
+					$varFields['{picthtml}'] = $picthtml;
 					$contentText = $picthtml.$contentText;
 				}
 			}
@@ -992,10 +999,17 @@ class plgAcymailingTagcontent extends JPlugin
 
 			$result .= $contentText;
 
-			if(file_exists(JPATH_SITE.DS.'plugins'.DS.'attachments') && empty($tag->noattach))
-			{
+			if(file_exists(JPATH_SITE.DS.'plugins'.DS.'attachments') && empty($tag->noattach)){
 				try{
-					$db->setQuery('SELECT display_name, url, filename FROM #__attachments WHERE parent_id = '.intval($tag->id));
+					$query = 'SELECT display_name, url, filename ' .
+							'FROM #__attachments ' .
+							'WHERE (parent_entity = "article" ' .
+									'AND parent_id = '.intval($tag->id).')';
+					if(ACYMAILING_J16){
+						$query .= ' OR (parent_entity = "category" ' .
+										'AND parent_id = '.intval($article->catid).')';
+					}
+					$db->setQuery($query);
 					$attachments = $db->loadObjectList();
 				}catch(Exception $e){
 					$attachments = array();
@@ -1087,10 +1101,12 @@ class plgAcymailingTagcontent extends JPlugin
 			ob_start();
 			require(ACYMAILING_MEDIA.'plugins'.DS.'tagcontent_html.php');
 			$result = ob_get_clean();
+			$result = str_replace(array_keys($varFields),$varFields,$result);
 		}elseif(file_exists(ACYMAILING_MEDIA.'plugins'.DS.'tagcontent.php')){
 			ob_start();
 			require(ACYMAILING_MEDIA.'plugins'.DS.'tagcontent.php');
 			$result = ob_get_clean();
+			$result = str_replace(array_keys($varFields),$varFields,$result);
 		}
 
 		$result = $acypluginsHelper->removeJS($result);
@@ -1225,7 +1241,7 @@ class plgAcymailingTagcontent extends JPlugin
 					}else{
 						$filter_cat = '`catid` IN ('.implode(',',$selectedArea).')';
 						if(file_exists(JPATH_SITE.DS.'components'.DS.'com_multicats')){
-							$filter_cat = '`catid` REGEXP "([0-9],)*'.implode('(,[0-9])*" OR `catid` REGEXP "([0-9],)*',$selectedArea).'(,[0-9])*"';
+							$filter_cat = '`catid` REGEXP "^([0-9]+,)*'.implode('(,[0-9]+)*$" OR `catid` REGEXP "^([0-9]+,)*',$selectedArea).'(,[0-9]+)*$"';
 						}
 						$where[] = $filter_cat;
 					}
@@ -1236,19 +1252,18 @@ class plgAcymailingTagcontent extends JPlugin
 					JArrayHelper::toInteger($excludedCats);
 					$filter_cat = '`catid` NOT IN ("'.implode('","',$excludedCats).'")';
 					if(file_exists(JPATH_SITE.DS.'components'.DS.'com_multicats')){
-						$filter_cat = '`catid` NOT REGEXP "([0-9],)*'.implode('(,[0-9])*" AND `catid` NOT REGEXP "([0-9],)*',$excludedCats).'(,[0-9])*"';
+						$filter_cat = '`catid` NOT REGEXP "^([0-9]+,)*'.implode('(,[0-9]+)*$" AND `catid` NOT REGEXP "^([0-9]+,)*',$excludedCats).'(,[0-9]+)*$"';
 					}
 					$where[] = $filter_cat;
 				}
 
 				if(!empty($parameter->filter) && !empty($email->params['lastgenerateddate'])){
-					$condition = '`publish_up` >\''.date( 'Y-m-d H:i:s',$email->params['lastgenerateddate'] - date('Z')).'\'';
-					$condition .= ' OR `created` >\''.date( 'Y-m-d H:i:s',$email->params['lastgenerateddate'] - date('Z')).'\'';
+					$condition = '(`publish_up` > \''.date( 'Y-m-d H:i:s',$email->params['lastgenerateddate'] - date('Z')).'\' AND `publish_up` < \''.date('Y-m-d H:i:s',$time - date('Z')).'\')';
+					$condition .= ' OR (`created` > \''.date( 'Y-m-d H:i:s',$email->params['lastgenerateddate'] - date('Z')).'\' AND `created` < \''.date('Y-m-d H:i:s',$time - date('Z')).'\')';
 					if($parameter->filter == 'modify'){
-						$condition .= ' OR (';
-						$condition .= ' `modified` > \''.date( 'Y-m-d H:i:s',$email->params['lastgenerateddate'] - date('Z')).'\'';
-						if(!empty($parameter->maxpublished)) $condition .= ' AND `publish_up` > \''.date( 'Y-m-d H:i:s',time() - date('Z') - ((int)$parameter->maxpublished*60*60*24)).'\'';
-						$condition .= ')';
+						$modify = '(`modified` > \''.date( 'Y-m-d H:i:s',$email->params['lastgenerateddate'] - date('Z')).'\' AND `modified` < \''.date( 'Y-m-d H:i:s',$time - date('Z')).'\')';
+						if(!empty($parameter->maxpublished)) $modify = '('.$modify.' AND `publish_up` > \''.date( 'Y-m-d H:i:s',time() - date('Z') - ((int)$parameter->maxpublished*60*60*24)).'\')';
+						$condition .= ' OR '.$modify;
 					}
 
 					$where[] = $condition;
@@ -1293,7 +1308,13 @@ class plgAcymailingTagcontent extends JPlugin
 						elseif($this->params->get('contentaccess','registered') == 'public') $where[] = 'access = 0';
 					}
 				}elseif(isset($parameter->access)){
-					$where[] = 'access = '.intval($parameter->access);
+					if(strpos($parameter->access, ',')){
+						$allAccess = explode(',', $parameter->access);
+						JArrayHelper::toInteger($allAccess);
+						$where[] = 'access IN ('.implode(',', $allAccess).')';
+					}else{
+						$where[] = 'access = '.intval($parameter->access);
+					}
 				}
 
 				if(ACYMAILING_J16 && !empty($parameter->language)){
