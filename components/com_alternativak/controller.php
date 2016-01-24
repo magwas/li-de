@@ -354,8 +354,8 @@ class AlternativakController extends JControllerLegacy {
       }  
     }
 
-    if (($this->szavazas->szavazas == 1) & ($user->id > 0)) {
-      // a szavazás folyamatban van és bejelentkezett user
+    if ((($this->szavazas->szavazas == 1) & ($user->id > 0)) | ($this->szavazas->szavazok == 0)) {
+      // a szavazás folyamatban van és bejelntkezett user vagy a szavazáson mindenki szavazhat
       $db = JFactory::getDBO();
       $db->setQuery('select id from #__szavazatok
       where szavazas_id="'.$this->szavazas_id.'" and

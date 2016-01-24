@@ -3256,7 +3256,7 @@ CREATE TABLE `ekh_szavazasok` (
   `megnevezes` text COLLATE utf8_hungarian_ci NOT NULL COMMENT 'Szavazás megnevezése',
   `leiras` text COLLATE utf8_hungarian_ci NOT NULL COMMENT 'Szavazás leírása',
   `titkos` int(11) NOT NULL COMMENT '0-nyilt, 1-titkos, 2-szigoruan titkos',
-  `szavazok` int(11) NOT NULL COMMENT '1-regisztráltak, 2-téma tagok',
+  `szavazok` int(11) NOT NULL COMMENT '0-mindenki, 1-regisztráltak, 2-téma tagok',
   `alternativajavaslok` int(11) NOT NULL COMMENT '10-szavazok, 11-indito és adminok',
   `vita1_vege` date NOT NULL COMMENT 'alternativa javaslati vita határidő',
   `vita2_vege` date NOT NULL COMMENT 'részletes vita hattáridő',

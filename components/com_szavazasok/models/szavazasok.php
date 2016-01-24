@@ -196,6 +196,14 @@ class SzavazasokModelSzavazasok  extends JModelItem {
         $result->alternativak[$i] = array();
       }
     }  
+	
+	$result->cimkek = '';
+	for ($i=0; $i < 50; $i++) {
+		if (JRequest::getVar('cimke_'.$i) != '') {
+			$result->cimkek .= JRequest::getVar('cimke_'.$i).',';
+		}
+	}
+	
     return $result;
   }
   /**
@@ -260,7 +268,8 @@ class SzavazasokModelSzavazasok  extends JModelItem {
        }
        */
        
-       $table->temakor_id = JRequest::getVar('temakor_id','0');
+       $table->temakor_id = JRequest::getVar('temakor_id','20');
+	   if ($table->temakor_id == '') $table->temakor_id = 20;
        $table->id = JRequest::getVar('id','0');
        if ($table->id == 0) {
          $table->letrehozo = $user->id;
@@ -325,6 +334,20 @@ class SzavazasokModelSzavazasok  extends JModelItem {
      } else {
        $result = false;
      }
+	 
+	 if ($result) {
+		 $db->setQuery('DELETE FROM #__cimke_szavazasok where szavazas_id="'.$table->id.'"');
+		 $db->query();
+		 $w = explode(',',$item->cimkek);
+		 foreach ($w as $cimke) {
+			 if ($cimke != '') {
+				 $db->setQuery('INSERT INTO #__cimke_szavazasok
+				 value ("'.$cimke.'","'.$table->id.'")');
+				 $db->query();
+			 }
+		 }
+		 
+	 }
      return $result;
    } 
    /**
@@ -625,7 +648,7 @@ class SzavazasokModelSzavazasok  extends JModelItem {
    /**
      * Új icagenda esemény létrehozása a szavazásokhoz
    */
-   protected function createEvent($db, $user, $id, $datum, $szoveg) {
+   protected function createEvent($db, $user, $id, $datum, $szoveg, $temakor_id) {
 	   $param = '{"statutReg":"1","accessReg":"","typeReg":"1","maxReg":"","maxRlistGlobal":"","maxRlist":"","RegButtonText":"","RegButtonLink":"","RegButtonLink_Article":"","RegButtonLink_Url":"","RegButtonTarget":"0","atevent":""}';
 	   $db->setQuery('INSERT INTO #__icagenda_events 
 		VALUES
@@ -637,7 +660,8 @@ class SzavazasokModelSzavazasok  extends JModelItem {
 		0, 
 		0, 
 		"0000-00-00", 
-		"'.$szoveg.'", 
+		"'.$szoveg.
+		'<br /><br /><a href=\"SU/alternativak/alternativaklist/browse/'.$temakor_id.'/'.$id.'/20/0/6/%7C1\">Ugrás a szavazás oldalára</a>", 
 		"sz-'.$id.'-'.$szoveg.'", 
 		1, 
 		"*", 
@@ -695,9 +719,9 @@ class SzavazasokModelSzavazasok  extends JModelItem {
 		   $db->sderr();
 		   return;
 	   }
-	   $this->createEvent($db,$user,$newId,$item->vita1_vege,$item->megnevezes.' vita1 vége');
-	   $this->createEvent($db,$user,$newId,$item->vita2_vege,$item->megnevezes.' vita2 vége');
-	   $this->createEvent($db,$user,$newId,$item->szavazas_vege,$item->megnevezes.' szavazás vége');
+	   $this->createEvent($db,$user,$newId,$item->vita1_vege,$item->megnevezes.' vita1 vége',$item->temakor_id);
+	   $this->createEvent($db,$user,$newId,$item->vita2_vege,$item->megnevezes.' vita2 vége',$item->temakor_id);
+	   $this->createEvent($db,$user,$newId,$item->szavazas_vege,$item->megnevezes.' szavazás vége',$item->temakor_id);
    }
   
 } // class

@@ -57,15 +57,15 @@ class SzavazasokModelSzavazhatok extends JModelList {
     /* szavazások ahol jelenleg szavazhatok */
 /* ==================================== */
 /* ahol minden regisztrált szavazhat */
-SELECT sz.megnevezes, sz.vita1, sz.vita2, sz.szavazas, sz.lezart, sz.szavazas_vege, sz.titkos, szk.user_id,
+SELECT sz.megnevezes, sz.leiras, sz.vita1, sz.vita2, sz.szavazas, sz.lezart, sz.szavazas_vege, sz.titkos, szk.user_id,
   sz.id, sz.temakor_id
 FROM #__szavazasok sz
 INNER join #__temakorok te ON te.id = sz.temakor_id
 LEFT OUTER JOIN #__szavazok szk ON szk.szavazas_id = sz.id AND szk.user_id = "'.$user->id.'"
-WHERE sz.szavazok=1 AND sz.szavazas=1 AND szk.user_id IS NULL '.$filterStr.'
+WHERE sz.szavazok<=1 AND sz.szavazas=1 AND szk.user_id IS NULL '.$filterStr.'
 /* ahol a tagok szavazhatnak és én tag vagyok */
 UNION 
-SELECT sz.megnevezes, sz.vita1, sz.vita2, sz.szavazas, sz.lezart, sz.szavazas_vege, sz.titkos, szk.user_id,
+SELECT sz.megnevezes, sz.leiras, sz.vita1, sz.vita2, sz.szavazas, sz.lezart, sz.szavazas_vege, sz.titkos, szk.user_id,
   sz.id, sz.temakor_id
 FROM #__szavazasok sz
 INNER join #__temakorok te ON te.id = sz.temakor_id
@@ -74,7 +74,7 @@ LEFT OUTER JOIN #__szavazok szk ON szk.szavazas_id = sz.id AND szk.user_id = '.$
 WHERE sz.szavazok=2 AND sz.szavazas=1 AND szk.user_id IS NULL '.$filterStr.'
 /* ahol a felsöbb szintű témakör tagjai szavazhatnak és én ott tag vagyok   1 */
 UNION 
-SELECT sz.megnevezes, sz.vita1, sz.vita2, sz.szavazas, sz.lezart, sz.szavazas_vege, sz.titkos, szk.user_id,
+SELECT sz.megnevezes, sz.leiras, sz.vita1, sz.vita2, sz.szavazas, sz.lezart, sz.szavazas_vege, sz.titkos, szk.user_id,
   sz.id, sz.temakor_id
 FROM #__szavazasok sz
 INNER JOIN #__temakorok tk ON tk.id = sz.temakor_id
@@ -83,7 +83,7 @@ LEFT OUTER JOIN #__szavazok szk ON szk.szavazas_id = sz.id AND szk.user_id = '.$
 WHERE sz.szavazok=3 AND sz.szavazas=1 AND szk.user_id IS NULL '.$filterStr.'
 /* ahol a felsöbb szintű témakör tagjai szavazhatnak és én ott tag vagyok   2 */
 UNION 
-SELECT sz.megnevezes, sz.vita1, sz.vita2, sz.szavazas, sz.lezart, sz.szavazas_vege, sz.titkos, szk.user_id,
+SELECT sz.megnevezes, sz.leiras, sz.vita1, sz.vita2, sz.szavazas, sz.lezart, sz.szavazas_vege, sz.titkos, szk.user_id,
   sz.id, sz.temakor_id
 FROM #__szavazasok sz
 INNER JOIN #__temakorok tk ON tk.id = sz.temakor_id
@@ -93,7 +93,7 @@ LEFT OUTER JOIN #__szavazok szk ON szk.szavazas_id = sz.id AND szk.user_id = '.$
 WHERE sz.szavazok=3 AND sz.szavazas=1 AND szk.user_id IS NULL '.$filterStr.'
 /* ahol a felsöbb szintű témakör tagjai szavazhatnak és én ott tag vagyok   3 */
 UNION 
-SELECT sz.megnevezes, sz.vita1, sz.vita2, sz.szavazas, sz.lezart, sz.szavazas_vege, sz.titkos, szk.user_id,
+SELECT sz.megnevezes, sz.leiras, sz.vita1, sz.vita2, sz.szavazas, sz.lezart, sz.szavazas_vege, sz.titkos, szk.user_id,
   sz.id, sz.temakor_id
 FROM #__szavazasok sz
 INNER JOIN #__temakorok tk ON tk.id = sz.temakor_id
@@ -104,7 +104,7 @@ LEFT OUTER JOIN #__szavazok szk ON szk.szavazas_id = sz.id AND szk.user_id = '.$
 WHERE sz.szavazok=3 AND sz.szavazas=1 AND szk.user_id IS NULL '.$filterStr.'
 /* ahol a felsöbb szintű témakör tagjai szavazhatnak és én ott tag vagyok   4 */
 UNION 
-SELECT sz.megnevezes, sz.vita1, sz.vita2, sz.szavazas, sz.lezart, sz.szavazas_vege, sz.titkos, szk.user_id,
+SELECT sz.megnevezes, sz.leiras, sz.vita1, sz.vita2, sz.szavazas, sz.lezart, sz.szavazas_vege, sz.titkos, szk.user_id,
   sz.id, sz.temakor_id
 FROM #__szavazasok sz
 INNER JOIN #__temakorok tk ON tk.id = sz.temakor_id

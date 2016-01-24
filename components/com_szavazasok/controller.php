@@ -253,13 +253,25 @@ class SzavazasokController extends JControllerLegacy {
        '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
        '&order='.JRequest::getVar('order','1').
        '&temakor='.$this->temakor_id;
-    $itemLink =
+    
+	/* rövid URL használata 
+	$itemLink =
        JURI::base().'index.php?option=com_alternativak&view=alternativaklist'.
        '&task=browse'.
        '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
-       '&filterStr='.urlencode($filterStr).
        '&order='.JRequest::getVar('order','1').
-       '&temakor='.$this->temakor_id;
+       '&temakor='.$this->temakor_id.
+       '&filterStr='.urlencode($filterStr);
+	*/   
+	$itemLink =
+       JURI::base().'SU/alternativak/alternativaklist/browse/'.
+       $this->temakor_id.'/szavazas/'.
+	   JRequest::getVar('limit','20').'/0/'.
+       JRequest::getVar('order','1').'/'.
+       urlencode($filterStr);
+	   
+	   
+	   
     $backLink =
        JURI::base().'index.php?option=com_temakorok&view=temakoroklist'.
        '&task=browse';
@@ -1303,13 +1315,21 @@ class SzavazasokController extends JControllerLegacy {
        '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
        '&order='.JRequest::getVar('order','1').
        '&temakor='.$this->temakor_id;
-    $itemLink =
-       JURI::base().'index.php?option=com_alternativak&view=alternativaklist'.
-       '&task=browse'.
-       '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
-       '&filterStr='.urlencode($filterStr).
-       '&order='.JRequest::getVar('order','1');
-    $backLink =
+    //$itemLink =
+    //   JURI::base().'index.php?option=com_alternativak&view=alternativaklist'.
+    //   '&task=browse'.
+    //   '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
+    //   '&filterStr='.urlencode($filterStr).
+    //   '&order='.JRequest::getVar('order','1');
+	$itemLink =
+       JURI::base().'SU/alternativak/alternativaklist/browse/'.
+       $this->temakor_id.'/szavazas/'.
+	   JRequest::getVar('limit','20').'/0/'.
+       JRequest::getVar('order','1').'/'.
+       urlencode($filterStr);
+	   
+
+	   $backLink =
        JURI::base().'index.php?option=com_temakorok&view=temakoroklist'.
        '&task=browse';
        
@@ -1394,12 +1414,19 @@ class SzavazasokController extends JControllerLegacy {
        '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
        '&order='.JRequest::getVar('order','1').
        '&temakor='.$this->temakor_id;
-    $itemLink =
-       JURI::base().'index.php?option=com_alternativak&view=alternativaklist'.
-       '&task=browse'.
-       '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
-       '&filterStr='.urlencode($filterStr).
-       '&order='.JRequest::getVar('order','1');
+    //$itemLink =
+    //   JURI::base().'index.php?option=com_alternativak&view=alternativaklist'.
+    //   '&task=browse'.
+    //   '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
+    //   '&filterStr='.urlencode($filterStr).
+    //   '&order='.JRequest::getVar('order','1');
+	$itemLink =
+       JURI::base().'SU/alternativak/alternativaklist/browse/'.
+       $this->temakor_id.'/szavazas/'.
+	   JRequest::getVar('limit','20').'/0/'.
+       JRequest::getVar('order','1').'/'.
+       urlencode($filterStr);
+	   
     $backLink =
        JURI::base().'index.php?option=com_temakorok&view=temakoroklist'.
        '&task=browse';
@@ -1481,12 +1508,19 @@ class SzavazasokController extends JControllerLegacy {
        '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
        '&order='.JRequest::getVar('order','1').
        '&temakor='.$this->temakor_id;
-    $itemLink =
-       JURI::base().'index.php?option=com_alternativak&view=alternativaklist'.
-       '&task=browse'.
-       '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
-       '&filterStr='.urlencode($filterStr).
-       '&order='.JRequest::getVar('order','1');
+    //$itemLink =
+    //   JURI::base().'index.php?option=com_alternativak&view=alternativaklist'.
+    //   '&task=browse'.
+    //   '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
+    //   '&filterStr='.urlencode($filterStr).
+    //   '&order='.JRequest::getVar('order','1');
+	$itemLink =
+       JURI::base().'SU/alternativak/alternativaklist/browse/'.
+       $this->temakor_id.'/szavazas/'.
+	   JRequest::getVar('limit','20').'/0/'.
+       JRequest::getVar('order','1').'/'.
+       urlencode($filterStr);
+	   
     $backLink =
        JURI::base().'index.php?option=com_temakorok&view=temakoroklist'.
        '&task=browse';
@@ -1568,12 +1602,19 @@ class SzavazasokController extends JControllerLegacy {
        '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
        '&order='.JRequest::getVar('order','1').
        '&temakor='.$this->temakor_id;
-    $itemLink =
-       JURI::base().'index.php?option=com_alternativak&view=alternativaklist'.
-       '&task=browse'.
-       '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
-       '&filterStr='.urlencode($filterStr).
-       '&order='.JRequest::getVar('order','1');
+    //$itemLink =
+    //   JURI::base().'index.php?option=com_alternativak&view=alternativaklist'.
+    //   '&task=browse'.
+    //   '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
+    //   '&filterStr='.urlencode($filterStr).
+    //   '&order='.JRequest::getVar('order','1');
+	$itemLink =
+       JURI::base().'SU/alternativak/alternativaklist/browse/'.
+       $this->temakor_id.'/szavazas/'.
+	   JRequest::getVar('limit','20').'/0/'.
+       JRequest::getVar('order','1').'/'.
+       urlencode($filterStr);
+	   
     $backLink =
        JURI::base().'index.php?option=com_temakorok&view=temakoroklist'.
        '&task=browse';
@@ -1655,12 +1696,19 @@ class SzavazasokController extends JControllerLegacy {
        '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
        '&order='.JRequest::getVar('order','1').
        '&temakor='.$this->temakor_id;
-    $itemLink =
-       JURI::base().'index.php?option=com_alternativak&view=alternativaklist'.
-       '&task=browse'.
-       '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
-       '&filterStr='.urlencode($filterStr).
-       '&order='.JRequest::getVar('order','1');
+    //$itemLink =
+    //   JURI::base().'index.php?option=com_alternativak&view=alternativaklist'.
+    //   '&task=browse'.
+    //   '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
+    //   '&filterStr='.urlencode($filterStr).
+    //   '&order='.JRequest::getVar('order','1');
+	$itemLink =
+       JURI::base().'SU/alternativak/alternativaklist/browse/'.
+       $this->temakor_id.'/szavazas/'.
+	   JRequest::getVar('limit','20').'/0/'.
+       JRequest::getVar('order','1').'/'.
+       urlencode($filterStr);
+	   
     $backLink =
        JURI::base().'index.php?option=com_temakorok&view=temakoroklist'.
        '&task=browse';
@@ -1743,12 +1791,19 @@ class SzavazasokController extends JControllerLegacy {
        '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
        '&order='.JRequest::getVar('order','1').
        '&temakor='.$this->temakor_id;
-    $itemLink =
-       JURI::base().'index.php?option=com_alternativak&view=alternativaklist'.
-       '&task=browse'.
-       '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
-       '&filterStr='.urlencode($filterStr).
-       '&order='.JRequest::getVar('order','1');
+    //$itemLink =
+    //   JURI::base().'index.php?option=com_alternativak&view=alternativaklist'.
+    //   '&task=browse'.
+    //   '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
+    //   '&filterStr='.urlencode($filterStr).
+    //   '&order='.JRequest::getVar('order','1');
+	$itemLink =
+       JURI::base().'SU/alternativak/alternativaklist/browse/'.
+       $this->temakor_id.'/szavazas/'.
+	   JRequest::getVar('limit','20').'/0/'.
+       JRequest::getVar('order','1').'/'.
+       urlencode($filterStr);
+	   
     $backLink =
        JURI::base().'index.php?option=com_temakorok&view=temakoroklist'.
        '&task=browse';
@@ -1836,12 +1891,19 @@ class SzavazasokController extends JControllerLegacy {
        '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
        '&order='.JRequest::getVar('order','1').
        '&temakor='.$this->temakor_id;
-    $itemLink =
-       JURI::base().'index.php?option=com_alternativak&view=alternativaklist&task=szavazhatok'.
-       '&task=browse'.
-       '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
-       '&filterStr='.urlencode($filterStr).
-       '&order='.JRequest::getVar('order','1');
+    //$itemLink =
+    //   JURI::base().'index.php?option=com_alternativak&view=alternativaklist&task=szavazhatok'.
+    //   '&task=browse'.
+    //   '&limit='.JRequest::getVar('limit','20').'&limitstart=0'.
+    //   '&filterStr='.urlencode($filterStr).
+    //   '&order='.JRequest::getVar('order','1');
+	$itemLink =
+       JURI::base().'SU/alternativak/alternativaklist/browse/'.
+       $this->temakor_id.'/szavazas/'.
+	   JRequest::getVar('limit','20').'/0/'.
+       JRequest::getVar('order','1').'/'.
+       urlencode($filterStr);
+	   
     $backLink =
        JURI::base().'index.php?option=com_temakorok&view=temakoroklist'.
        '&task=browse';

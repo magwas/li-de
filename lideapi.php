@@ -43,8 +43,30 @@
  *                                                            {"api_staus":"error poll status is wrong"}
  *                                                            {"api_staus":"error this voter alredy voted"}
  *
- * REST stilusú hivás esetén:  REQUESZ_URI:  domain/api/poll/szám
+ * REST stilusú hivás esetén:  REQUEST_URI:  domain/api/poll/szám és opcionálisan POST alt_id=szám}
  *
+ 
+ 
+Továbbfejlesztési elképzelés titkositott adatforgalom):
+==========================================================
+
+ szimetrikus kulcsos titkositás (AES): 
+ http://stackoverflow.com/questions/24337317/encrypt-with-php-decrypt-with-javascript-cryptojs
+
+ aszimetrikus kulcsos titkositás (RSA)
+ http://www.codeproject.com/Questions/835484/How-to-encrypt-in-javascript-and-decrypt-in-php-us
+ 
+
+ 1. connect  a server visszaküldi a public_key -t
+ 2. kliens RSA encoded -en küldi a {usr:xxxx, psw:xxxxx, skey:xxxxxx} (skey egy véletlen szám > 10000)
+ 3. szerver dekodolja a usr,psw és skey értékeket, ellenörzi, hogy valós login-e?
+ 4. mint a szerver, mint a kliens képzi az 'szimkey' stringet: substr(usr+psw+skey+usr+psw+skey+usr+psw+skey, 40)
+ 5. ezentul minden szerver - kliens kommunikáció a 'szimkey' stringgel AES kodolva történik
+	
+ 
+ 
+ 
+ 
 */ 
 header("Access-Control-Allow-Origin: *");
 define( '_JEXEC', 1 );
@@ -74,6 +96,10 @@ if ($querystr != '') {
 	 if ($w[$i] == 'result') {
 		$data->task = 'getSimpleResult'; 
 	 }
+  }
+  if (isset($_POST['alt_id']) {
+	  $data->task = 'setSimpleVoks';
+	  $data->alt_id = $_POST['alt_id'];
   }  
 }
 
@@ -93,9 +119,9 @@ if ($task == 'login') {
 	$mainframe->login($credentials);
 	$logged_user = JFactory::getUser();
     if ($logged_user->id > 0)
-	   $result->api_status = "OK";
+	   $result->api_status = "OK ".JSON_encode($logged_user);
     else
-	   $result->api_status = "error";
+	   $result->api_status = "error abc ";
 } else if ($task == 'logout') {
 	$logged_user = JFactory::getUser();
     if ($logged_user->id > 0)
@@ -104,10 +130,7 @@ if ($task == 'login') {
 	$result->api_status= "OK";
 } else if ($task == 'opensql') {
 	$logged_user = JFactory::getUser();
-    // $logged_user->getAuthorisedGroups() tömb ellenörzése is szükséges!
-	// illetve itt kellene egy komoly hozzáférés ellenörzés
-
-    if ($logged_user->id > 0) {
+    if (in_array (8, $logged_user->groups)) {
 		$db->setQuery($data->sql);
 		try {
 		  $res = $db->loadObjectList();
@@ -120,13 +143,12 @@ if ($task == 'login') {
 		} catch (Exception $e) {
 		  $result->api_status="error ".$db->getErrorNum().' '.$db->getErrorMsg();
 		}
+	} else {
+		$result->api_status="error access violation";
 	}
 } else if ($task == 'execsql') {
 	$logged_user = JFactory::getUser();
-    // $logged_user->getAuthorisedGroups() tömb ellenörzése is szükséges!
-	// illetve itt kellene egy komoly hozzáférés ellenörzés
-
-    if ($logged_user->id > 0) {
+    if (in_array (8, $logged_user->groups)) {
 		$db = JFactory::getDBO();
 		$db->setQuery($data->sql);
 		try {
@@ -139,6 +161,8 @@ if ($task == 'login') {
 		} catch (Exception $e) {
 		  $result->api_status="error ".$db->getErrorNum().' '.$db->getErrorMsg();
 		}
+	} else {
+		$result->api_status="error access violation";
 	}
 } else if ($task == 'getPoll') {
 	$user = JFactory::getUser();
@@ -213,7 +237,9 @@ if ($task == 'login') {
 	left outer join #__tagok ta on ta.temakor_id = sz.temakor_id
 	where sz.id='.$db->quote($data->poll_id).' and
 	((ta.user_id = '.$db->quote($user->id).') or (t.lathatosag = 0)) and
-	((sz.szavazok = 1) or (ta.user_id = '.$db->quote($user->id).'))
+	((sz.szavazok = 0) or 
+	 (sz.szavazok = 1 and '.$user->id.' > 0) or
+	 (ta.user_id = '.$db->quote($user->id).'))
 	limit 1');
 	$szavazas = $db->loadObject();
 	if ($szavazas == false) {
@@ -248,7 +274,7 @@ if ($task == 'login') {
 							"'.$szavazas->temakor_id.'", 
 							"'.$data->poll_id.'", 
 							"'.$data->voter_id.'", 
-							0, 
+							"'.$user->id.'", 
 							"'.$res1->id.'", 
 							"'.$pozicio.'"
 							);
@@ -292,7 +318,9 @@ if ($task == 'login') {
 	left outer join #__tagok ta on ta.temakor_id = sz.temakor_id
 	where sz.id='.$db->quote($data->poll_id).' and
 	((ta.user_id = '.$db->quote($user->id).') or (t.lathatosag = 0)) and
-	((sz.szavazok = 1) or (ta.user_id = '.$db->quote($user->id).')) 
+	((sz.szavazok = 0) or 
+	 (sz.szavazok = 1 and '.$user->id.' > 0) or
+     (ta.user_id = '.$db->quote($user->id).')) 
 	limit 1');
 	$szavazas = $db->loadObject();
 	if ($szavazas == false) {
@@ -316,7 +344,7 @@ if ($task == 'login') {
 							"'.$szavazas->temakor_id.'", 
 							"'.$data->poll_id.'", 
 							"'.$data->voter_id.'", 
-							0, 
+							"'.$user->id.'", 
 							"'.$voks->alt_id.'", 
 							"'.$voks->position.'"
 							);
@@ -337,7 +365,7 @@ if ($task == 'login') {
 							"'.$szavazas->id.'", 
 							'.$db->quote($data->voter_id).', 
 							"'.date('Y-m-d H:i:s').'", 
-							0
+							"'.$user->id.'"
 							);
 		');
 		$db->query();	

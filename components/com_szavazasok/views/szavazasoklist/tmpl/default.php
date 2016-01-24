@@ -128,53 +128,30 @@ echo '
 	<table border="0" width="100%">
   <thead>
   <tr>
-    <th rowspan="2" class="'.thClass(1).'">
+    <th class="'.thClass(1).'">
       <a href="'.$this->reorderLink.'&order=1">
   		'.JText::_('ID').'
       </a>  
     </th>
-    <th rowspan="2" class="'.thClass(2).'">
+    <th class="'.thClass(2).'">
       <a href="'.$this->reorderLink.'&order=2">
   		'.JText::_('SZAVAZASMEGNEVEZES').'
       </a>  
     </th>
-    <th colspan="4">'.JText::_('SZAVAZASALLAPOT').'</th>
-    <th rowspan="2" class="'.thClass(7).'">
+    <th class="thClass(4)">'.JText::_('SZAVAZASALLAPOT').'</th>
+    <th class="'.thClass(7).'">
       <a href="'.$this->reorderLink.'&order=7">
   		'.JText::_('SZAVAZAS_VEGE').' 
       </a>  
     </th>
-    <th rowspan="2" class="'.thClass(8).'">
+    <th class="'.thClass(8).'">
       <a href="'.$this->reorderLink.'&order=8">
   		'.JText::_('TITKOSSAG').' 
       </a>  
     </th>
-    <th rowspan="2">
+    <th>
   		'.JText::_('SZAVAZTAL').' 
     </th>
-    
-  </tr>
-  <tr>
-    <th class="'.thClass(3).'">
-      <a href="'.$this->reorderLink.'&order=3">
-  		'.JText::_('SZAVAZASVITA1').' 
-      </a>  
-    </th>
-    <th class="'.thClass(4).'">
-      <a href="'.$this->reorderLink.'&order=4">
-  		'.JText::_('SZAVAZASVITA2').' 
-    </th>
-    <th class="'.thClass(5).'">
-      <a href="'.$this->reorderLink.'&order=5">
-  		'.JText::_('SZAVAZAS').' 
-      </a>  
-    </th>
-    <th class="'.thClass(6).'">
-      <a href="'.$this->reorderLink.'&order=6">
-  		'.JText::_('LEZART').' 
-      </a>  
-    </th>
-    
   </tr>
   </thead>
   <tbody>
@@ -201,7 +178,34 @@ echo '
       else
         $szavaztal = '<img src="images/stories/ok.gif" />';  
      	echo '<tr class="'.$rowClass.'">';
-      $link = $this->itemLink.'&szavazas='. $item->id;
+		
+      // 2015.12.06 FB nem bitja a hosszú linkeket    $link = $this->itemLink.'&szavazas='. $item->id;
+	  $link = str_replace('szavazas',$item->id,$this->itemLink);
+	  $kep = '';
+	  $allapot = $item->vita1.'/'.$item->vita1.'/'.$item->szavazas.'/'.$item->lezart;
+	  if ($item->vita1 == 'X') $allapot = JText::_('SZAVAZASVITA1'); 
+  	  if ($item->vita2 == 'X') $allapot = JText::_('SZAVAZASVITA2'); 
+  	  if ($item->szavazas == 'X')	$allapot = JText::_('SZAVAZAS'); 
+  	  if ($item->lezart == 'X') $allapot = JText::_('LEZART'); 
+	  // img tag kiemelése
+	  $matches = Array();
+	  preg_match('/<img[^>]+>/i', $item->leiras, $matches);
+	  if (count($matches) > 0) {
+		  $img = $matches[0];
+		  // src attributum kiemelése
+		  preg_match('/src="[^"]+"/i', $img, $matches);
+		  if (count($matches) > 0) {
+			$src = $matches[0];
+		  } else {
+			$src = '';  
+		  }	
+	  } else {
+		  $src = '';	
+	  }
+	  if ($src != '') {
+		  $kep = '<img '.$src.' style="width:80px; float:left; margin:2px;" />';
+	  }
+	  
       if ($item->vita == '') $item->vita = '0';				
       if ($item->szavazas == '') $item->szavazas = '0';				
       if ($item->lezart == '') $item->lezart = '0';
@@ -210,12 +214,9 @@ echo '
       if ($item->titkos==2) $item->titkos = JText::_('SZIGORUANTITKOS');
      	echo '
         <td align="right">'.$item->id.'</td>
-        <td><a href="'.$link.'">'.$item->megnevezes.'</a></td>
-        <td align="center">'.$item->vita1.'</td>
-        <td align="center">'.$item->vita2.'</td>
-        <td align="center">'.$item->szavazas.'</td>
-        <td align="center">'.$item->lezart.'</td>
-        <td align="center">'.$item->szavazas_vege.'</td>
+        <td><a href="'.$link.'">'.$kep.$item->megnevezes.'</a></td>
+        <td align="left">'.$allapot.'</td>
+		<td align="center">'.$item->szavazas_vege.'</td>
         <td align="center">'.$item->titkos.'</td>
         <td align="center">'.$szavaztal.'</td>
         </tr>
@@ -247,4 +248,6 @@ if ($this->CommentId > 0) {
 }
 
 include 'components/com_jumi/files/forum.php'; 
+
+
 ?>

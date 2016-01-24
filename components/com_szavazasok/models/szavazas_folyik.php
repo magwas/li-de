@@ -53,7 +53,7 @@ class SzavazasokModelSzavazas_folyik extends JModelList {
 	$query = '
 /* szavazások amik jelenleg vita1 állapotban vannak */
 /* ================================================ */
-SELECT sz.megnevezes, sz.vita1, sz.vita2, sz.szavazas, sz.lezart, sz.szavazas_vege, sz.titkos, sz.vita2_vege,
+SELECT sz.megnevezes, sz.leiras, sz.vita1, sz.vita2, sz.szavazas, sz.lezart, sz.szavazas_vege, sz.titkos, sz.vita2_vege,
   sz.id, sz.temakor_id
 FROM #__szavazasok sz
 WHERE (sz.szavazas=1) '.$filterStr;

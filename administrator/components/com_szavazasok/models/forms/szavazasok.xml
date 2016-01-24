@@ -67,7 +67,7 @@
 			description="SZAVAZOK_DESC"
 			class="inputbox"
 			size="1">
-      <option value="0">E-MAILBEN</option>
+      <option value="0">Mindenki</option>
       <option value="1">REGISZTRALTAK</option>
       <option value="2">TAGOK</option>
       <option value="3">TAGOK_OROKOLT</option>

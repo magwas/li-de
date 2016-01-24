@@ -56,9 +56,11 @@ class SzavazasokModelSzavazasoklist extends JModelList
 					   sz.szavazas_vege,
 					   sz.titkos,
 					   szo.user_id,
-					   szo.kepviselo_id
+					   szo.kepviselo_id,
+					   sz.leiras
 					 from #__szavazasok as sz 
 				 left outer join #__szavazok as szo on szo.user_id = "'.$user->id.'" and szo.szavazas_id = sz.id 
+				 left outer join #__cimke_szavazasok c on c.cimke="'.$filterStr.'" and c.szavazas_id = sz.id
 		';
 		if (Jrequest::getVar('temakor') > 0)
 		    $query .= ' where sz.temakor_id="'.JRequest::getVar('temakor',0).'"';
@@ -67,7 +69,7 @@ class SzavazasokModelSzavazasoklist extends JModelList
 		if ($filterStr=='')
 			$query .= ' and sz.lezart < '.$lezartLimit;
 		else
-			$query .= ' and  sz.megnevezes like "%'.$filterStr.'%" and sz.lezart < '.$lezartLimit;
+			$query .= ' and  (sz.megnevezes like "%'.$filterStr.'%" or c.cimke = "'.$filterStr.'") and sz.lezart < '.$lezartLimit;
 		if (JRequest::getVar('order')=='')
 		  $query .= ' order by 1 DESC';
 		else if (JRequest::getVar('order','1')=='1')

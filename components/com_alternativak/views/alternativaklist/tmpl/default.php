@@ -124,10 +124,11 @@ echo '
 <div class="clr"></div>
 <div class="akciogombok">
 ';
-if ($this->Akciok['ujAlternativa'] != '') {
-      echo '<a href="'.$this->Akciok['ujAlternativa'].'" class="akcioGomb ujGomb">'.JText::_('UJALTERNATIVA').'</a>
-      ';
-}  
+
+//if ($this->Akciok['ujAlternativa'] != '') {
+//      echo '<a href="'.$this->Akciok['ujAlternativa'].'" class="akcioGomb ujGomb">'.JText::_('UJALTERNATIVA').'</a>
+//      ';
+//}  
 echo '<a href="'.$this->Akciok['deleteSzavazas'].'" class="akcioGomb btnAltDelete" styla="height:30px; margin-top:-4px">'.JText::_('SZAVAZASTORLES').'</a>
 ';
 
@@ -202,8 +203,12 @@ echo '
         </td>
         </tr>
        '; 
-     }  
+   }  
   } 
+  if ($this->Akciok['ujAlternativa'] != '') {
+			  echo '<tr class="'.$rowClass.'"><td><a href="'.$this->Akciok['ujAlternativa'].'" class="akcioGomb ujGomb">Új alternatívát javaslok</a></td></tr>
+			  ';
+  }  
 echo '
 </tbody>
 </table>		

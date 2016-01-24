@@ -51,7 +51,7 @@ class SzavazasokModelSzavaztam extends JModelList {
 		$query = '
 /* szavazások ahol szavaztam */
 /* ========================================== */
-SELECT sz.megnevezes, sz.vita1, sz.vita2, sz.szavazas, sz.lezart, sz.szavazas_vege, sz.titkos, szk.user_id,
+SELECT sz.megnevezes, sz.leiras, sz.vita1, sz.vita2, sz.szavazas, sz.lezart, sz.szavazas_vege, sz.titkos, szk.user_id,
   sz.id, sz.temakor_id
 FROM #__szavazasok sz
 INNER join #__temakorok te ON te.id = sz.temakor_id
