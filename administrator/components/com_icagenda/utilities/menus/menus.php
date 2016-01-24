@@ -11,7 +11,7 @@
  * @author      Cyril Rezé (Lyr!C)
  * @link        http://www.joomlic.com
  *
- * @version     3.5.8 2015-07-17
+ * @version     3.5.13 2015-11-23
  * @since       3.4.0
  *------------------------------------------------------------------------------
 */
@@ -35,8 +35,10 @@ class icagendaMenus
 	 */
 	static public function iClistMenuItemsInfo()
 	{
-		$app = JFactory::getApplication();
-		$params = $app->getParams();
+		$app			= JFactory::getApplication();
+//		$params			= $app->getParams();
+
+		$options_time	= JComponentHelper::getParams('com_icagenda')->get('time', '0');
 
 		// List all menu items linking to list of events
 		$db		= JFactory::getDbo();
@@ -58,24 +60,22 @@ class icagendaMenus
 		foreach ($link as $iClistMenu)
 		{
 			$menuitemid	= $iClistMenu->id;
-//			$menulang	= $iClistMenu->language;
 
 			if ($menuitemid)
 			{
 				$menu		= $app->getMenu();
-				$menuparams	= $menu->getParams( $menuitemid );
+				$menuparams	= $menu->getParams($menuitemid);
+
+				$mcatid		= $menuparams->get('mcatid', '');
+				$menufilter	= $menuparams->get('time') ? $menuparams->get('time') : $options_time;
+
+				if (is_array($mcatid))
+				{
+					$mcatid	= implode(',', $mcatid);
+				}
+
+				array_push($iC_list_menus, $menuitemid . '_' . $mcatid . '_' . $menufilter);
 			}
-
-			$mcatid		= $menuparams->get('mcatid');
-			$menufilter	= $menuparams->get('time') ? $menuparams->get('time') : $params->get('time', '1');
-
-			if (is_array($mcatid))
-			{
-				$mcatid	= implode(',', $mcatid);
-			}
-
-//			array_push($iC_list_menus, $menuitemid . '_' . $mcatid . '_' . $menulang . '_' . $menufilter);
-			array_push($iC_list_menus, $menuitemid . '_' . $mcatid . '_' . $menufilter);
 		}
 
 		return $iC_list_menus;
@@ -129,9 +129,9 @@ class icagendaMenus
 	 *
 	 * @since	3.5.7
 	 */
-	static public function thisEventItemid($date, $category)
+	static public function thisEventItemid($date, $category, $array_menuitems = null)
 	{
-		$iC_list_menus = self::iClistMenuItemsInfo();
+		$iC_list_menus = $array_menuitems ? $array_menuitems : self::iClistMenuItemsInfo();
 
 		$datetime_today	= JHtml::date('now', 'Y-m-d H:i');
 		$date_today		= JHtml::date('now', 'Y-m-d');
@@ -190,7 +190,7 @@ class icagendaMenus
 
 			// Menu can display today's events and upcoming events
 			elseif ($iCmenu_filter == 1
-				&& strtotime($date) > strtotime($date_today)
+				&& strtotime($date) >= strtotime($date_today)
 				&& ! $itemID_is_set)
 			{
 				// If menu category filter is set, and item category is in filtered categories

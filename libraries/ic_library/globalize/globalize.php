@@ -4,14 +4,14 @@
  *  iC Library - Library by Jooml!C, for Joomla!
  *------------------------------------------------------------------------------
  * @package     iC Library
- * @subpackage  date
+ * @subpackage  Globalize
  * @copyright   Copyright (c)2014-2015 Cyril Rezé, Jooml!C - All rights reserved
  *
  * @license     GNU General Public License version 3 or later; see LICENSE.txt
  * @author      Cyril Rezé (Lyr!C)
  * @link        http://www.joomlic.com
  *
- * @version     1.3.1 2015-07-07
+ * @version     1.3.3 2015-09-05
  * @since       1.3.0
  *------------------------------------------------------------------------------
 */
@@ -20,7 +20,7 @@
 defined('_JEXEC') or die();
 
 /**
- * class iCDate
+ * class iCGlobalize
  */
 class iCGlobalize
 {
@@ -34,7 +34,7 @@ class iCGlobalize
 	 *
 	 * @since   1.3.0
 	 */
-	static public function dateFormat($date, $format, $separator, $tz = null)
+	static public function dateFormat($date, $option, $separator, $tz = false)
 	{
 		$eventTimeZone	= $tz ? $tz : null;
 
@@ -50,131 +50,128 @@ class iCGlobalize
 		$globalize		= JPATH_LIBRARIES . '/ic_library/globalize/culture/' . $langTag . '.php';
 		$iso			= JPATH_LIBRARIES . '/ic_library/globalize/culture/iso.php';
 
-		if (is_numeric($format))
+		// Languages with English ordinal suffix for the day of the month, 2 characters
+		$en_langs = array('en-GB', 'en-US');
+
+		// Set iso format if format is equal to zero (Y-m-d)
+		$option = ($option == '0') ? 'Y - m - d' : $option;
+
+		if (is_numeric($option))
 		{
 			require $globalize;
+
+			// Format with "th" only for english languages
+			if ( ! in_array($langTag, $en_langs))
+			{
+				if ($option == '5') $option = '4';
+				if ($option == '9') $option = '7';
+				if ($option == '10') $option = '8';
+			}
+
+			// No Short month for Persian language
+			elseif ($langTag == 'fa-IR')
+			{
+				if ($option == '3') $option = '2';
+				if ($option == '11') $option = '7';
+				if ($option == '12') $option = '8';
+			}
+
+			$format = ${"datevalue_" . $option};
 		}
 		else
 		{
 			require $iso;
+
+			$format = $option;
 		}
 
 		// Load Globalization Date Format if selected
-		if ($format == '1') {$format = $datevalue_1;}
-		elseif ($format == '2') {$format = $datevalue_2;}
-		elseif ($format == '3') {$format = $datevalue_3;}
-		elseif ($format == '4') {$format = $datevalue_4;}
-		elseif ($format == '5') {
-			if (($langTag == 'en-GB') || ($langTag == 'en-US')) {
-				$format = $datevalue_5;
-			} else {
-				$format = $datevalue_4;
-			}
-		}
-		elseif ($format == '6') {$format = $datevalue_6;}
-		elseif ($format == '7') {$format = $datevalue_7;}
-		elseif ($format == '8') {$format = $datevalue_8;}
-		elseif ($format == '9') {
-			if ($langTag == 'en-GB') {
-				$format = $datevalue_9;
-			} else {
-				$format = $datevalue_7;
-			}
-		}
-		elseif ($format == '10') {
-			if ($langTag == 'en-GB') {
-				$format = $datevalue_10;
-			} else {
-				$format = $datevalue_8;
-			}
-		}
-		elseif ($format == '11') {$format = $datevalue_11;}
-		elseif ($format == '12') {$format = $datevalue_12;}
 
 		// Explode components of the date
 		$exformat = explode (' ', $format);
 
+		// Settings datetime, month and day
+		$thisDate	= date('Y-m-d H:i:s', strtotime($date));
+		$month_n	= JHtml::date($thisDate, 'n', $eventTimeZone); // 1 through 12
+		$day_w		= JHtml::date($thisDate, 'w', $eventTimeZone); // 0 (for Sunday) through 6 (for Saturday)
+
+		// Strings of translation for convertion
+		$array_days	= array(
+			'SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'
+		);
+
+		$array_days_short = array(
+			'SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'
+		);
+
+		$array_months = array(
+			'JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE',
+			'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'
+		);
+
 		$dateFormatted	= '';
 
-		// Day with no 0 (test if Windows server)
-//		$dayj = '%e';
-
-//		if (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN')
-//		{
-//  		$dayj = preg_replace('#(?<!%)((?:%%)*)%e#', '\1%#d', $dayj);
-//		}
-
-		// Date Formatting using strings of Joomla Core Translations (update 3.1.4)
-		if ($tz === false)
-		{
-			$thisDate = date('Y-m-d', strtotime($date));
-		}
-		else
-		{
-			$thisDate = JHtml::date($date, 'Y-m-d', $eventTimeZone);
-		}
-
+		// Creates date formatted
 		foreach ($exformat as $k => $val)
 		{
 			switch($val)
 			{
 				// Day
 				case 'd':
-					$val = date("d", strtotime("$thisDate"));
+					$val = JHtml::date($thisDate, 'd', $eventTimeZone);
 					break;
 
 				case 'j':
-					$val = date("j", strtotime("$thisDate"));
+					$val = JHtml::date($thisDate, 'j', $eventTimeZone);
 					break;
 
 				case 'D':
-					$val = JText::_(date("D", strtotime("$thisDate")));
+					// A textual representation of day of the week, three letters (use Joomla Translation string)
+					$val = JText::_($array_days_short[$day_w]);
 					break;
 
 				case 'l':
-					$val = JText::_(date("l", strtotime("$thisDate")));
+					// A full textual representation of the day of the week (use Joomla Translation string)
+					$val = JText::_($array_days[$day_w]);
 					break;
 
 				case 'S':
-					$val = '<sup>' . date("S", strtotime("$thisDate")) . '</sup>';
-					break;
-
-				case 'dS':
-					$val = date("d", strtotime("$thisDate")) . '<sup>' . date("S", strtotime("$thisDate")) . '</sup>';
+					$val = '<sup>' . JHtml::date($thisDate, 'S', $eventTimeZone) . '</sup>';
 					break;
 
 				case 'jS':
-					$val = date("j", strtotime("$thisDate")) . '<sup>' . date("S", strtotime("$thisDate")) . '</sup>';
+					$val = JHtml::date($thisDate, 'j', $eventTimeZone) . '<sup>' . JHtml::date($thisDate, 'S', $eventTimeZone) . '</sup>';
 					break;
 
 				// Month
 				case 'm':
-					$val = date("m", strtotime("$thisDate"));
+					$val = JHtml::date($thisDate, 'm', $eventTimeZone);
 					break;
 
 				case 'F':
-					$val = JText::_(date('F', strtotime($thisDate)));
+					// A full textual representation of a month (use Joomla Translation string)
+					$val = JText::_($array_months[($month_n-1)]);
 					break;
 
 				case 'M':
-					$val = JText::_(date('F', strtotime($thisDate)) . '_SHORT');
+					// A short textual representation of a month (use Joomla Translation string)
+					$val = JText::_($array_months[($month_n-1)] . '_SHORT');
 					break;
 
 				case 'n':
-					$val = date("n", strtotime("$thisDate"));
+					$val = JHtml::date($thisDate, 'n', $eventTimeZone);
 					break;
 
 				// year (v3)
 				case 'Y':
-//					$val = JHtml::date($thisDate, 'Y', $eventTimeZone);
-					$val = date("Y", strtotime("$thisDate"));
+					$val = JHtml::date($thisDate, 'Y', $eventTimeZone);
 					break;
 
 				case 'y':
-					$val = date("y", strtotime("$thisDate"));
+					$val = JHtml::date($thisDate, 'y', $eventTimeZone);
 					break;
 
-				// separators of the components (v2)
+				// Separator of the components
 				case '*':
 					$val = $separator;
 					break;
@@ -182,17 +179,6 @@ class iCGlobalize
 					$val = '&nbsp;';
 //					$val = '&#160;';
 					break;
-//				case '/': $val='/'; break;
-//				case '.': $val='.'; break;
-//				case '-': $val='-'; break;
-//				case ',': $val=','; break;
-//				case 'the': $val='the'; break;
-//				case 'gada': $val='gada'; break;
-//				case 'de': $val='de'; break;
-//				case 'г.': $val='г.'; break;
-//				case 'den': $val='den'; break;
-//				case 'ukp.': $val = '&#1088;.'; break;
-
 
 				// day
 				case 'N':
@@ -207,21 +193,8 @@ class iCGlobalize
 
 				// week
 				case 'W':
-					$val = date("W", strtotime("$thisDate"));
+					$val = JHtml::date($thisDate, 'W', $eventTimeZone);
 					break;
-
-				// month
-				case 'n':
-					$val = $separator . date("n", strtotime("$thisDate")) . $separator;
-					break;
-
-				// time
-//				case 'H':
-//					$val = date("H", strtotime("$thisDate"));
-//					break;
-//				case 'i':
-//					$val = date("i", strtotime("$thisDate"));
-//					break;
 
 				// Default
 				default:

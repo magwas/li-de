@@ -63,9 +63,9 @@ class SzavazasokModelSzavazasoklist extends JModelList
 				 left outer join #__cimke_szavazasok c on c.cimke="'.$filterStr.'" and c.szavazas_id = sz.id
 		';
 		if (Jrequest::getVar('temakor') > 0)
-		    $query .= ' where sz.temakor_id="'.JRequest::getVar('temakor',0).'"';
+		    $query .= ' where sz.temakor_id="'.JRequest::getVar('temakor',0).'" and elbiralas_alatt=0 and sz.elutasitva = "" ';
 		else
-			$query .= ' where sz.temakor_id > 0 and sz.lezart=0 ';
+			$query .= ' where sz.temakor_id > 0 and sz.lezart=0 and elbiralas_alatt=0 and sz.elutasitva = "" ';
 		if ($filterStr=='')
 			$query .= ' and sz.lezart < '.$lezartLimit;
 		else

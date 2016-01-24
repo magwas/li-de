@@ -297,7 +297,7 @@ class AlternativakController extends JControllerLegacy {
         ($this->temakor_admin) |
         ($this->alternativa_felvivo($user))
        ) {
-      if ($this->szavazas->vita1 == 1) { 
+      if (($this->szavazas->vita1 == 1) | ($this->szavazas->elbiralas_alatt == 1)) { 
         $akciok['ujAlternativa'] = JURI::base().'index.php?option=com_'.$this->NAME.'&view='.$this->NAME.'&task=add'.
          '&temakor='.$this->temakor_id.'&szavazas='.$this->szavazas_id.
          '&limit='.JRequest::getVar('limit',20).
@@ -339,8 +339,8 @@ class AlternativakController extends JControllerLegacy {
     if (($this->temakorokHelper->isAdmin($user)) |
         ($this->temakor_admin) |
         ($this->temakorIndito($this->temakor_id,$user))) {
-      if ($this->szavazas->vita1 == 1) {    
-        $akciok['alternativaedit'] = JURI::base().'index.php?option=com_alternativak&view=alternativak&task=edit'.
+      if (($this->szavazas->vita1 == 1) | ($this->szavazas->elbiralas_alatt == 1)) {    
+	    $akciok['alternativaedit'] = JURI::base().'index.php?option=com_alternativak&view=alternativak&task=edit'.
         '&temakor='.$this->temakor_id.'&szavazas='.$this->szavazas_id;
       }  
     }
@@ -348,7 +348,7 @@ class AlternativakController extends JControllerLegacy {
     if (($this->temakorokHelper->isAdmin($user)) |
         ($this->temakor_admin) |
         ($this->temakorIndito($this->temakor_id,$user))) {  
-      if ($this->szavazas->vita1 == 1) {    
+      if (($this->szavazas->vita1 == 1) | ($this->szavazas->elbiralas_alatt == 1)) {    
         $akciok['alternativatorles'] = JURI::base().'index.php?option=com_alternativak&view=alternativak&task=deleteform'.
         '&temakor='.$this->temakor_id.'&szavazas='.$this->szavazas_id;
       }  
@@ -396,7 +396,6 @@ class AlternativakController extends JControllerLegacy {
              '&szavazas='.$this->szavazas_id;
     
     $this->view->set('Akciok',$akciok);
-   
     // globális képviselő/képviselő jelölt gombok definiálása
     $altKepviselo = array();
     $altKepviselo['kepviselojeLink'] = '';
@@ -410,24 +409,16 @@ class AlternativakController extends JControllerLegacy {
       if ($altKepviseloje > 0) {
         $kepviseloUser = JFactory::getUser($altKepviseloje);
         if ($kepviseloUser) {
-          $userEx = HsUser::getInstance($altKepviseloje);
           $altKepviselo['kepviselojeLink'] = JURI::base().'index.php?option=com_kepviselok&task=show&id='.$altKepviseloje;
-          if (isset($userEx->image))
-  				 $altKepviselo['image'] = $userEx->get('image');
-          else
-  				 $altKepviselo['image'] = '<img src="components/com_hs_users/asset/images/noimage.png" width="50" height="50" />';
+		  $altKepviselo['image'] = getAvatar($altKepviseloje);
           $altKepviselo['nev'] = $kepviseloUser->name;
         }  
       }
       if ($kepviseloje > 0) {
         $kepviseloUser = JFactory::getUser($kepviseloje);
         if ($kepviseloUser) {
-          $userEx = HsUser::getInstance($kepviseloje);
           $kepviselo['kepviselojeLink'] = JURI::base().'index.php?option=com_kepviselok&task=show&id='.$kepviseloje;
-          if (isset($userEx->image))
-  				 $kepviselo['image'] = $userEx->get('image');
-          else
-  				 $kepviselo['image'] = '<img src="components/com_hs_users/asset/images/noimage.png" width="50" height="50" />';
+  		   $kepviselo['image'] = getAvatar($kerpviseloje);
           $kepviselo['nev'] = $kepviseloUser->name;
         }  
       } else if ($kepviseloJelolt) {
@@ -677,7 +668,16 @@ class AlternativakController extends JControllerLegacy {
         '&temakor='.urlencode(JRequest::getVar('temakor')).
         '&szavazas='.urlencode(JRequest::getVar('szavazas')).
         '&order='.JRequest::getVar('order');
-        $this->setMessage(JText::_('ALTERNATIVATAROLVA'));
+		if ($item->id == 0) {
+		  $db->setQuery('select * from #__content where alias="uj-alternativa-koszonet"');
+		  $res = $db->loadObject();
+		  if ($res)
+             $this->setMessage($res->introtext);
+		  else	  
+             $this->setMessage(JText::_('ALTERNATIVATAROLVA'));
+		} else {
+           $this->setMessage(JText::_('ALTERNATIVATAROLVA'));
+		}   
         $this->setRedirect($link);
         $this->redirect();
       } else {

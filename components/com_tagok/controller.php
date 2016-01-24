@@ -437,7 +437,9 @@ class TagokController extends JControllerLegacy {
      public function delete() {
        $user = JFactory::getUser();
        if ((!$this->temakorokHelper->isAdmin($user)) & 
-        (!$this->temakor_admin)) {
+           (!$this->temakor_admin) & 
+		   ($user->id != JRequest::getVar('tag'))
+		  ) {
         echo '<div class="">Access denied</div>';
         return;
        }
@@ -457,7 +459,7 @@ class TagokController extends JControllerLegacy {
        $session = JFactory::getSession();
        $secret = $session->get('secret');
        if (JRequest::getVar($secret) != '1') {
-        echo '<div class="">Access denied. wron secret code.</div>';
+        echo '<div class="">Access denied. wrong secret code.</div>';
         return;
        }
        $db = JFactory::getDBO();

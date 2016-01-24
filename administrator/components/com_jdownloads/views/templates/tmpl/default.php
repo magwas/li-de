@@ -25,6 +25,16 @@ $canOrder    = $user->authorise('core.edit.state', 'com_jdownloads');
 
 ?>
 <form action="<?php echo JRoute::_('index.php?option=com_jdownloads&view=templates&type='.$this->jd_tmpl_type.'');?>" method="POST" name="adminForm" id="adminForm">
+
+    <?php if (!empty( $this->sidebar)) : ?>
+        <div id="j-sidebar-container" class="span2">
+            <?php echo $this->sidebar; ?>
+        </div>
+        <div id="j-main-container" class="span10">
+    <?php else : ?>
+        <div id="j-main-container">
+    <?php endif;?>
+
     <fieldset id="jdfilter-bar">
         <div class="filter-search jdfltlft">
             <!--<label class="filter-search-lbl jdfltlft" for="filter_search"><?php echo JText::_('COM_JDOWNLOADS_FILTER_LABEL'); ?></label>-->

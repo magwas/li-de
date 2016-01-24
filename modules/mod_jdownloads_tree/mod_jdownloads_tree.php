@@ -23,8 +23,6 @@
     require_once(JPATH_SITE.DS.'modules'.DS.'mod_jdownloads_tree'.DS.'jdtree'.DS.'jdownloadstree.php');
     require_once __DIR__ . '/helper.php';
     
-    JHtml::_('behavior.tooltip'); 
-    
     $user = JFactory::getUser();
 	$db	  = JFactory::getDBO();
     

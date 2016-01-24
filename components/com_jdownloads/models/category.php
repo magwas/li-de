@@ -133,7 +133,8 @@ class JdownloadsModelCategory extends JModelList
                 'custom_field_14', 'a.custom_field_14',
                 'access', 'a.access', 'access_level',                
                 'language', 'a.language',
-                'ordering', 'a.ordering',                
+                'ordering', 'a.ordering',
+                'featured', 'a.featured',                                
                 'published', 'a.published',
 				'checked_out', 'a.checked_out',
 				'checked_out_time', 'a.checked_out_time'
@@ -300,6 +301,9 @@ class JdownloadsModelCategory extends JModelList
 		$this->setState('filter.language', $app->getLanguageFilter());
 
 		$this->setState('layout', $jinput->get('layout'));
+        
+        // Set the featured Downloads state
+        $this->setState('filter.featured', $params->get('show_featured'));        
 
 	}
 

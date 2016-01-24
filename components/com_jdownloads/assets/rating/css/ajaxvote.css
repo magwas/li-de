@@ -25,7 +25,7 @@
 .jwajaxvote-star-rating .current-rating {z-index:1;background-position:0 center;margin:0;padding:0;}
 .jwajaxvote-box {
 	margin:0 0 0 5px;
-	padding: 8px 0 0 0;
+	padding: 0;
 	float:left;
 }
 .jwajaxvote-clr {clear:both;}

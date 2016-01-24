@@ -12,7 +12,7 @@
  *
  * @themepack	default
  * @template	calendar info-tip
- * @version 	3.5.6 2015-06-08
+ * @version 	3.5.13 2015-10-29
  * @since       1.0
  *------------------------------------------------------------------------------
 */
@@ -57,7 +57,7 @@ defined('_JEXEC') or die(); ?>
 						}
 						else
 						{
-							echo '<span class="noimg ' . $bgcolor . '">' . $e['no_image'] . '</span>';
+							echo '<span class="noimg ' . $bgcolor . '">' . $e['cat_title'] . '</span>';
 						}
 
 						echo '</span>';

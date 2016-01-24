@@ -43,6 +43,11 @@ class iCagendaTableregistration extends JTable
 	 */
 	public function bind($array, $ignore = '')
 	{
+		if ($array['date'] == 'update')
+		{
+			$array['date'] = '';
+		}
+
 		return parent::bind($array, $ignore);
 	}
 

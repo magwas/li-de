@@ -27,30 +27,29 @@ class JDownloadsHelper
      * Configure the Linkbar.
      *
      * @param    string    The name of the active view.
-     * @since    1.6
      */
     public static function addSubmenu($vName = 'jdownloads')
     {
         $canDo = self::getActions();
         
-        JSubMenuHelper::addEntry( JText::_( 'COM_JDOWNLOADS_CPANEL' ), 'index.php?option=com_jdownloads', $vName == 'jdownloads');
-        JSubMenuHelper::addEntry( JText::_( 'COM_JDOWNLOADS_CATEGORIES' ), 'index.php?option=com_jdownloads&view=categories', $vName == 'categories');
-        JSubMenuHelper::addEntry( JText::_( 'COM_JDOWNLOADS_DOWNLOADS' ), 'index.php?option=com_jdownloads&view=downloads', $vName == 'downloads');    
-        JSubMenuHelper::addEntry( JText::_( 'COM_JDOWNLOADS_FILES' ), 'index.php?option=com_jdownloads&view=files', $vName == 'files');
-        JSubMenuHelper::addEntry( JText::_( 'COM_JDOWNLOADS_LICENSES' ), 'index.php?option=com_jdownloads&view=licenses', $vName == 'licenses');
-        JSubMenuHelper::addEntry( JText::_( 'COM_JDOWNLOADS_LAYOUTS' ), 'index.php?option=com_jdownloads&view=layouts', $vName == 'layouts');
-        JSubMenuHelper::addEntry( JText::_( 'COM_JDOWNLOADS_LOGS' ), 'index.php?option=com_jdownloads&view=logs', $vName == 'logs');
+        JHtmlSidebar::addEntry( JText::_( 'COM_JDOWNLOADS_CPANEL' ), 'index.php?option=com_jdownloads', $vName == 'jdownloads');
+        JHtmlSidebar::addEntry( JText::_( 'COM_JDOWNLOADS_CATEGORIES' ), 'index.php?option=com_jdownloads&view=categories', $vName == 'categories');
+        JHtmlSidebar::addEntry( JText::_( 'COM_JDOWNLOADS_DOWNLOADS' ), 'index.php?option=com_jdownloads&view=downloads', $vName == 'downloads');    
+        JHtmlSidebar::addEntry( JText::_( 'COM_JDOWNLOADS_FILES' ), 'index.php?option=com_jdownloads&view=files', $vName == 'files');
+        JHtmlSidebar::addEntry( JText::_( 'COM_JDOWNLOADS_LICENSES' ), 'index.php?option=com_jdownloads&view=licenses', $vName == 'licenses');
+        JHtmlSidebar::addEntry( JText::_( 'COM_JDOWNLOADS_LAYOUTS' ), 'index.php?option=com_jdownloads&view=layouts', $vName == 'layouts');
+        JHtmlSidebar::addEntry( JText::_( 'COM_JDOWNLOADS_LOGS' ), 'index.php?option=com_jdownloads&view=logs', $vName == 'logs');
         
         if ($canDo->get('edit.user.limits')) {
-            JSubMenuHelper::addEntry( JText::_( 'COM_JDOWNLOADS_USER_GROUPS' ), 'index.php?option=com_jdownloads&view=groups', $vName == 'groups');
+            JHtmlSidebar::addEntry( JText::_( 'COM_JDOWNLOADS_USER_GROUPS' ), 'index.php?option=com_jdownloads&view=groups', $vName == 'groups');
         }
         
         if ($canDo->get('edit.config')) {
-            JSubMenuHelper::addEntry( JText::_( 'COM_JDOWNLOADS_CONFIGURATION' ), 'index.php?option=com_jdownloads&view=config', $vName == 'config');
-            JSubMenuHelper::addEntry( JText::_( 'COM_JDOWNLOADS_TOOLS' ), 'index.php?option=com_jdownloads&view=tools', $vName == 'tools');
+            JHtmlSidebar::addEntry( JText::_( 'COM_JDOWNLOADS_CONFIGURATION' ), 'index.php?option=com_jdownloads&view=config', $vName == 'config');
+            JHtmlSidebar::addEntry( JText::_( 'COM_JDOWNLOADS_TOOLS' ), 'index.php?option=com_jdownloads&view=tools', $vName == 'tools');
         }    
         
-        JSubMenuHelper::addEntry( JText::_( 'COM_JDOWNLOADS_TERMS_OF_USE' ), 'index.php?option=com_jdownloads&view=info', $vName == 'info');
+        JHtmlSidebar::addEntry( JText::_( 'COM_JDOWNLOADS_TERMS_OF_USE' ), 'index.php?option=com_jdownloads&view=info', $vName == 'info');
     }
 
     /**
@@ -253,7 +252,7 @@ class JDownloadsHelper
         $pluploader_unit[] = JHtml::_('select.option', 'mb', 'MB');
         $select_fields['pluploader_unit'] = $pluploader_unit;        
         
-        // auswahlliste for default catsymbol
+        // select list for default catsymbol
         $cat_pic_dir = '/images/jdownloads/catimages/'; 
         $cat_pic_dir_path = JUri::root().'images/jdownloads/catimages/';
         $pic_files = JFolder::files( JPATH_SITE.$cat_pic_dir );
@@ -267,7 +266,7 @@ class JDownloadsHelper
         $select_fields['inputbox_pic'] = JHtml::_('select.genericlist', $cat_pic_list, 'cat_pic', "class=\"inputbox\" size=\"1\""
       . " onchange=\"javascript:if (document.adminForm.cat_pic.options[selectedIndex].value!='') {document.imagelib.src='$cat_pic_dir_path' + document.adminForm.cat_pic.options[selectedIndex].value} else {document.imagelib.src=''}\"", 'value', 'text', $jlistConfig['cat.pic.default.filename'] );
       
-        // auswahlliste for default filesymbol
+        // select list for default filesymbol
         $file_pic_dir = '/images/jdownloads/fileimages/';
         $file_pic_dir_path = JUri::root().'images/jdownloads/fileimages/';
         $pic_files = JFolder::files( JPATH_SITE.$file_pic_dir );
@@ -279,6 +278,20 @@ class JDownloadsHelper
         }
         $select_fields['inputbox_pic_file'] = JHtml::_('select.genericlist', $file_pic_list, 'file_pic', "class=\"inputbox\" size=\"1\""
       . " onchange=\"javascript:if (document.adminForm.file_pic.options[selectedIndex].value!='') {document.imagelib2.src='$file_pic_dir_path' + document.adminForm.file_pic.options[selectedIndex].value} else {document.imagelib2.src=''}\"", 'value', 'text', $jlistConfig['file.pic.default.filename'] );
+
+        // select list for default featured symbol
+        $featured_pic_dir = '/images/jdownloads/featuredimages/';
+        $featured_pic_dir_path = JUri::root().'images/jdownloads/featuredimages/';
+        $pic_files = JFolder::files( JPATH_SITE.$featured_pic_dir );
+        $featured_pic_list[] = JHtml::_('select.option', '', '');
+        foreach ($pic_files as $file) {
+            if (@preg_match( "/(gif|jpg|png)/i", $file )){ 
+                $featured_pic_list[] = JHtml::_('select.option', $file );
+            }
+        }
+        $select_fields['inputbox_pic_featured'] = JHtml::_('select.genericlist', $featured_pic_list, 'featured_pic', "class=\"inputbox\" size=\"1\""
+      . " onchange=\"javascript:if (document.adminForm.featured_pic.options[selectedIndex].value!='') {document.imagelib2b.src='$featured_pic_dir_path' + document.adminForm.featured_pic.options[selectedIndex].value} else {document.imagelib2b.src=''}\"", 'value', 'text', $jlistConfig['featured.pic.filename'] );
+
       
         // auswahlliste for hot image
         $hot_pic_dir = '/images/jdownloads/hotimages/';
@@ -502,7 +515,7 @@ class JDownloadsHelper
     * @return array  - result with founded files 
     * 
     */
-    public function arrayRegexSearch ( $strPattern, $arHaystack, $bTarget = TRUE, $bReturn = TRUE ) 
+    public static function arrayRegexSearch ( $strPattern, $arHaystack, $bTarget = TRUE, $bReturn = TRUE ) 
     { 
         $arResults = array (); 
         foreach ( $arHaystack as $strKey => $strValue ) 
@@ -2692,6 +2705,41 @@ class JDownloadsHelper
 
         return $format;    
     } 
+    
+    /**
+     * Show the feature/unfeature links
+     *
+     * @param   int      $value      The state value
+     * @param   int      $i          Row number
+     * @param   boolean  $canChange  Is user allowed to change?
+     *
+     * @return  string       HTML code
+     */
+    public static function getFeatureHtml($value = 0, $i, $canChange = true)
+    {
+        JHtml::_('bootstrap.tooltip');
+
+        // Array of image, task, title, action
+        $states = array(
+            0 => array('unfeatured', 'downloads.featured', 'COM_JDOWNLOADS_UNFEATURED', 'COM_JDOWNLOADS_TOGGLE_FEATURED'),
+            1 => array('featured', 'downloads.unfeatured', 'COM_JDOWNLOADS_FEATURED', 'COM_JDOWNLOADS_TOGGLE_FEATURED'),
+        );
+        $state = JArrayHelper::getValue($states, (int) $value, $states[1]);
+        $icon  = $state[0];
+
+        if ($canChange)
+        {
+            $html = '<a href="#" onclick="return listItemTask(\'cb' . $i . '\',\'' . $state[1] . '\')" class="btn btn-micro hasTooltip'
+                . ($value == 1 ? ' active' : '') . '" title="' . JHtml::tooltipText($state[3]) . '"><span class="icon-' . $icon . '"></span></a>';
+        }
+        else
+        {
+            $html = '<a class="btn btn-micro hasTooltip disabled' . ($value == 1 ? ' active' : '') . '" title="'
+                . JHtml::tooltipText($state[2]) . '"><span class="icon-' . $icon . '"></span></a>';
+        }
+
+        return $html;
+    }    
     
 }
 ?>

@@ -50,6 +50,15 @@
             description="COM_JDOWNLOADS_ACCESS_DESC"
             class="inputbox"/>
             
+        <field name="featured" type="list"
+            class="inputbox"
+            label="COM_JDOWNLOADS_FIELD_FEATURED"
+            description="COM_JDOWNLOADS_FIELD_FEATURED_DESC"
+            default="0">
+            <option value="1">COM_JDOWNLOADS_YES</option>
+            <option value="0">COM_JDOWNLOADS_NO</option>
+        </field>            
+            
         <field 
             name="tags"
             type="tag"
@@ -95,10 +104,8 @@
             class="inputbox"
             size="1"
             default="1">
-            <option
-                value="1">COM_JDOWNLOADS_PUBLISHED</option>
-            <option
-                value="0">COM_JDOWNLOADS_UNPUBLISHED</option>
+            <option value="1">COM_JDOWNLOADS_PUBLISHED</option>
+            <option value="0">COM_JDOWNLOADS_UNPUBLISHED</option>
         </field>
 
         <field 

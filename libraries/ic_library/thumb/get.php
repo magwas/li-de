@@ -11,7 +11,7 @@
  * @author      Cyril Rezé (Lyr!C)
  * @link        http://www.joomlic.com
  *
- * @version     1.2.2 2015-03-13
+ * @version     1.3.4 2015-11-03
  * @since       1.0.0
  *------------------------------------------------------------------------------
 */
@@ -38,6 +38,7 @@ class iCThumbGet
 		$file_distant	= $image;
 
 		$linkToImage	= filter_var($image, FILTER_VALIDATE_URL) ? $file_distant : $file_local;
+		$original_exist	= file_exists($linkToImage) ? true : false;
 
 		// Set memory_limit if possible to 512mo, and check needed memory to generate thumbnails
 		ini_set('memory_limit','512M');
@@ -129,13 +130,16 @@ class iCThumbGet
 
 		if ($prefix == 'ic_large')
 		{
-			$file_to_check	= filter_var($image, FILTER_VALIDATE_URL) ? $file_copy : $file_local;
-			list($w, $h)	= getimagesize($file_to_check);
-
-			if ($w < $width or $h < $height)
+			if ($original_exist)
 			{
-				$max_image_size		= filter_var($image, FILTER_VALIDATE_URL) ? $MAX_aftercopy_Link : $image;
-				$original_too_small	= true;
+				$file_to_check	= filter_var($image, FILTER_VALIDATE_URL) ? $file_copy : $file_local;
+				list($w, $h)	= getimagesize($file_to_check);
+
+				if ($w < $width or $h < $height)
+				{
+					$max_image_size		= filter_var($image, FILTER_VALIDATE_URL) ? $MAX_aftercopy_Link : $image;
+					$original_too_small	= true;
+				}
 			}
 		}
 
@@ -153,7 +157,7 @@ class iCThumbGet
 			$Display_Thumb = true;
 		}
 		// if thumbnails not already created, create thumbnails
-		else
+		elseif ($original_exist)
 		{
 			$memory_limit = ini_get('memory_limit');
 

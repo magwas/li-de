@@ -339,6 +339,16 @@ if ($canDo->get('edit.config')){
                         </tr>
 
                         <tr>
+                        <td width="330"><strong><?php echo JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_FRONTEND_CATLISTBOX_LEVELS')." "; ?></strong><br />
+                             <input name="jlistConfig[show.header.catlist.levels]" value="<?php echo $jlistConfig['show.header.catlist.levels']; ?>" size="5" maxlength="2"/></td>
+                        </td>
+                        <td>
+                               <?php echo JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_FRONTEND_CATLISTBOX_LEVELS_DESC');?>
+                        </td>                
+                        </tr>
+                        
+                        
+                        <tr>
                         <td width="330"><strong><?php echo JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_FRONTEND_CATLISTBOX_UNCAT_ACTIVE')." "; ?></strong><br />
                              <?php echo JDownloadsHelper::yesnoSelectList( 'jlistConfig[show.header.catlist.uncategorised]', 'class="inputbox"', $jlistConfig['show.header.catlist.uncategorised']); ?>
                         </td>
@@ -375,6 +385,7 @@ if ($canDo->get('edit.config')){
                         </td>                
                         </tr>
                         -->
+                        <tr><td colspan="2"><hr></td></tr>
                         
                         <tr>
                         <td width="330"><strong><?php echo JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_CAT_VIEW_INFO_IN_LISTS_TITLE')." "; ?></strong><br />
@@ -1110,7 +1121,7 @@ if ($canDo->get('edit.config')){
                                 } else {
                                     jsimg='';
                                 }
-                                document.write('<img src=' + jsimg + ' name="imagelib" width="<?php echo $jlistConfig['cat.pic.size']; ?>" height="<?php echo $jlistConfig['cat.pic.size']; ?>" border="1" alt="<?php echo JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_DEFAULT_CAT_FILE_NO_DEFAULT_PIC'); ?>" />');
+                                document.write('<img src=' + jsimg + ' name="imagelib" width="<?php echo $jlistConfig['cat.pic.size']; ?>" height="<?php echo $jlistConfig['cat.pic.size.height']; ?>" border="1" alt="<?php echo JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_DEFAULT_CAT_FILE_NO_DEFAULT_PIC'); ?>" />');
                                </script>
                              </td>
                         </tr> 
@@ -1140,10 +1151,41 @@ if ($canDo->get('edit.config')){
                                 } else {
                                      jsimg='';
                                 }
-                                document.write('<img src=' + jsimg + ' name="imagelib2" width="<?php echo $jlistConfig['file.pic.size']; ?>" height="<?php echo $jlistConfig['file.pic.size']; ?>" border="1" alt="<?php echo JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_DEFAULT_CAT_FILE_NO_DEFAULT_PIC'); ?>" />');
+                                document.write('<img src=' + jsimg + ' name="imagelib2" width="<?php echo $jlistConfig['file.pic.size']; ?>" height="<?php echo $jlistConfig['file.pic.size.height']; ?>" border="1" alt="<?php echo JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_DEFAULT_CAT_FILE_NO_DEFAULT_PIC'); ?>" />');
                                </script>
                              </td>
                         </tr>
+                        <tr><td colspan="3"><hr></td></tr>
+                        <tr>
+                            <td valign="top" width="330"><strong><?php echo JText::_('COM_JDOWNLOADS_SETTINGS_FRONTEND_FEATURED_PIC_SIZE')." "; ?></strong><br /><br />
+                                    <p><input name="jlistConfig[featured.pic.size]" value="<?php echo $jlistConfig['featured.pic.size']; ?>" size="5" maxlength="5"/> px <?php echo JText::_('COM_JDOWNLOADS_WIDTH'); ?></p>
+                                    <p><input name="jlistConfig[featured.pic.size.height]" value="<?php echo $jlistConfig['featured.pic.size.height']; ?>" size="5" maxlength="5"/> px <?php echo JText::_('COM_JDOWNLOADS_HEIGHT'); ?></p>
+                            </td>
+                            <td valign="top">
+                                <?php echo JText::_('COM_JDOWNLOADS_SETTINGS_FRONTEND_FEATURED_PIC_SIZE_DESC');?>
+                            </td>
+                        </tr>
+                        <tr>
+                              <td valign="top"><strong><?php echo JText::_('COM_JDOWNLOADS_SETTINGS_FRONTEND_FEATURED_TITLE')." "; ?></strong><br />
+                                 <?php
+                                  echo $this->select_fields['inputbox_pic_featured']; ?>
+                              </td>
+                              <td valign ="top"><?php echo ' '.JText::_('COM_JDOWNLOADS_SETTINGS_FRONTEND_FEATURED_DESC'); ?>
+                              </td>
+                        </tr>
+
+                        <tr>
+                             <td valign="top">
+                               <script language="javascript" type="text/javascript">
+                                if (document.adminForm.featured_pic.options.value!=''){
+                                    jsimg="<?php echo JURI::root().'images/jdownloads/featuredimages/'; ?>" + getSelectedText( 'adminForm', 'featured_pic' );
+                                } else {
+                                     jsimg='';
+                                }
+                                document.write('<img src=' + jsimg + ' name="imagelib2b" width="<?php echo $jlistConfig['featured.pic.size']; ?>" height="<?php echo $jlistConfig['featured.pic.size.height']; ?>" border="1" alt="<?php echo JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_DEFAULT_CAT_FILE_NO_DEFAULT_PIC'); ?>" />');
+                               </script>
+                             </td>
+                        </tr>                        
                         <tr><td> </td></tr>
                         <tr>
                             <th class="adminheading" colspan="2"><?php echo JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_GLOBAL_CSS_BUTTONS_HEAD')." "; ?></th>
@@ -1673,7 +1715,66 @@ if ($canDo->get('edit.config')){
                         <table width="100%">
 
                         <tr>
-                              <th class="adminheading" colspan="2"><?php echo JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_MEDIA_SECOND_TITLE')." "; ?></th>
+                              <th class="adminheading" colspan="2"><font color="#990000"><?php echo JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_HTML5_TITLE')." "; ?></font></th>
+                        </tr>
+
+                       <tr>
+                        <td colspan="2"><strong><?php echo JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_HTML5_DESC')." "; ?></strong>
+                        </td>
+                       </tr>
+                        
+                        <tr>
+                        <td width="330"><strong><?php echo JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_HTML5_USE_TITLE')." "; ?></strong><br />
+                               <?php echo JDownloadsHelper::yesnoSelectList( 'jlistConfig[html5player.use]', 'class="inputbox"', $jlistConfig['html5player.use']); ?>
+                        </td>
+                        <td valign="top">
+                        <br />
+                               <?php echo JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_HTML5_USE_DESC');?>
+                        </td>                
+                        </tr>                        
+
+                        <tr>
+                        <td width="330"><strong><?php echo JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_FLOW_BOX_ONLY_IN_DETAILS_TITLE')." "; ?></strong><br />
+                               <?php echo JDownloadsHelper::yesnoSelectList( 'jlistConfig[html5player.view.video.only.in.details]', 'class="inputbox"', $jlistConfig['html5player.view.video.only.in.details']); ?>
+                        </td>
+                        <td valign="top">
+                        <br />
+                               <?php echo JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_FLOW_BOX_ONLY_IN_DETAILS_DESC');?>
+                        </td>                
+                        </tr>                         
+                        
+                        <tr>
+                        <td width="330"><strong><?php echo JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_HTML5_BOX_WIDTH_TITLE')." "; ?></strong><br />
+                               <input name="jlistConfig[html5player.width]" value="<?php echo $jlistConfig['html5player.width']; ?>" size="5" maxlength="5"/>
+                        </td>
+                        <td>
+                               <?php echo JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_HTML5_BOX_WIDTH_DESC');?>
+                        </td>                
+                        </tr>  
+
+                        <tr>
+                        <td width="330"><strong><?php echo JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_HTML5_BOX_HEIGHT_TITLE')." "; ?></strong><br />
+                               <input name="jlistConfig[html5player.height]" value="<?php echo $jlistConfig['html5player.height']; ?>" size="5" maxlength="5"/>
+                        </td>
+                        <td>
+                               <?php echo JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_HTML5_BOX_HEIGHT_DESC');?>
+                        </td>                
+                        </tr> 
+
+                        <tr>
+                        <td width="330"><strong><?php echo JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_HTML5_BOX_AUDIO_WIDTH_TITLE')." "; ?></strong><br />
+                               <input name="jlistConfig[html5player.audio.width]" value="<?php echo $jlistConfig['html5player.audio.width']; ?>" size="5" maxlength="5"/>
+                        </td>
+                        <td>
+                               <?php echo JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_HTML5_BOX_AUDIO_WIDTH_DESC');?>
+                        </td>                
+                        </tr>  
+                        
+
+                        <tr><td><br /></td></tr>
+
+                        <tr>
+                              <th class="adminheading" colspan="2"><font color="#990000"><?php echo JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_MEDIA_SECOND_TITLE')." "; ?></font></th>
                         </tr>
 
                        <tr>
@@ -1720,7 +1821,7 @@ if ($canDo->get('edit.config')){
                         </td>                
                         </tr> 
                         
-                                                <tr>
+                        <tr>
                         <td width="330"><strong><?php echo JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_FLOW_BOX_HEIGHT_MP3_TITLE')." "; ?></strong><br />
                                <input name="jlistConfig[flowplayer.playerheight.audio]" value="<?php echo $jlistConfig['flowplayer.playerheight.audio']; ?>" size="5" maxlength="5"/>
                         </td>
@@ -1741,7 +1842,7 @@ if ($canDo->get('edit.config')){
                                                  
 
                         <tr>
-                              <th class="adminheading" colspan="2"><?php echo JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_MEDIA_TITLE')." "; ?></th>
+                              <th class="adminheading" colspan="2"><font color="#990000"><?php echo JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_MEDIA_TITLE')." "; ?></font></th>
                         </tr>
 
                        <tr>

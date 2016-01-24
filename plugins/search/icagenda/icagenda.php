@@ -9,8 +9,8 @@
  * @author      Cyril Rezé (Lyr!C)
  * @link        http://www.joomlic.com
  *
- * @update      3.4.2 2015-01-31
- * @version		1.4
+ * @update      3.5.13 2015-11-21
+ * @version		1.5
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -198,15 +198,7 @@ class PlgSearchiCagenda extends JPlugin
 		// Get User groups allowed to approve event submitted
 		$userID = $user->id;
 		$userLevels = $user->getAuthorisedViewLevels();
-
-		if (version_compare(JVERSION, '3.0', 'lt'))
-		{
-			$userGroups = $user->getAuthorisedGroups();
-		}
-		else
-		{
-			$userGroups = $user->groups;
-		}
+		$userGroups = $user->getAuthorisedGroups();
 
 		$groupid = JComponentHelper::getParams('com_icagenda')->get('approvalGroups', array("8"));
 

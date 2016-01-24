@@ -583,6 +583,15 @@
                 default="0"
          /> 
          
+         <field name="form_featured"
+                type="checkbox" 
+                class="inputbox"
+                label="COM_JDOWNLOADS_FEATURED" 
+                description=""
+                value="1"
+                default="0"
+         />
+
          <field name="form_creation_date"
                 type="checkbox" 
                 class="inputbox"

@@ -23,6 +23,8 @@ Technical Support: http://ljufisha.blogspot.com
 
 defined( '_JEXEC' ) or die( 'Restricted access' );
 
+define("COM_MEDIAMU_DEBUG", false);
+
 jimport('joomla.application.component.controller');
 jimport('joomla.filesystem.folder');
 jimport('joomla.filesystem.file');
@@ -116,6 +118,11 @@ class jdownloadsControllerUploads extends jdownloadsController
             }
             
             //file type check
+            if(!in_array(strtolower(JFile::getExt($fileName)), $exts_arr)) 
+            {
+                $this->_setResponse(100, JText::_('COM_JDOWNLOADS_ERROR_UPLOAD_INVALID_FILE_EXTENSION'));
+            }            
+            
             if(!in_array(JFile::getExt($fileName), $exts_arr)) 
             {
                 $this->_setResponse(100, JText::_('COM_JDOWNLOADS_ERROR_UPLOAD_INVALID_FILE_EXTENSION'));

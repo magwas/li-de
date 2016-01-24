@@ -10,7 +10,7 @@
  * @author      Cyril Rezé (Lyr!C)
  * @link        http://www.joomlic.com
  *
- * @version     3.5.7 2015-07-13
+ * @version     3.5.12 2015-09-21
  * @since		2.0
  *------------------------------------------------------------------------------
 */
@@ -26,12 +26,15 @@ $app = JFactory::getApplication();
 // Access Administration Registrations check.
 if (JFactory::getUser()->authorise('icagenda.access.registrations', 'com_icagenda'))
 {
-	$user		= JFactory::getUser();
-	$userId		= $user->get('id');
-	$listOrder	= $this->state->get('list.ordering');
-	$listDirn	= $this->state->get('list.direction');
-	$canOrder	= $user->authorise('core.edit.state', 'com_icagenda');
-	$saveOrder	= $listOrder == 'a.ordering';
+	$user			= JFactory::getUser();
+	$userId			= $user->get('id');
+	$listOrder		= $this->state->get('list.ordering');
+	$listDirn		= $this->state->get('list.direction');
+	$canOrder		= $user->authorise('core.edit.state', 'com_icagenda');
+	$saveOrder		= $listOrder == 'a.ordering';
+	$dateFormat		= $this->params->get('date_format_global', 'Y - m - d');
+	$dateSeparator	= $this->params->get('date_separator', ' ');
+	$timeFormat		= ($this->params->get('timeformat', '1') == 1) ? 'H:i' : 'h:i A';
 
 	if (version_compare(JVERSION, '3.0', 'lt'))
 	{
@@ -44,6 +47,9 @@ if (JFactory::getUser()->authorise('icagenda.access.registrations', 'com_icagend
 		JHtml::_('bootstrap.tooltip');
 		JHtml::_('formbehavior.chosen', 'select');
 		JHtml::_('dropdown.init');
+
+//		$archived	= $this->state->get('filter.published') == 2 ? true : false;
+//		$trashed	= $this->state->get('filter.published') == -2 ? true : false;
 
 		if ($saveOrder)
 		{
@@ -155,7 +161,7 @@ if (JFactory::getUser()->authorise('icagenda.access.registrations', 'com_icagend
 							<?php echo JHtml::_('grid.sort',  'COM_ICAGENDA_REGISTRATION_NUMBER_PLACES', 'a.people', $listDirn, $listOrder); ?>&nbsp;-
 							<?php echo JHtml::_('grid.sort',  'COM_ICAGENDA_REGISTRATION_EVENTID', 'event', $listDirn, $listOrder); ?>&nbsp;|
 							<?php echo JHtml::_('grid.sort',  'ICDATE', 'a.date', $listDirn, $listOrder); ?>&nbsp;|
-							<?php echo JHtml::_('grid.sort',  'JGLOBAL_FIELD_CREATED_BY_LABEL', 'created_by', $listDirn, $listOrder); ?>
+							<?php echo JHtml::_('grid.sort',  'JGLOBAL_FIELD_CREATED_BY_LABEL', 'evt_created_by', $listDirn, $listOrder); ?>
 						</th>
 
 						<?php // *** ID HEADER *** ?>
@@ -175,11 +181,11 @@ if (JFactory::getUser()->authorise('icagenda.access.registrations', 'com_icagend
 				<tbody valign="top">
 				<?php foreach ($this->items as $i => $item) :
 					$ordering		= ($listOrder == 'a.ordering');
-					$canCreate		= $user->authorise('core.create',		'com_icagenda');
-					$canEdit		= $user->authorise('core.edit',			'com_icagenda');
-					$canCheckin		= $user->authorise('core.manage',		'com_icagenda');
-					$canChange		= $user->authorise('core.edit.state',	'com_icagenda');
-					$canEditOwn		= $user->authorise('core.edit.own',		'com_icagenda') && $item->userid == $userId;
+					$canCreate		= $user->authorise('core.create', 'com_icagenda');
+					$canEdit		= $user->authorise('core.edit', 'com_icagenda');
+					$canCheckin		= $user->authorise('core.manage', 'com_icagenda') || $item->checked_out == $userId || $item->checked_out == 0;
+					$canChange		= $user->authorise('core.edit.state', 'com_icagenda') && $canCheckin;
+					$canEditOwn		= $user->authorise('core.edit.own', 'com_icagenda') && $item->userid == $userId;
 
 					// Get avatar of the registered user
 					$avatar			= md5(strtolower(trim($item->email)));
@@ -189,7 +195,7 @@ if (JFactory::getUser()->authorise('icagenda.access.registrations', 'com_icagend
 					$data_username	= ($item->userid) ? $item->username : false;
 
 					// Load Custom fields DATA
-					$customfields	= icagendaCustomfields::getListNotEmpty($item->id);
+					$customfields	= icagendaCustomfields::getListNotEmpty($item->id, 1);
 					?>
 					<tr class="row<?php echo $i % 2; ?>">
 
@@ -237,7 +243,7 @@ if (JFactory::getUser()->authorise('icagenda.access.registrations', 'com_icagend
 				    	</td>
 
  						<?php // *** User Information *** ?>
-						<td class="nowrap has-context">
+						<td class="has-context">
 							<div class="pull-left hidden-phone" style="margin-right:10px;">
 								<img alt="<?php echo $item->name; ?>" src="http://www.gravatar.com/avatar/<?php echo $avatar; ?>?s=36&d=mm"/>
 							</div>
@@ -273,7 +279,7 @@ if (JFactory::getUser()->authorise('icagenda.access.registrations', 'com_icagend
 
 									<!--/a-->
 									<?php //else : ?>
-										<!--span title="<?php echo JText::sprintf('JFIELD_ALIAS_LABEL', $this->escape($item->alias)); ?>"--><?php //echo $this->escape($item->name); ?><!--/span-->
+										<!--span title="<?php //echo JText::sprintf('JFIELD_ALIAS_LABEL', $this->escape($item->alias)); ?>"--><?php //echo $this->escape($item->name); ?><!--/span-->
 									<?php //endif; ?>
 									<?php if ($item->userid != '0') : ?>
 										<p class="smallsub">
@@ -325,10 +331,10 @@ if (JFactory::getUser()->authorise('icagenda.access.registrations', 'com_icagend
 								<?php endif; ?>
 
 							</div>
-							<div class="pull-right visible-phone" style="margin-right:10px;">
+							<div class="pull-right visible-phone" style="margin-right:5%;">
 								<img alt="<?php echo $item->name; ?>" src="http://www.gravatar.com/avatar/<?php echo $avatar; ?>?s=36&d=mm"/>
 							</div>
-							<div class="pull-left">
+							<div class="pull-left" style="width:50%">
 								<?php if ( $item->evt_state != 1) : ?>
 									<div class="small">
 										<div style="font-weight:bold; background:#c30000; color:#FFFFFF; padding: 2px 5px; border-radius: 5px;">
@@ -350,21 +356,45 @@ if (JFactory::getUser()->authorise('icagenda.access.registrations', 'com_icagend
 									<?php endif; ?>
 									<strong>
 									<?php if ( ! $item->date && $item->period == 0) : ?>
-										<?php echo JText::_( 'COM_ICAGENDA_ADMIN_REGISTRATION_FOR_ALL_PERIOD' ); ?>
+										<?php // echo JText::_( 'COM_ICAGENDA_ADMIN_REGISTRATION_FOR_ALL_PERIOD' ); ?>
+										<?php if (iCDate::isDate($item->startdate)) : ?>
+											<?php echo iCGlobalize::dateFormat($item->startdate, $dateFormat, $dateSeparator); ?>
+											<?php if ($item->displaytime) : ?>
+												<?php echo ' - ' . date($timeFormat, strtotime($item->startdate)); ?>
+											<?php endif; ?>
+										<?php else : ?>
+											<?php echo $item->startdate; ?>
+										<?php endif; ?>
+										<?php if ($item->enddate) echo ' > '; ?>
+										<?php if (iCDate::isDate($item->enddate)) : ?>
+											<?php echo iCGlobalize::dateFormat($item->enddate, $dateFormat, $dateSeparator); ?>
+											<?php if ($item->displaytime) : ?>
+												<?php echo ' - ' . date($timeFormat, strtotime($item->enddate)); ?>
+											<?php endif; ?>
+										<?php else : ?>
+											<?php echo $item->enddate; ?>
+										<?php endif; ?>
 									<?php elseif ( ! $item->date && $item->period == 1) : ?>
 										<?php echo JText::_( 'COM_ICAGENDA_ADMIN_REGISTRATION_FOR_ALL_DATES' ); ?>
 									<?php else : ?>
-										<?php echo $item->date; ?>
+										<?php if (iCDate::isDate($item->date)) : ?>
+											<?php echo iCGlobalize::dateFormat($item->date, $dateFormat, $dateSeparator); ?>
+											<?php if ($item->displaytime) : ?>
+												<?php echo ' - ' . date($timeFormat, strtotime($item->date)); ?>
+											<?php endif; ?>
+										<?php else : ?>
+											<?php echo $item->date; ?>
+										<?php endif; ?>
 									<?php endif; ?>
 									</strong>
 								</div>
-								<?php if ($item->created_by) :
+								<?php if ($item->evt_created_by) :
 									// Get Author Name
 									$db = JFactory::getDBO();
 									$db->setQuery(
 										'SELECT `name`' .
 										' FROM `#__users`' .
-										' WHERE `id` = '. (int) $item->created_by
+										' WHERE `id` = '. (int) $item->evt_created_by
 									);
 									$authorname = $db->loadObject()->name;
  								?>
@@ -392,6 +422,54 @@ if (JFactory::getUser()->authorise('icagenda.access.registrations', 'com_icagend
 
 					</tr>
 				<?php endforeach; ?>
+
+			<?php
+			// Old Joomla versions asset_id issue. (all Joomla 2.5.x versions, and Joomla 3 NOT updated!)
+			$asset_issue = version_compare(JVERSION, '3.0', 'lt') ? true : false;
+
+			if ($asset_issue)
+			{
+				$ia = '0';
+				unset($msg);
+				unset($type);
+				$msg = $type = $front_submit = '';
+				$edittx = '<b>' . JText::_( 'JACTION_EDIT' ) . '</b>';
+				$savetx = '<b>' . JText::_( 'JSAVE' ) . '</b>';
+
+				foreach ($this->items as $i => $item)
+				{
+					if (($item->asset_id == '0') && ($item->state == '-2'))
+					{
+						$ia = $ia+1;
+						$front_submit = '1';
+					}
+				}
+
+				if ($front_submit == 1 && $ia == 1)
+				{
+					$app->enqueueMessage(JText::sprintf( 'COM_ICAGENDA_TRASH_FRONTEND_REGISTRATION_1', $edittx, $savetx ), 'notice');
+				}
+				elseif ($front_submit == 1 && $ia > 1)
+				{
+					$app->enqueueMessage(JText::sprintf( 'COM_ICAGENDA_TRASH_FRONTEND_REGISTRATION', $edittx, $savetx ), 'notice');
+				}
+
+				foreach ($this->items as $i => $item)
+				{
+					if ($item->asset_id == '0' && $item->state == '-2')
+					{
+						$editLink = 'index.php?option=com_icagenda&task=registration.edit&id=' . $item->id;
+						$msg	= '- ' . $item->name . ' [' . $item->id . '] : <a href="' . $editLink . '"><b>'.JText::_( 'JACTION_EDIT' ).'</b></a>';
+						$type	= JText::_( 'JGLOBAL_LIST' ).' :';
+					}
+					if ( ! empty($msg))
+					{
+						$app->enqueueMessage($msg, $type);
+					}
+				}
+			}
+			?>
+
 				</tbody>
 			</table>
 

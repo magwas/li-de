@@ -164,7 +164,7 @@ class jdownloadsModelSend extends JModelItem
 
 
                 // Join on license table.
-                $query->select('l.title AS license_title, l.url AS license_url, l.description AS license_text');
+                $query->select('l.title AS license_title, l.url AS license_url, l.description AS license_text, l.id as lid');
                 $query->join('LEFT', '#__jdownloads_licenses AS l on l.id = a.license');
                 
 

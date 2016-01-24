@@ -91,6 +91,9 @@ class jdownloadsControllerconfig extends jdownloadsController
         
         $new_file_pic       = $jinput->get('file_pic', '', 'string');
         $config_data['file.pic.default.filename'] = $new_file_pic;
+
+        $new_featured_pic   = $jinput->get('featured_pic', '', 'string');
+        $config_data['featured.pic.filename'] = $new_featured_pic;
         
         $new_new_pic        = $jinput->get('new_pic', '', 'string');
         $config_data['picname.is.file.new'] = $new_new_pic;

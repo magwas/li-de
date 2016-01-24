@@ -10,7 +10,7 @@
  * @author      Cyril Rezé (Lyr!C)
  * @link        http://www.joomlic.com
  *
- * @version     3.5.4 2015-04-02
+ * @version     3.5.9 2015-07-30
  * @since       2.0
  *------------------------------------------------------------------------------
 */
@@ -23,8 +23,12 @@ defined('_JEXEC') or die();
  */
 class iCagendaViewMail extends JViewLegacy
 {
+	protected $data;
+
 	protected $state;
+
 	protected $item;
+
 	protected $form;
 
 	/**
@@ -39,13 +43,41 @@ class iCagendaViewMail extends JViewLegacy
 
 			JHtml::stylesheet('com_icagenda/template.j25.css', false, true);
 			JHtml::stylesheet('com_icagenda/icagenda-back.j25.css', false, true);
+
+			JHtml::_('behavior.mootools');
+
+			$app		= JFactory::getApplication();
+			$document	= JFactory::getDocument();
+
+			// load jQuery, if not loaded before
+			$scripts = array_keys($document->_scripts);
+			$scriptFound = false;
+
+			for ($i = 0; $i < count($scripts); $i++)
+			{
+				if (stripos($scripts[$i], 'jquery.min.js') !== false
+					|| stripos($scripts[$i], 'jquery.js') !== false)
+				{
+					$scriptFound = true;
+				}
+			}
+
+			// jQuery Library Loader
+			if (!$scriptFound)
+			{
+				// load jQuery, if not loaded before
+				if (!$app->get('jquery'))
+				{
+					$app->set('jquery', true);
+
+					// Add jQuery Library
+					$document->addScript('https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js');
+					JHtml::script('com_icagenda/jquery.noconflict.js', false, true);
+				}
+			}
 		}
 
-		$this->state	= $this->get('State');
-		$this->item		= $this->get('Item');
 		$this->form		= $this->get('Form');
-
-		if ($_POST) $this->get('Mail');
 
 		// Check for errors.
 		if (count($errors = $this->get('Errors')))
@@ -55,16 +87,7 @@ class iCagendaViewMail extends JViewLegacy
 			return false;
 		}
 
-		// We don't need toolbar in the modal window.
-		if ($this->getLayout() !== 'modal')
-		{
-			$this->addToolbar();
-
-			if(version_compare(JVERSION, '3.0', 'ge'))
-			{
-				$this->sidebar = JHtmlSidebar::render();
-			}
-		}
+		$this->addToolbar();
 
 		parent::display($tpl);
 	}
@@ -76,19 +99,9 @@ class iCagendaViewMail extends JViewLegacy
 	{
 		JRequest::setVar('hidemainmenu', true);
 
-		$user		= JFactory::getUser();
-		$isNew		= ($this->item->id == 0);
+		$user	= JFactory::getUser();
 
-        if (isset($this->item->checked_out))
-        {
-		    $checkedOut	= !($this->item->checked_out == 0 || $this->item->checked_out == $user->get('id'));
-        }
-        else
-        {
-            $checkedOut = false;
-        }
-
-		$canDo= iCagendaHelper::getActions();
+		$canDo	= iCagendaHelper::getActions();
 
 		// Set Title
 		if (version_compare(JVERSION, '3.0', 'lt'))
@@ -104,18 +117,18 @@ class iCagendaViewMail extends JViewLegacy
 
 		$document	= JFactory::getDocument();
 		$app		= JFactory::getApplication();
-		$sitename = $app->getCfg('sitename');
-		$title = $app->getCfg('sitename') . ' - ' . JText::_('JADMINISTRATION') . ' - iCagenda: ' . $icTitle;
+		$sitename	= $app->getCfg('sitename');
+		$title		= $app->getCfg('sitename') . ' - ' . JText::_('JADMINISTRATION') . ' - iCagenda: ' . $icTitle;
 		$document->setTitle($title);
 
 
 		if (version_compare(JVERSION, '3.0', 'lt'))
 		{
-			JToolBarHelper::custom('mail', 'forward.png', 'forward.png', 'ICAGENDA_JTOOLBAR_SEND', false );
+			JToolBarHelper::custom('mail.send', 'forward.png', 'forward.png', 'ICAGENDA_JTOOLBAR_SEND', false );
 		}
 		else
 		{
-			JToolbarHelper::custom('mail', 'envelope.png', 'send_f2.png', 'ICAGENDA_JTOOLBAR_SEND', false);
+			JToolbarHelper::custom('mail.send', 'envelope.png', 'send_f2.png', 'ICAGENDA_JTOOLBAR_SEND', false);
 		}
 
 		JToolBarHelper::cancel('mail.cancel', 'JTOOLBAR_CLOSE');

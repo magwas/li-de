@@ -6,7 +6,7 @@
  *
  * @name		ic_rounded
  * @author		Lyr!C (JoomliC)
- * @version 	3.5.7 2015-07-14
+ * @version 	3.5.10 2015-08-26
  * @since		1.0
  */
 
@@ -238,7 +238,6 @@
 	/* css3 box-sizing added to prevent conflict with a site template provider who adds a 'problematic' style for div tags */
 	box-sizing: content-box;
 }
-
 .ic-box-date:hover {
 	transition: border-radius 0.5s, color 0.5s;
 	-moz-transition: border-radius 0.5s, color 0.5s;
@@ -246,6 +245,12 @@
 	-o-transition: border-radius 0.5s, color 0.5s;
 	border-radius: 15px;
 }
+
+/* Current period */
+.ic-current-period {
+	text-decoration: overline;
+}
+
 #icagenda .fontColor {
 	color: #666 !important;
 }
@@ -830,6 +835,12 @@
 	background: #c72031;
 	color: #fff;
 }
+.icagenda_form .ic-loader {
+	display: block;
+	width: 100%;
+	height: 60px;
+	background: url(../../../../../../media/com_icagenda/images/loader.gif) 50% 50% no-repeat;
+}
 
 /* Style Button Cancel */
 .icagenda_form .buttonx a {
@@ -874,12 +885,48 @@
 	font-size: 0.95em;
 }
 
-/* Style Category */
+/* Style Header*/
+.ic-reg-event {
+	background: none; /* Old IE version */
+	background: rgba(221,221,221,0.2);
+	border-radius: 5px;
+	margin: 5px 0;
+	padding: 0px;
+}
+
+/* Registration icon */
+.ic-reg-icon {
+	background: url(../../../../../../media/com_icagenda/images/registration-48.png) 50% 50% no-repeat;
+	display: block;
+	width: 48px;
+	height: 48px;
+	padding: 8px;
+	margin-right: 8px;
+}
+
+/* Style Right (Container Event title, category) */
+.ic-reg-content {
+	display: block;
+	border: 0;
+	margin: 0;
+	padding: 8px;
+	vertical-align: top;
+}
+
+/* Category */
 .ic-reg-cat {
 	color: #555555;
+	font-size: 12px;
+	line-height: 20px;
 	font-weight: bold;
 	text-transform: uppercase;
-	font-size: 11px;
+}
+
+/* Event title */
+.ic-reg-event-title {
+	font-size: 22px;
+	line-height: 28px;
+	font-weight: bold;
 }
 
 /* Style Registration infos */

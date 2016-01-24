@@ -20,7 +20,9 @@ if (JFactory::getApplication()->isSite()) {
 
 require_once JPATH_ROOT . '/components/com_jdownloads/helpers/route.php';
 
-JHtml::_('behavior.tooltip');
+JHtml::_('bootstrap.tooltip');
+JHtml::_('behavior.multiselect');
+JHtml::_('formbehavior.chosen', 'select');
 
 $jinput = JFactory::getApplication()->input;
 

@@ -12,6 +12,8 @@
 
 defined( '_JEXEC' ) or die( 'Restricted access' );
 
+JModelLegacy::addIncludePath(JPATH_SITE . '/components/com_jdownloads/models', 'jdownloadsModel');
+
 class modJdownloadsMostRecentlyDownloadedHelper
 {
 	static function getList(&$params)

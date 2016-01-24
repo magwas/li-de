@@ -10,7 +10,7 @@
  * @author      Cyril Rezé (Lyr!C)
  * @link        http://www.joomlic.com
  *
- * @version 	3.5.6 2015-05-17
+ * @version 	3.5.12 2015-09-25
  * @since       3.2.0
  *------------------------------------------------------------------------------
 */
@@ -59,6 +59,7 @@ class iCagendaViewSubmit extends JViewLegacy
 		$this->submit_periodDisplay			= $params->get('submit_periodDisplay', 1);
 		$this->submit_weekdaysDisplay		= $params->get('submit_weekdaysDisplay', 1);
 		$this->submit_datesDisplay			= $params->get('submit_datesDisplay', 1);
+		$this->submit_displaytimeDisplay	= $params->get('submit_displaytimeDisplay', 0);
 		$this->submit_shortdescDisplay		= $params->get('submit_shortdescDisplay', 1);
 		$this->submit_descDisplay			= $params->get('submit_descDisplay', 1);
 		$this->submit_metadescDisplay		= $params->get('submit_metadescDisplay', 0);

@@ -10,7 +10,7 @@
  * @author      Cyril Rezé (Lyr!C) - doorknob
  * @link        http://www.joomlic.com
  *
- * @version 	3.5.7 2015-07-14
+ * @version 	3.5.13 2015-11-23
  * @since       3.1.9 (1.0)
  *------------------------------------------------------------------------------
 */
@@ -39,6 +39,9 @@ class modiCcalendarHelper
 		$this->setTodayTimezone		= $params->get('setTodayTimezone');
 		$this->displayDatesTimezone	= $params->get('displayDatesTimezone');
 		$this->filtering_shortDesc	= $params->get('filtering_shortDesc', '');
+		$this->limit				= $params->get('paramlimit', '')
+									? $params->get('paramlimit_Content')
+									: false;
 		$this->catid				= $params->get('mcatid');
 		$this->number				= $params->get('number');
 		$this->onlyStDate			= $params->get('onlyStDate');
@@ -61,7 +64,8 @@ class modiCcalendarHelper
 
 		// First day of the current month
 		$this_month	= $this->firstMonth
-					? date("Y-m-d", strtotime("+1 month", strtotime($this->firstMonth)))
+//					? date("Y-m-d", strtotime("+1 month", strtotime($this->firstMonth)))
+					? date("Y-m-d", strtotime($this->firstMonth))
 					: JHtml::date('now', 'Y-m-01', null);
 
 		$iccaldate					= JRequest::getVar('iccaldate', ''); // Get date set in month/year navigation
@@ -204,15 +208,7 @@ class modiCcalendarHelper
 		$user		= JFactory::getUser();
 		$userID		= $user->id;
 		$userLevels	= $user->getAuthorisedViewLevels();
-
-		if (version_compare(JVERSION, '3.0', 'lt'))
-		{
-			$userGroups = $user->getAuthorisedGroups();
-		}
-		else
-		{
-			$userGroups = $user->groups;
-		}
+		$userGroups = $user->getAuthorisedGroups();
 
 		$userAccess = implode(', ', $userLevels);
 
@@ -265,15 +261,17 @@ class modiCcalendarHelper
 		}
 
 		// Set start/end dates of the current month
+		$days = self::getNbOfDaysInMonth($this->date_start);
 		$current_date_start	= $this->date_start;
 		$month_start		= date('m', strtotime($current_date_start));
-		$month_end			= date('m', strtotime("+1 month", strtotime($current_date_start)));
+		$month_end			= date('m', strtotime('+1 month', strtotime($current_date_start)));
+		$day_end			= date('m', strtotime('+'.$days.' days', strtotime($current_date_start)));
 
 		$year_end			= ($month_start == '12')
 							? date('Y', strtotime("+1 year", strtotime($this->date_start)))
 							: date('Y', strtotime($this->date_start));
 
-		$current_date_end	= $year_end . '-' . $month_end . '-01';
+		$current_date_end	= $year_end . '-' . $month_end . '-' . $day_end;
 
 		$days = $this->getDays($this->date_start, 'Y-m-d H:i');
 
@@ -383,7 +381,7 @@ class modiCcalendarHelper
 			}
 			else
 			{
-				$linkid = icagendaMenus::thisEventItemid($item->next, $item->catid);
+				$linkid = icagendaMenus::thisEventItemid($item->next, $item->catid, $iC_list_menus);
 			}
 
 			$eventnumber	= $item->id ? $item->id : null;
@@ -404,7 +402,7 @@ class modiCcalendarHelper
 				$urlevent = '#';
 			}
 
-			$descShort = icagendaEvents::shortDescription($item->desc, true, $this->filtering_shortDesc);
+			$descShort = icagendaEvents::shortDescription($item->desc, true, $this->filtering_shortDesc, $this->limit);
 
 
 			/**
@@ -525,11 +523,22 @@ class modiCcalendarHelper
 				&& $linkid
 				)
 			{
+				$past_dates = 0;
+
 				foreach ($AllDates as $d)
 				{
-					$next_date_control	= date('Y-m-d H:i', strtotime($d));
+					// Control if date is past
+					if (strtotime($d) < strtotime($datetime_today))
+					{
+						$past_dates = $past_dates + 1;
+					}
+				}
 
-					if ($only_startdate && in_array($next_date_control, $perioddates))
+				foreach ($AllDates as $d)
+				{
+					$this_date_control	= date('Y-m-d H:i', strtotime($d));
+
+					if ($only_startdate && in_array($this_date_control, $perioddates))
 					{
 						$set_date_in_url = '';
 					}
@@ -570,7 +579,8 @@ class modiCcalendarHelper
 
 					// If period started, and registration is set to "for all dates of the event"
 					if ($maxTickets
-						&& strtotime($item->startdate) < strtotime($datetime_today)
+//						&& strtotime($item->startdate) < strtotime($datetime_today)
+						&& $past_dates
 						&& $typeReg == 2
 						)
 					{
@@ -597,7 +607,8 @@ class modiCcalendarHelper
 
 					foreach ($days as $k => $dy)
 					{
-						$d_date		= JHtml::date($d, 'Y-m-d', $eventTimeZone);
+//						$d_date		= JHtml::date($d, 'Y-m-d', $eventTimeZone);
+						$d_date		= date('Y-m-d', strtotime($d));
 						$dy_date	= date('Y-m-d', strtotime($dy['date']));
 
 						if ($d_date == $dy_date)
@@ -632,6 +643,7 @@ class modiCcalendarHelper
 			echo $no_event_message;
   		}
 
+// To be Checked
 		$total_items = count($result);
 
 		if ($displayed_items == '0'
@@ -683,15 +695,15 @@ class modiCcalendarHelper
 
 
 	// Function to get Format Date (using option format, and translation)
-	protected function formatDate($date)
+	protected function formatDate($date, $tz = false)
 	{
 		// Date Format Option (Global Component Option)
 		$date_format_global	= JComponentHelper::getParams('com_icagenda')->get('date_format_global', 'Y - m - d');
-		$date_format_global	= ($date_format_global != 0) ? $date_format_global : 'Y - m - d'; // Previous 3.5.6 setting
+		$date_format_global	= ($date_format_global !== '0') ? $date_format_global : 'Y - m - d'; // Previous 3.5.6 setting
 
 		// Date Format Option (Module Option)
 		$date_format_module	= isset($this->format) ? $this->format : '';
-		$date_format_module	= ($date_format_module != 0) ? $date_format_module : ''; // Previous 3.5.6 setting
+		$date_format_module	= ($date_format_module !== '0') ? $date_format_module : ''; // Previous 3.5.6 setting
 
 		// Set Date Format option to be used
 		$format				= $date_format_module ? $date_format_module : $date_format_global;
@@ -707,7 +719,7 @@ class modiCcalendarHelper
 			$format = str_replace(',', ' ,', $format);
 		}
 
-		$dateFormatted = iCGlobalize::dateFormat($date, $format, $separator, false);
+		$dateFormatted = iCGlobalize::dateFormat($date, $format, $separator, $tz);
 
 		return $dateFormatted;
 	}
@@ -733,17 +745,14 @@ class modiCcalendarHelper
 		return $offset;
 	}
 
-
-	// Generate the days of the month
-	function getDays($d, $f)
+	function getNbOfDaysInMonth($date)
 	{
 		$lang = JFactory::getLanguage();
-		$eventTimeZone = null;
 
-		// Set Nb of days for the current month in Jalali/Persian calendar
+		// Get Nb of days in the month in Jalali/Persian calendar
 		if ($lang->getTag() == 'fa-IR')
 		{
-			$date_to_persian	= $d;
+			$date_to_persian	= $date;
 			$persian_month		= date('m', strtotime($date_to_persian));
 			$persian_year		= date('Y', strtotime($date_to_persian));
 			$leap_year			= fa_IRDate::leap_persian($persian_year);
@@ -761,10 +770,23 @@ class modiCcalendarHelper
 				$days = 30;
 			}
 		}
+
+		// Get Nb of days in the month in Gregorian calendar
 		else
 		{
-			$days = date("t", strtotime($d));
+			$days = date("t", strtotime($date));
 		}
+
+		return $days;
+	}
+
+	// Generate the days of the month
+	function getDays($d, $f)
+	{
+		$lang = JFactory::getLanguage();
+		$eventTimeZone = null;
+
+		$days = self::getNbOfDaysInMonth($d);
 
 		// Set Month and Year
 		$ex_data	= explode('-', $d);
@@ -839,6 +861,15 @@ class modiCcalendarHelper
 
 			$this_date_a = $year . '-' . $month . '-' . $a;
 
+			if ($lang->getTag() == 'fa-IR')
+			{
+				$this_date_cal = iCGlobalizeConvert::jalaliToGregorian($year, $month, $a, true);
+			}
+			else
+			{
+				$this_date_cal = $year . '-' . $month . '-' . $a;
+			}
+
 			if (($a == $v_day) && ($month == $v_month) && ($year == $v_year))
 			{
 				$classDay = 'style_Today';
@@ -848,18 +879,19 @@ class modiCcalendarHelper
 				$classDay = 'style_Day';
 			}
 
-			$datejour			= date('Y-m-d', strtotime($this_date_a));
+			$datejour			= JHtml::date($this_date_cal, 'Y-m-d', $eventTimeZone);
 			$this_year_month	= $year . '-' . $month . '-00';
 			$list_a_date		= date('Y-m-d H:i', strtotime($this_date_a));
 
 			// Set Date in tooltip header
-			$list[$calday]['dateTitle']		= $this->formatDate($datejour);
+			$date_to_format					= $this->formatDate($this_date_cal, false);
+			$list[$calday]['dateTitle']		= $date_to_format;
 
 //			$list[$calday]['datecal']		= JHtml::date($this_date_a, 'j', null);
 //			$list[$calday]['monthcal']		= JHtml::date($this_date_a, 'm', null);
 //			$list[$calday]['yearcal']		= JHtml::date($this_date_a, 'Y', null);
 
-			$list[$calday]['date']			= date('Y-m-d H:i', strtotime($this_date_a));
+			$list[$calday]['date']			= date('Y-m-d H:i', strtotime($this_date_cal));
 
 //			$list[$calday]['dateFormat']	= strftime($f, strtotime($this_date_a));
 			$list[$calday]['week']			= date('N', strtotime($this_date_a));
@@ -879,6 +911,7 @@ class modiCcalendarHelper
 		return $list;
 	}
 	/***/
+
 
 	/**
 	 * Single Dates list for one event
@@ -1097,30 +1130,14 @@ class cal
 	private $header_text;
 
 	function __construct ($data, $t_calendar, $t_day, $nav,
-		$mon, $tue, $wed, $thu, $fri, $sat, $sun,
-		$firstday,
+		$firstday, $columns_bg_color,
 		$calfontcolor, $OneEventbgcolor, $Eventsbgcolor, $bgcolor, $bgimage, $bgimagerepeat,
-		$na, $nb, $nc, $nd, $ne, $nf, $ng,
 		$moduleclass_sfx, $modid, $template, $ictip_ordering, $header_text)
 	{
 		$this->data				= $data;
 		$this->t_calendar		= $t_calendar;
 		$this->t_day			= $t_day;
 		$this->nav				= $nav;
-		$this->mon				= $mon;
-		$this->tue				= $tue;
-		$this->wed				= $wed;
-		$this->thu				= $thu;
-		$this->fri				= $fri;
-		$this->sat				= $sat;
-		$this->sun				= $sun;
-		$this->na				= $na;
-		$this->nb				= $nb;
-		$this->nc				= $nc;
-		$this->nd				= $nd;
-		$this->ne				= $ne;
-		$this->nf				= $nf;
-		$this->ng				= $ng;
 		$this->firstday			= $firstday;
 		$this->calfontcolor		= $calfontcolor;
 		$this->OneEventbgcolor	= $OneEventbgcolor;
@@ -1133,6 +1150,54 @@ class cal
 		$this->template			= $template;
 		$this->ictip_ordering	= $ictip_ordering;
 		$this->header_text		= $header_text;
+
+		// Columns Background colors
+		$cbc					= $columns_bg_color;
+
+		$this->weekdays = array('MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN');
+
+		switch ($this->firstday)
+		{
+			case 0:
+				$this->colbg	= array($cbc[0], $cbc[1], $cbc[2], $cbc[3], $cbc[4], $cbc[5], $cbc[6]);
+				$this->day		= array(7, 1, 2, 3, 4, 5, 6);
+				break;
+
+			case 1:
+				$this->colbg	= array($cbc[1], $cbc[2], $cbc[3], $cbc[4], $cbc[5], $cbc[6], $cbc[0]);
+				$this->day		= array(1, 2, 3, 4, 5, 6, 7);
+				break;
+
+			case 2:
+				$this->colbg	= array($cbc[2], $cbc[3], $cbc[4], $cbc[5], $cbc[6], $cbc[0], $cbc[1]);
+				$this->day		= array(2, 3, 4, 5, 6, 7, 1);
+				break;
+
+			case 3:
+				$this->colbg	= array($cbc[3], $cbc[4], $cbc[5], $cbc[6], $cbc[0], $cbc[1], $cbc[2]);
+				$this->day		= array(3, 4, 5, 6, 7, 1, 2);
+				break;
+
+			case 4:
+				$this->colbg	= array($cbc[4], $cbc[5], $cbc[6], $cbc[0], $cbc[1], $cbc[2], $cbc[3]);
+				$this->day		= array(4, 5, 6, 7, 1, 2, 3);
+				break;
+
+			case 5:
+				$this->colbg	= array($cbc[5], $cbc[6], $cbc[0], $cbc[1], $cbc[2], $cbc[3], $cbc[4]);
+				$this->day		= array(5, 6, 7, 1, 2, 3, 4);
+				break;
+
+			case 6:
+				$this->colbg	= array($cbc[6], $cbc[0], $cbc[1], $cbc[2], $cbc[3], $cbc[4], $cbc[5]);
+				$this->day		= array(6, 7, 1, 2, 3, 4, 5);
+				break;
+
+			default:
+				$this->colbg	= array($cbc[0], $cbc[1], $cbc[2], $cbc[3], $cbc[4], $cbc[5], $cbc[6]);
+				$this->day		= array(7, 1, 2, 3, 4, 5, 6);
+				break;
+		}
 	}
 
 
@@ -1165,53 +1230,55 @@ class cal
 		$OneEventbgcolor	= preg_match('/^#[a-f0-9]{6}$/i', $this->OneEventbgcolor) ? $this->OneEventbgcolor : '';
 		$Eventsbgcolor		= preg_match('/^#[a-f0-9]{6}$/i', $this->Eventsbgcolor) ? $this->Eventsbgcolor : '';
 
-
 		echo '<div class="' . $this->template . ' iccalendar ' . $this->moduleclass_sfx . '" ' . $iCcal_style . ' id="' . $this->modid . '">';
 
 
-		if ($this->firstday == '0')
-		{
-			echo '<div id="mod_iccalendar_' . $this->modid . '">
+		echo '<div id="mod_iccalendar_' . $this->modid . '">
 			<div class="icagenda_header">' . $this->header_text . '
 			</div>' . $this->nav . '
-			<table id="icagenda_calendar" style="width:100%;">
+			<table id="icagenda_calendar" class="ic-table" style="width:100%;">
 				<thead>
 					<tr>
-						<th style="width:14.2857143%;background:' . $this->sun . ';">' . JText::_('SUN') . '</th>
-						<th style="width:14.2857143%;background:' . $this->mon . ';">' . JText::_('MON') . '</th>
-						<th style="width:14.2857143%;background:' . $this->tue . ';">' . JText::_('TUE') . '</th>
-						<th style="width:14.2857143%;background:' . $this->wed . ';">' . JText::_('WED') . '</th>
-						<th style="width:14.2857143%;background:' . $this->thu . ';">' . JText::_('THU') . '</th>
-						<th style="width:14.2857143%;background:' . $this->fri . ';">' . JText::_('FRI') . '</th>
-						<th style="width:14.2857143%;background:' . $this->sat . ';">' . JText::_('SAT') . '</th>
+						<th style="width:14.2857143%;background:' . $this->colbg[0] . ';">' . JText::_($this->weekdays[($this->day[0]-1)]) . '</th>
+						<th style="width:14.2857143%;background:' . $this->colbg[1] . ';">' . JText::_($this->weekdays[($this->day[1]-1)]) . '</th>
+						<th style="width:14.2857143%;background:' . $this->colbg[2] . ';">' . JText::_($this->weekdays[($this->day[2]-1)]) . '</th>
+						<th style="width:14.2857143%;background:' . $this->colbg[3] . ';">' . JText::_($this->weekdays[($this->day[3]-1)]) . '</th>
+						<th style="width:14.2857143%;background:' . $this->colbg[4] . ';">' . JText::_($this->weekdays[($this->day[4]-1)]) . '</th>
+						<th style="width:14.2857143%;background:' . $this->colbg[5] . ';">' . JText::_($this->weekdays[($this->day[5]-1)]) . '</th>
+						<th style="width:14.2857143%;background:' . $this->colbg[6] . ';">' . JText::_($this->weekdays[($this->day[6]-1)]) . '</th>
 					</tr>
 				</thead>
 		';
-		}
-		elseif ($this->firstday == '1')
-		{
-			echo '<div id="mod_iccalendar_' . $this->modid . '">
-			<div class="icagenda_header">' . $this->header_text . '
-			</div>' . $this->nav . '
-			<table id="icagenda_calendar" style="width:100%;">
-				<thead>
-					<tr>
-						<th style="width:14.2857143%;background:' . $this->mon . ';">' . JText::_('MON') . '</th>
-						<th style="width:14.2857143%;background:' . $this->tue . ';">' . JText::_('TUE') . '</th>
-						<th style="width:14.2857143%;background:' . $this->wed . ';">' . JText::_('WED') . '</th>
-						<th style="width:14.2857143%;background:' . $this->thu . ';">' . JText::_('THU') . '</th>
-						<th style="width:14.2857143%;background:' . $this->fri . ';">' . JText::_('FRI') . '</th>
-						<th style="width:14.2857143%;background:' . $this->sat . ';">' . JText::_('SAT') . '</th>
-						<th style="width:14.2857143%;background:' . $this->sun . ';">' . JText::_('SUN') . '</th>
-					</tr>
-				</thead>
-		';
-		}
 
 		switch ($this->data[1]['week'])
 		{
-			case $this->na:
+			case $this->day[0]:
 				break;
+
+			case $this->day[1]:
+				echo '<tr><td colspan="1"></td>';
+				break;
+
+			case $this->day[2]:
+				echo '<tr><td colspan="2"></td>';
+				break;
+
+			case $this->day[3]:
+				echo '<tr><td colspan="3"></td>';
+				break;
+
+			case $this->day[4]:
+				echo '<tr><td colspan="4"></td>';
+				break;
+
+			case $this->day[5]:
+				echo '<tr><td colspan="5"></td>';
+				break;
+
+			case $this->day[6]:
+				echo '<tr><td colspan="6"></td>';
+				break;
+
 			default:
 				echo '<tr><td colspan="' . ($this->data[1]['week']-$this->firstday) . '"></td>';
 				break;
@@ -1221,66 +1288,39 @@ class cal
 		{
 			$stamp = new day($d);
 
-			if ($this->firstday == '0')
+			switch($stamp->week)
 			{
-				switch($stamp->week)
-				{
-					case $this->na:
-						echo '<tr><td style="background:' . $this->sun . ';">';
-						break;
-					case $this->nb:
-						echo '<td style="background:' . $this->mon . ';">';
-						break;
-					case $this->nc:
-						echo '<td style="background:' . $this->tue . ';">';
-						break;
-					case $this->nd:
-						echo '<td style="background:' . $this->wed . ';">';
-						break;
-					case $this->ne:
-						echo '<td style="background:' . $this->thu . ';">';
-						break;
-					case $this->nf:
-						echo '<td style="background:' . $this->fri . ';">';
-						break;
-					case $this->ng:
-						echo '<td style="background:' . $this->sat . ';">';
-						break;
-					default:
-						echo '<td>';
-						break;
-				}
-			}
+				case $this->day[0]:
+					echo '<tr><td style="background:' . $this->colbg[0] . ';">';
+					break;
 
-			if ($this->firstday == '1')
-			{
-				switch($stamp->week)
-				{
-					case $this->na:
-						echo '<tr><td style="background:' . $this->mon . ';">';
-						break;
-					case $this->nb:
-						echo '<td style="background:' . $this->tue . ';">';
-						break;
-					case $this->nc:
-						echo '<td style="background:' . $this->wed . ';">';
-						break;
-					case $this->nd:
-						echo '<td style="background:' . $this->thu . ';">';
-						break;
-					case $this->ne:
-						echo '<td style="background:' . $this->fri . ';">';
-						break;
-					case $this->nf:
-						echo '<td style="background:' . $this->sat . ';">';
-						break;
-					case $this->ng:
-						echo '<td style="background:' . $this->sun . ';">';
-						break;
-					default:
-						echo '<td>';
-						break;
-				}
+				case $this->day[1]:
+					echo '<td style="background:' . $this->colbg[1] . ';">';
+					break;
+
+				case $this->day[2]:
+					echo '<td style="background:' . $this->colbg[2] . ';">';
+					break;
+
+				case $this->day[3]:
+					echo '<td style="background:' . $this->colbg[3] . ';">';
+					break;
+
+				case $this->day[4]:
+					echo '<td style="background:' . $this->colbg[4] . ';">';
+					break;
+
+				case $this->day[5]:
+					echo '<td style="background:' . $this->colbg[5] . ';">';
+					break;
+
+				case $this->day[6]:
+					echo '<td style="background:' . $this->colbg[6] . ';">';
+					break;
+
+				default:
+					echo '<td>';
+					break;
 			}
 
 			$count_events = count($stamp->events);
@@ -1401,7 +1441,7 @@ class cal
 
 			switch('week')
 			{
-				case $this->ng:
+				case $this->day[6]:
 					echo '</td></tr>';
 					break;
 				default:
@@ -1412,7 +1452,7 @@ class cal
 
 		switch ($stamp->week)
 		{
-			case $this->ng:
+			case $this->day[6]:
 				break;
 			default:
 				echo '<td colspan="' . (7-$stamp->week) . '"></td></tr>';

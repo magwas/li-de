@@ -159,8 +159,8 @@
 			default="1"
 			labelclass="control-label"
 			>
-			<option value="0" class="btn">JHIDE</option>
-			<option value="1" class="btn">JSHOW</option>
+			<option value="0" class="ic-btn">JHIDE</option>
+			<option value="1" class="ic-btn">JSHOW</option>
 		</field>
 		<field
 			name="dates"
@@ -381,6 +381,16 @@
 				<option value="0" class="ic-btn">JOFF</option>
 				<option value="1" class="ic-btn">JON</option>
 			</field-->
+			<field
+				name="typeReg"
+				type="list"
+				label="COM_ICAGENDA_TYPE_REG_LABEL"
+				description="COM_ICAGENDA_TYPE_REG_DESC"
+				default="1"
+				>
+				<option value="1">COM_ICAGENDA_REG_BY_INDIVIDUAL_DATE</option>
+				<option value="2">COM_ICAGENDA_REG_FOR_ALL_DATES</option>
+			</field>
 			<field
 				name="accessReg"
 				type="hidden"

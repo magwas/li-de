@@ -1,7 +1,7 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.0.1
+ * @version	5.1.0
  * @author	acyba.com
  * @copyright	(C) 2009-2015 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
@@ -29,6 +29,7 @@ defined('_JEXEC') or die('Restricted access');
 				$aclcats['subscriber'] = array('view', 'manage', 'delete', 'export', 'import');
 				$aclcats['extra_fields'] = array('import');
 				$aclcats['lists'] = array('manage', 'delete', 'filter');
+				$aclcats['distribution'] = array('manage', 'copy', 'delete');
 				$aclcats['newsletters'] = array('manage', 'delete', 'send', 'schedule', 'spam_test', 'copy', 'lists', 'attachments', 'sender_informations', 'meta_data', 'abtesting', 'inbox_actions');
 				$aclcats['autonewsletters'] = array('manage', 'delete');
 				$aclcats['campaign'] = array('manage', 'delete');

@@ -4,7 +4,7 @@ defined('_JEXEC') or die('Restricted access');
 
 
 /**
- * @copyright	Copyright (C) 2009-2015 ACYBA SAS - All rights reserved..
+ * @copyright	Copyright (C) 2009-2015 ACYBA SARL - All rights reserved..
  * @license		GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 class acymailingElasticemail {
@@ -60,7 +60,7 @@ class acymailingElasticemail {
 		$to = array_merge($object->to, $object->cc, $object->bcc);
 		$data .="&to=";
 		foreach($to as $oneRecipient){
-			$data .= urlencode($object->addrFormat($oneRecipient).";");
+			$data .= urlencode($object->AddrFormat($oneRecipient).";");
 		}
 		$data = trim($data,';');
 

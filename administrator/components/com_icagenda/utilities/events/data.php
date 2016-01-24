@@ -11,7 +11,7 @@
  * @author      Cyril Rezé (Lyr!C)
  * @link        http://www.joomlic.com
  *
- * @version 	3.5.7 2015-07-14
+ * @version 	3.5.13 2015-11-21
  * @since       3.5.0
  *------------------------------------------------------------------------------
 */
@@ -132,7 +132,7 @@ class icagendaEventsData
 		$user		= JFactory::getUser();
 		$userID		= $user->id;
 		$userLevels	= $user->getAuthorisedViewLevels();
-		$userGroups	= $user->groups;
+		$userGroups = $user->getAuthorisedGroups();
 		$groupid	= JComponentHelper::getParams('com_icagenda')->get('approvalGroups', array("8"));
 		$groupid	= is_array($groupid) ? $groupid : array($groupid);
 

@@ -121,6 +121,7 @@
 	  `access` int(10) unsigned DEFAULT NULL,
 	  `language` char(7) NOT NULL,
 	  `ordering` int(11) NOT NULL DEFAULT '0',
+	  `featured` tinyint(1) NOT NULL DEFAULT '0',
 	  `published` tinyint(1) NOT NULL DEFAULT '0',
 	  `checked_out` int(11) NOT NULL DEFAULT '0',
 	  `checked_out_time` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
@@ -132,7 +133,8 @@
 	  KEY `idx_checked_out` (`checked_out`),
 	  KEY `idx_alias` (`file_alias`),
 	  KEY `idx_created_id` (`created_id`),
-	  KEY `idx_language` (`language`)	  
+	  KEY `idx_language` (`language`),
+	  KEY `idx_featured` (`featured`)	  
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `#__jdownloads_licenses` (
@@ -275,6 +277,7 @@
 	`form_language` TINYINT( 1 ) NOT NULL DEFAULT '0',
 	`form_language_x` TINYINT( 1 ) NOT NULL DEFAULT '0',
 	`form_published` TINYINT( 1 ) NOT NULL DEFAULT '0',
+	`form_featured` TINYINT( 1 ) NOT NULL DEFAULT '0',
 	`form_creation_date` TINYINT( 1 ) NOT NULL DEFAULT '1',
 	`form_creation_date_x` TINYINT( 1 ) NOT NULL DEFAULT '0',
 	`form_modified_date` TINYINT( 1 ) NOT NULL DEFAULT '1',

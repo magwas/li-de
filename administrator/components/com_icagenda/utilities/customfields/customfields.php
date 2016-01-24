@@ -11,7 +11,7 @@
  * @author      Cyril Rezé (Lyr!C)
  * @link        http://www.joomlic.com
  *
- * @version     3.5.6 2015-05-19
+ * @version     3.5.10 2015-08-25
  * @since       3.4.0
  *------------------------------------------------------------------------------
 */
@@ -25,16 +25,16 @@ defined('_JEXEC') or die();
 class icagendaCustomfields
 {
 	/**
-	 * Function to return list of custom fields depending on the item ID
+	 * Function to return list of custom fields depending on the parent form
 	 *
 	 * @access	public static
-	 * @param	$id item ID
+	 * @param	$parent_form (1 registration, 2 event edit)
 	 * 			$state (if not defined, state is published ('1'))
 	 * @return	object list array of custom fields depending on the item ID
 	 *
 	 * @since   3.4.0
 	 */
-	static public function getListCustomFields($id, $parent_form = null, $state = null)
+	static public function getListCustomFields($parent_form, $state = null)
 	{
 		$filter_state = isset($state) ? $state : 1;
 
@@ -60,6 +60,7 @@ class icagendaCustomfields
 	 *
 	 * @access	public static
 	 * @param	$id item ID
+	 * 			$parent_form (1 registration, 2 event edit)
 	 * 			$state (if not defined, state is published ('1'))
 	 * @return	object list array of custom fields depending on the item ID
 	 *
@@ -93,12 +94,13 @@ class icagendaCustomfields
 	 *
 	 * @access	public static
 	 * @param	$id item ID
+	 * 			$parent_form (1 registration, 2 event edit)
 	 * 			$state (if not defined, state is published ('1'))
 	 * @return	object list array of custom fields not empty depending on the item ID
 	 *
 	 * @since   3.4.0
 	 */
-	static public function getListNotEmpty($id, $state = null)
+	static public function getListNotEmpty($id, $parent_form = null, $state = null)
 	{
 		$filter_state = isset($state) ? $state : 1;
 
@@ -109,9 +111,15 @@ class icagendaCustomfields
 			->from('#__icagenda_customfields_data AS cfd')
 			->leftJoin($db->qn('#__icagenda_customfields') . ' AS cf'
 				. ' ON ' . $db->qn('cf.slug') .' = ' . $db->qn('cfd.slug'))
-			->where($db->qn('cf.state') . ' = ' . $db->q($filter_state))
-			->where($db->qn('cfd.parent_id') . ' = ' . (int)$id)
-			->order('cf.ordering ASC');
+			->where($db->qn('cf.state') . ' = ' . $db->q($filter_state));
+
+		if ($parent_form)
+		{
+			$query->where($db->qn('cfd.parent_form') . ' = ' . $db->q($parent_form));
+		}
+
+		$query->where($db->qn('cfd.parent_id') . ' = ' . (int)$id);
+		$query->order('cf.ordering ASC');
 		$db->setQuery($query);
 		$list = $db->loadObjectList();
 
@@ -272,9 +280,10 @@ class icagendaCustomfields
 		if (in_array($type, $options_required) && ! $options) return false;
 
 		$app = JFactory::getApplication();
+		$view = $app->input->get('view');
 
 		$ic_prefix = $app->isSite() ? 'ic-' : '';
-		$ic_data = $app->isSite() ? 'custom_fields' : 'jform[custom_fields]';
+		$ic_data = ($app->isSite() && $view != 'registration') ? 'custom_fields' : 'jform[custom_fields]';
 
 		if (empty($value)) $value = '';
 // Remove to get session value frontend		$value = $app->isAdmin() ? $value : '';
@@ -487,7 +496,7 @@ class icagendaCustomfields
 
 				if ( ! $id_exists && $customfields_data->value)
 				{
-					$db->insertObject( '#__icagenda_customfields_data', $customfields_data, id );
+					$db->insertObject( '#__icagenda_customfields_data', $customfields_data, 'id' );
 				}
 				elseif (empty($customfields_data->value))
 				{
@@ -513,7 +522,7 @@ class icagendaCustomfields
 				else
 				{
 					$customfields_data->id = $id_exists;
-					$db->updateObject('#__icagenda_customfields_data', $customfields_data, id);
+					$db->updateObject('#__icagenda_customfields_data', $customfields_data, 'id');
 				}
 			}
 		}

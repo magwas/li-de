@@ -2,12 +2,12 @@
 <extension version="3.1" type="plugin" group="system" method="upgrade">
 		<name>plg_system_jdownloads</name>
         <author>Arno Betz</author>
-        <creationDate>2014-12-10</creationDate>
+        <creationDate>2015-11-19</creationDate>
         <copyright>Copyright (C) 2007 - 2014 by Arno Betz</copyright>
         <license>http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL</license>
         <authorEmail>info@jdownloads.com</authorEmail>
         <authorUrl>www.jdownloads.com</authorUrl>
-        <version>3.2.1</version>
+        <version>3.2.41</version>
 		<description>PLG_SYSTEM_JDOWNLOADS_PLUGIN_DESCRIPTION</description>
 		<files>
 			<filename plugin="jdownloads">jdownloads.php</filename>

@@ -14,7 +14,7 @@ defined( '_JEXEC' ) or die( 'Restricted access' );
 require_once __DIR__ . '/helper.php';
 
     $db = JFactory::getDBO();
-    JHtml::_('behavior.tooltip');
+
     $Itemid  = JRequest::getVar("Itemid");
     
     // get published root menu link

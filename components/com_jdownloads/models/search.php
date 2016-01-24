@@ -300,7 +300,7 @@ class jdownloadsModelSearch extends JModelLegacy
             
             $searchText = $text;
 
-            $limit      = $this->state->get('search_limit', 50);
+            $limit      = $this->state->get('search_limit', 500);
 
             $nullDate   = $db->getNullDate();
             $date = JFactory::getDate();

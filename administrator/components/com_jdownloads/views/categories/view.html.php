@@ -76,6 +76,7 @@ class jdownloadsViewcategories extends JViewLegacy
         $this->categories = @array_merge($select, $categories);
         
         $this->addToolbar();
+        $this->sidebar = JHtmlSidebar::render();        
         parent::display($tpl);
 	}
     

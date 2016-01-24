@@ -74,7 +74,7 @@ class jdownloadsViewuploads extends JViewLegacy
                 
         //set toolbar
         $this->addToolBar();
-        
+        $this->sidebar = JHtmlSidebar::render();        
         // Display the template
         parent::display($tpl);
     }
@@ -97,8 +97,8 @@ class jdownloadsViewuploads extends JViewLegacy
         
         JToolBarHelper::title(JText::_('COM_JDOWNLOADS').': '.JText::_('COM_JDOWNLOADS_FILESLIST_TITLE_FILES_UPLOAD'), 'jdupload');
         
-        JToolBarHelper::custom( 'uploads.files', 'files32.png', 'files32.png', JText::_('COM_JDOWNLOADS_FILES'), false, true );
-        JToolBarHelper::custom( 'uploads.downloads', 'downloads32.png', 'downloads32.png', JText::_('COM_JDOWNLOADS_DOWNLOADS'), false, false );
+        JToolBarHelper::custom( 'uploads.files', 'upload.png', 'upload.png', JText::_('COM_JDOWNLOADS_FILES'), false, true );
+        JToolBarHelper::custom( 'uploads.downloads', 'folder.png', 'folder.png', JText::_('COM_JDOWNLOADS_DOWNLOADS'), false, false );
         
         JToolBarHelper::divider();
         JToolBarHelper::help('help.uploads', true);        

@@ -12,7 +12,7 @@
  *
  * @themepack	ic_rounded
  * @template	events
- * @version 	3.4.1 2015-01-15
+ * @version 	3.5.10 2015-08-22
  * @since       3.2.8
  *------------------------------------------------------------------------------
 */
@@ -78,7 +78,9 @@ defined('_JEXEC') or die();
 				<?php // Title of the event ?>
 				<div class="title-header ic-title-header ic-float-left">
 					<h2>
-						<a href="<?php echo $EVENT_URL; ?>" title="<?php echo $EVENT_TITLE; ?>"><?php echo $EVENT_TITLEBAR; ?></a>
+						<a href="<?php echo $EVENT_URL; ?>" title="<?php echo $EVENT_TITLE; ?>">
+							<?php echo $EVENT_TITLEBAR; ?>
+						</a>
 					</h2>
 				</div>
 

@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <extension type="module" version="2.5" client="site" method="upgrade">
 	<name>iCagenda - Calendar</name>
-	<creationDate>2015-07-16</creationDate>
+	<creationDate>2015-12-05</creationDate>
 	<copyright>Copyright (c)2012-2015 JoomliC. All rights reserved.</copyright>
 	<license>GNU General Public License version 3 or later; see LICENSE.txt</license>
 	<author>Jooml!C</author>
 	<authorEmail>info@joomlic.com</authorEmail>
 	<authorUrl>www.joomlic.com</authorUrl>
-	<version>3.5.7</version>
+	<version>3.5.13</version>
 	<description>Calendar module for iCagenda component</description>
 	<files>
         <filename>mod_iccalendar.xml</filename>
@@ -228,6 +228,17 @@
 						<option value="1">JSHOW</option>
 				</field>
 				<field
+					name="dp_venuename"
+					type="radio"
+					class="btn-group"
+					label="MOD_ICCALENDAR_DISPLAY_VENUE_NAME_LABEL"
+					description="MOD_ICCALENDAR_DISPLAY_VENUE_NAME_DESC"
+					labelclass="control-label"
+					default="1">
+						<option value="0">JHIDE</option>
+						<option value="1">JSHOW</option>
+				</field>
+				<field
 					name="dp_city"
 					type="radio"
 					class="btn-group"
@@ -248,41 +259,6 @@
 					default="1">
 						<option value="0">JHIDE</option>
 						<option value="1">JSHOW</option>
-				</field>
-				<field
-					name="dp_venuename"
-					type="radio"
-					class="btn-group"
-					label="MOD_ICCALENDAR_DISPLAY_VENUE_NAME_LABEL"
-					description="MOD_ICCALENDAR_DISPLAY_VENUE_NAME_DESC"
-					labelclass="control-label"
-					default="1">
-						<option value="0">JHIDE</option>
-						<option value="1">JSHOW</option>
-				</field>
-				<field
-					name="dp_shortDesc"
-					type="radio"
-					class="btn-group"
-					label="COM_ICAGENDA_LIST_INTROTEXT_DISPLAY_LABEL"
-					description="COM_ICAGENDA_LIST_INTROTEXT_DISPLAY_DESC"
-					labelclass="control-label"
-					default="">
-						<option value="">IC_AUTO</option>
-						<option value="0">JHIDE</option>
-						<option value="1">IC_SHORTDESC</option>
-						<option value="2">IC_AUTO_INTROTEXT</option>
-				</field>
-				<field
-					name="filtering_shortDesc"
-					type="list"
-					class="btn-group"
-					label="MOD_ICCALENDAR_FILTERING_SHORTDESC_LABEL"
-					description="MOD_ICCALENDAR_FILTERING_SHORTDESC_DESC"
-					default="">
-						<option value="">MOD_ICCALENDAR_ICAGENDA_GLOBAL_OPTION</option>
-						<option value="1">MOD_ICCALENDAR_FILTERING_NO_HTML</option>
-						<option value="2">MOD_ICCALENDAR_FILTERING_ALL_ITALIC</option>
 				</field>
 				<field
 					name="dp_regInfos"
@@ -321,6 +297,45 @@
 						<option value="0">JHIDE</option>
 						<option value="1">JSHOW</option>
 				</field>
+				<field
+					name="dp_shortDesc"
+					type="radio"
+					class="btn-group"
+					label="COM_ICAGENDA_LIST_INTROTEXT_DISPLAY_LABEL"
+					description="COM_ICAGENDA_LIST_INTROTEXT_DISPLAY_DESC"
+					labelclass="control-label"
+					default="">
+						<option value="">IC_AUTO</option>
+						<option value="0">JHIDE</option>
+						<option value="1">IC_SHORTDESC</option>
+						<option value="2">IC_AUTO_INTROTEXT</option>
+				</field>
+				<field
+					name="filtering_shortDesc"
+					type="list"
+					class="btn-group"
+					label="ICAGENDA_FILTERING_SHORTDESC_LABEL"
+					description="ICAGENDA_FILTERING_SHORTDESC_DESC"
+					default="">
+						<option value="">ICAGENDA_GLOBAL_OPTION</option>
+						<option value="1">ICAGENDA_FILTERING_NO_HTML</option>
+						<option value="2">ICAGENDA_FILTERING_ALL_ITALIC</option>
+				</field>
+				<field
+					name="paramlimit"
+					type="modal_icvalue_opt"
+					default=""
+					label="ICAGENDA_AUTO_INTROTEXT_LIMIT_LABEL"
+					description="ICAGENDA_AUTO_INTROTEXT_LIMIT_DESC"
+					labelclass="control-label"
+				/>
+				<field
+					name="paramlimit_Content"
+					type="modal_icvalue_field"
+					class="inputbox"
+					label=" "
+					labelclass="control-label"
+				/>
 
 				<field type="Title" label="MOD_ICCALENDAR_LBL_DISPLAY" class="stylenote"/>
 				<field
@@ -374,8 +389,13 @@
 					type="list"
 					label="MOD_ICCALENDAR_LBL_FIRSTDAY"
             		default="1" >
-						<option value="1">MONDAY</option>
 						<option value="0">SUNDAY</option>
+						<option value="1">MONDAY</option>
+						<option value="2">TUESDAY</option>
+						<option value="3">WEDNESDAY</option>
+						<option value="4">THURSDAY</option>
+						<option value="5">FRIDAY</option>
+						<option value="6">SATURDAY</option>
 				</field>
 
 				<field type="Title" label="MOD_ICCALENDAR_LBL_FONTCOLORS" class="stylenote"/>

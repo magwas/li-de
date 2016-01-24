@@ -1,7 +1,7 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.0.1
+ * @version	4.9.3
  * @author	acyba.com
  * @copyright	(C) 2009-2015 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
@@ -19,6 +19,18 @@ defined('_JEXEC') or die('Restricted access');
 		$frontEndAccess = true;
 		$frontEndManagement = false;
 
+		if(acymailing_level(3)){
+			if((int)$my->id == (int)$row->userid)  $frontEndManagement = true;
+
+			if(!empty($my->id)){
+				if($row->access_manage == 'all' OR acymailing_isAllowed($row->access_manage)){
+					 $frontEndManagement = true;
+				}
+			}
+			if($row->access_sub != 'all' AND ($row->access_sub == 'none' OR empty($my->id) OR !acymailing_isAllowed($row->access_sub))){
+				$frontEndAccess = false;
+			}
+		}
 		if(!$frontEndManagement AND (!$frontEndAccess OR !$row->published OR !$row->visible)) continue;
 ?>
 

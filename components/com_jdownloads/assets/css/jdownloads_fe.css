@@ -694,3 +694,80 @@ fieldset.only input[type="checkbox"] {
 .jdtable td {
     padding: 0px !important;
 }
+
+/*  video stuff */
+/*  for native HTML5 videos */
+.jd_video_container {
+	position: relative;
+	padding-bottom: 56.25%;
+	padding-top: 10px;
+	height: 0;
+	overflow: hidden;
+}
+
+/* for external videos such as YouTube and Vimeo also need */
+.jd_video_container iframe,  
+.jd_video_container object,  
+.jd_video_container embed {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+
+/*  for future needs */
+.jd_video_wrapper {
+  min-width: 180px;
+}
+
+/* clears */
+.jd_clear {
+    clear: both;
+}
+
+.jd_clear_left {
+    clear: left;
+}
+
+.jd_clear_right {
+    clear: right;
+}
+
+/* for layout subheader navigation  */
+.jd_cat_subheader ul {
+   float: right;
+}
+ 
+/* layout sub header Categories */
+.jd_cat_end {
+   border-top: 3px solid #B5B5B5;
+   margin:0px;
+   position: relative;
+   top: -2px; 
+}
+
+/*  line up stars and votes */
+.jd_rating .jwajaxvote-box {
+   padding:0px !important;
+   float: none;
+   font-size: small;
+   margin: 2px;
+}
+
+/*  items for featured */
+.jd_featured {
+/*background: #feffe8 !important; /* Old browsers */
+/*background: -moz-linear-gradient(top,  #feffe8 0%, #d6dbbf 100%) !important; /* FF3.6-15 */
+/*background: -webkit-linear-gradient(top,  #feffe8 0%,#d6dbbf 100%) !important; /* Chrome10-25,Safari5.1-6 */
+/*background: linear-gradient(to bottom,  #feffe8 0%,#d6dbbf 100%) !important; /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+/*filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#feffe8', endColorstr='#d6dbbf',GradientType=0 ) !important; /* IE6-9 */
+}
+
+.jd_featured_detail {
+/*background: #d6dbbf !important; /* Old browsers */
+/*background: -moz-linear-gradient(top,  #d6dbbf 0%, #feffe8 100%) !important; /* FF3.6-15 */
+/*background: -webkit-linear-gradient(top,  #d6dbbf 0%,#feffe8 100%) !important; /* Chrome10-25,Safari5.1-6 */
+/*background: linear-gradient(to bottom,  #d6dbbf 0%,#feffe8 100%) !important; /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+/*filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#d6dbbf', endColorstr='#feffe8',GradientType=0 ) !important; /* IE6-9 */
+}

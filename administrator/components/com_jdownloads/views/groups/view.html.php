@@ -29,6 +29,7 @@ class jdownloadsViewGroups extends JViewLegacy
 		}
 
 		$this->addToolbar();
+        $this->sidebar = JHtmlSidebar::render();        
 		parent::display($tpl);
 	}
 
@@ -55,7 +56,7 @@ class jdownloadsViewGroups extends JViewLegacy
 		}
 
 		if ($canDo->get('core.admin')) {
-            JToolBarHelper::custom( 'groups.resetLimits', 'reset', 'reset', JText::_('COM_JDOWNLOADS_USERGROUPS_RESET_LIMITS_TITLE'), true, false );
+            JToolBarHelper::custom( 'groups.resetLimits', 'refresh.png', 'refresh.png', JText::_('COM_JDOWNLOADS_USERGROUPS_RESET_LIMITS_TITLE'), true, false );
 			JToolBarHelper::divider();
 		}
         

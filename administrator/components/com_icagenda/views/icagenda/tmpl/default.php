@@ -10,7 +10,7 @@
  * @author      Cyril Rezé (Lyr!C)
  * @link        http://www.joomlic.com
  *
- * @version     3.5.6 2015-06-27
+ * @version     3.5.10 2015-08-15
  * @since       1.0
  *------------------------------------------------------------------------------
 */
@@ -604,7 +604,7 @@ if (version_compare(phpversion(), '5.3.10', '<'))
 		<div class="span12">
 			<div class="row-fluid">
 				<div class="span12">
-					<h3>39&nbsp;<?php echo JText::_('COM_ICAGENDA_PANEL_TRANSLATION_PACKS');?></h3>
+					<h3>40&nbsp;<?php echo JText::_('COM_ICAGENDA_PANEL_TRANSLATION_PACKS');?></h3>
 					<p>
 						<?php
 							if(version_compare(JVERSION, '3.0', 'lt')) {
@@ -708,6 +708,10 @@ if (version_compare(phpversion(), '5.3.10', '<'))
 						<span rel="tooltip" data-placement="right" class="editlinktip hasTip" title=" Luxembourgish (Luxembourg)
 							<?php echo $iCtag;?><?php echo $translator;?>: Superjhemp " >
 							<img src="../media/mod_languages/images/icon-16-language.png" border="0" alt="Tooltip"/>
+						</span>
+						<span rel="tooltip" data-placement="right" class="editlinktip hasTip" title=" Macedonian (Macedonia)
+							<?php echo $iCtag;?><?php echo $translator;?>: Strumjan (Ilija Iliev) " >
+							<img src="../media/mod_languages/images/mk.gif" border="0" alt="Tooltip"/>
 						</span>
 						<span rel="tooltip" data-placement="right" class="editlinktip hasTip" title=" Norwegian Bokmål (Norway)
 							<?php echo $iCtag;?><?php echo $translator;?>: Rikard Tømte Reitan " >

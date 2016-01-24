@@ -10,7 +10,7 @@
  * @author      Cyril Rezé (Lyr!C)
  * @link        http://www.joomlic.com
  *
- * @version     3.4.1 2015-01-30
+ * @version     3.5.10 2015-08-13
  * @since       2.0.0
  *------------------------------------------------------------------------------
 */
@@ -18,7 +18,7 @@
 // No direct access to this file
 defined('_JEXEC') or die();
 
-jimport( 'joomla.filesystem.path' );
+jimport('joomla.filesystem.path');
 jimport('joomla.form.formfield');
 
 /**
@@ -32,9 +32,24 @@ class JFormFieldModal_startdate extends JFormField
 
 	protected function getInput()
 	{
-		$class = !empty($this->class) ? ' class="' . $this->class . '"' : '';
+		$class = ! empty($this->class) ? ' class="' . $this->class . '"' : '';
 
-		$html ='<input type="text" id="startdate"' . $class . ' name="' . $this->name . '" value="' . $this->value . '"/>';
+		$lang = JFactory::getLanguage();
+
+		if ($lang->getTag() == 'fa-IR')
+		{
+			// Including fallback code for HTML5 non supported browsers.
+			JHtml::_('jquery.framework');
+			JHtml::_('script', 'system/html5fallback.js', false, true);
+
+			$attributes = '';
+
+			$html = JHtml::_('calendar', $this->value, $this->name, 'startdate_jalali', '%Y-%m-%d %H:%M:%S', $attributes);
+		}
+		else
+		{
+			$html ='<input type="text" id="startdate"' . $class . ' name="' . $this->name . '" value="' . $this->value . '"/>';
+		}
 
 		return $html;
 	}

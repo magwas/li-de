@@ -10,8 +10,8 @@
  * @author      Cyril Rezé (Lyr!C)
  * @link        http://www.joomlic.com
  *
- * @version     3.0 2013-06-04
- * @since       2.0
+ * @version     3.5.13 2015-11-05
+ * @since       2.0.0
  *------------------------------------------------------------------------------
 */
 
@@ -42,7 +42,8 @@ class iCagendaModelthemes extends JModelList
 		parent::__construct();
 	}
 
-	public function getForm($data = array(), $loadData = true) {
+	public function getForm($data = array(), $loadData = true)
+	{
 
 		$app	= JFactory::getApplication();
 		$form 	= $this->loadForm('com_icagenda.template', 'themes', array('control' => 'jform', 'load_data' => $loadData));
@@ -52,9 +53,10 @@ class iCagendaModelthemes extends JModelList
 		return $form;
 	}
 
-	function install($theme) {
+	function install($theme)
+	{
 		$app		= JFactory::getApplication();
-		$db 		= JFactory::getDBO();
+		$db 		= JFactory::getDbo();
 		$package 	= $this->_getPackageFromUpload();
 
 		if (!$package) {
@@ -191,7 +193,7 @@ if(version_compare(JVERSION, '3.0', 'lt')) {
 
 		// Move uploaded file
 		jimport('joomla.filesystem.file');
-		$uploaded = JFile::upload($tmp_src, $tmp_dest);
+		$uploaded = JFile::upload($tmp_src, $tmp_dest, false, true);
 
 		// Unpack the downloaded package file
 if(version_compare(JVERSION, '3.0', 'lt')) {

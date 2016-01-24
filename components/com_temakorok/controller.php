@@ -204,12 +204,8 @@ class TemakorokController extends JControllerLegacy {
       if ($kepviseloje > 0) {
         $kepviseloUser = JFactory::getUser($kepviseloje);
         if ($kepviseloUser) {
-          $userEx = HsUser::getInstance($kepviseloje);
           $kepviselo['kepviselojeLink'] = JURI::base().'index.php?option=com_kepviselok&view=kepviselok&task=show&id='.$kepviseloje;
-          if (isset($userEx->image))
-  				 $kepviselo['image'] = $userEx->get('image');
-          else
-  				 $kepviselo['image'] = '<img src="components/com_hs_users/asset/images/noimage.png" width="50" height="50" />';
+	      $kepviselo['image'] = getAvatar($kepviseloje);
           $kepviselo['nev'] = $kepviseloUser->name;
         }  
       } else if ($kepviseloJelolt) {

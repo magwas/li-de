@@ -34,6 +34,7 @@ class jdownloadsViewlayouts extends JViewLegacy
         $option      = 'com_jdownloads'; 
 		
         $this->addToolbar();
+        $this->sidebar = JHtmlSidebar::render();        
 		parent::display($tpl);
 	}
     
@@ -56,6 +57,10 @@ class jdownloadsViewlayouts extends JViewLegacy
         JDownloadsHelper::addSubmenu('layouts');
         
         JToolBarHelper::title(JText::_('COM_JDOWNLOADS').': '.JText::_('COM_JDOWNLOADS_BACKEND_CPANEL_TEMPLATES_NAME'), 'jdlogo');
+        
+        if ($canDo->get('core.edit')) {
+            JToolBarHelper::custom( 'layouts.install', 'upload.png', 'upload.png', JText::_('COM_JDOWNLOADS_LAYOUTS_IMPORT_LABEL'), false, false); 
+        }
         JToolBarHelper::divider();
         JToolBarHelper::help('help.layouts', true);
     }    

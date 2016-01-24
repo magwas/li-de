@@ -138,5 +138,6 @@ echo '
   '.$this->LapozoSor.'
 </div>
 </div>
+</div>
 ';
 ?>

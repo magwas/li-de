@@ -3,13 +3,13 @@
 	<name>iC Library</name>
 	<libraryname>ic_library</libraryname>
 	<description>ICLIB_XML_DESCRIPTION</description>
-	<creationDate>2015-07-16</creationDate>
+	<creationDate>2015-12-05</creationDate>
 	<author>Cyril Rezé / Jooml!C</author>
 	<authorEmail>info@joomlic.com</authorEmail>
 	<authorUrl>http://www.joomlic.com</authorUrl>
 	<copyright>Copyright (c)2014-2015 Cyril Rezé, Jooml!C - All rights reserved</copyright>
 	<license>GNU General Public License version 3 or later; see LICENSE.txt</license>
-	<version>1.3.1</version>
+	<version>1.3.4</version>
 	<packager>Jooml!C</packager>
 	<packagerurl>http://www.joomlic.com</packagerurl>
 

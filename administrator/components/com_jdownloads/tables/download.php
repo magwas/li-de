@@ -104,8 +104,8 @@ class jdownloadsTabledownload extends JTable
             // check the file extension when frontend upload
             if ($files['tmp_name']['file_upload'] != '' || $files['name']['file_upload'] != ''){
                 $file_extension = JFile::getExt($files['name']['file_upload']);
-                $user_file_types = explode(',',$user_rules->uploads_allowed_types);
-                if (!in_array($file_extension, $user_file_types)){
+                $user_file_types = explode(',',strtolower($user_rules->uploads_allowed_types));
+                if (!in_array(strtolower($file_extension), $user_file_types)){                
                      // error - user have tried to upload a not allowed file type
                      $this->setError(JText::_('COM_JDOWNLOADS_BACKEND_FILESEDIT_INVALID_FILE_TYPE'));
                      return false;  
@@ -432,22 +432,23 @@ class jdownloadsTabledownload extends JTable
                             return false;                       
                     }
                     
-                    if(JFile::upload($files['tmp_name']['file_upload'], $target_path)) {
+                    if(JFile::upload($files['tmp_name']['file_upload'], $target_path, false, true)) {
                        
                        $this->sha1_value = sha1_file($target_path);
                        $this->md5_value  =  md5_file($target_path);
                         
                        $this->url_download = basename($target_path);
+                       
                        $this->extern_file = '';
                        $this->extern_site = '';
                        // set file extension pic
-                       $filepfad = JPATH_SITE.'/images/jdownloads/fileimages/'.$file_extension.'.png';
-                       if(JFile::exists(JPATH_SITE.'/images/jdownloads/fileimages/'.$file_extension.'.png')){
-                          $this->file_pic = $file_extension.'.png';
+                       $filepfad = JPATH_SITE.'/images/jdownloads/fileimages/'.strtolower($file_extension).'.png';
+                       if(JFile::exists(JPATH_SITE.'/images/jdownloads/fileimages/'.strtolower($file_extension).'.png')){
+                          $this->file_pic = strtolower($file_extension).'.png';
                        } else {
                           $this->file_pic = $jlistConfig['file.pic.default.filename'];
-                       }
-
+                       }                       
+                       
                        // get filesize and date if no value set from user after upload
                        $this->size = jdownloadsHelper::fsize($target_path);
 
@@ -462,7 +463,7 @@ class jdownloadsTabledownload extends JTable
                        }                   
                        
                        // create thumbs form pdf
-                       if ($jlistConfig['create.pdf.thumbs'] && $file_extension == 'pdf'){
+                       if ($jlistConfig['create.pdf.thumbs'] && strtolower($file_extension) == 'pdf'){
                            $thumb_path = JPATH_SITE.'/images/jdownloads/screenshots/thumbnails/';
                            $screenshot_path = JPATH_SITE.'/images/jdownloads/screenshots/';
                            $pdf_thumb_name = jdownloadsHelper::create_new_pdf_thumb($target_path, $only_name, $thumb_path, $screenshot_path);

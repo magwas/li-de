@@ -10,7 +10,7 @@
  * @author      Cyril Rezé (Lyr!C)
  * @link        http://www.joomlic.com
  *
- * @version     3.5.6 2015-06-16
+ * @version     3.5.13 2015-11-21
  * @since       1.0
  *------------------------------------------------------------------------------
 */
@@ -57,6 +57,7 @@ class iCagendaModelEvents extends JModelList
 				'location', 'a.location',
 				'category_id',
 				'site_itemid', 'a.site_itemid',
+				'language', 'e.language',
 			);
 		}
 

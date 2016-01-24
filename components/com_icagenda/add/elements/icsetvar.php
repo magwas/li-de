@@ -10,7 +10,7 @@
  * @author      Cyril Rezé (Lyr!C)
  * @link        http://www.joomlic.com
  *
- * @version 	3.5.4 2015-03-26
+ * @version 	3.5.12 2015-10-06
  * @since       3.2.8
  *------------------------------------------------------------------------------
 */
@@ -403,67 +403,59 @@ $only_startdate	= ($item->weekdays || $item->weekdays == '0') ? false : true;
 	/**
 	 *	Event Address
 	 */
-	if ($item->address)
+	if ( ! $ic_main_list && $item->address)
 	{
 		// Create an array to separate all strings between comma in individual parts
-		$EVENT_STREET			= $item->address;
-		$ADDRESS_EX = explode(',', $EVENT_STREET);
+		$EVENT_STREET		= $item->address;
+		$ADDRESS_EX			= explode(',', $EVENT_STREET);
 
-		// Get the end part (usually the country)
-		$END_VALUE = end($ADDRESS_EX);
+		$country_to_check	= ($EVENT_COUNTRY == 'United States') ? 'USA' : $EVENT_COUNTRY;
+		$country_removed	= false;
+		$city_removed		= false;
 
-		if ($EVENT_COUNTRY
-			&& strpos($END_VALUE, $EVENT_COUNTRY) !== false)
+		$i = 0;
+		$count_ADDRESS_EX = count($ADDRESS_EX);
+
+		for ($i; $i < $count_ADDRESS_EX; $i++)
 		{
-			$END_VALUE = prev($ADDRESS_EX);
-			// Remove last value, if country is inside
-			$EVENT_STREET = substr( $EVENT_STREET, 0, strripos( $EVENT_STREET, ',' ) );
-			$add_ex = explode(',', $EVENT_STREET);
-			$EVENT_POSTAL_CODE = end($add_ex);
-		}
-		else
-		{
-			$END_VALUE = prev($ADDRESS_EX);
-			// Remove 2 last values, if country is inside the previous one before end value
-			if ($EVENT_COUNTRY
-				&& strpos($END_VALUE, $EVENT_COUNTRY) !== false)
+			// Remove the country from the full address
+			if ($EVENT_COUNTRY && ! $country_removed
+				&& strpos($EVENT_STREET, $country_to_check) !== false)
 			{
-				$EVENT_STREET = substr( $EVENT_STREET, 0, strripos( $EVENT_STREET, ',' ) );
+				$country_removed		= true;
+
+				// Remove country
+				$EVENT_STREET		= substr( $EVENT_STREET, 0, strripos( $EVENT_STREET, ',' ) );
+			}
+			elseif ($EVENT_CITY && ! $city_removed
+				&& strpos($EVENT_STREET, $EVENT_CITY) !== false)
+			{
+				$city_removed		= true;
+
+				// Remove last value, until city is not found in the string
 				$EVENT_STREET = substr( $EVENT_STREET, 0, strripos( $EVENT_STREET, ',' ) );
 			}
 		}
-		if ($EVENT_CITY
-			&& strpos($END_VALUE, $EVENT_CITY) !== false)
-		{
-			// Remove new last value, if city is inside
-			$EVENT_STREET = substr( $EVENT_STREET, 0, strripos( $EVENT_STREET, ',' ) );
-		}
-		else
-		{
-			$END_VALUE = prev($ADDRESS_EX);
-			// Remove 2 new last values, if city is inside the previous one before new end value
-			if ($EVENT_CITY
-				&& strpos($END_VALUE, $EVENT_CITY) !== false)
-			{
-				$EVENT_STREET = substr( $EVENT_STREET, 0, strripos( $EVENT_STREET, ',' ) );
-				$EVENT_STREET = substr( $EVENT_STREET, 0, strripos( $EVENT_STREET, ',' ) );
-			}
-		}
-		$EVENT_ADDRESS = '';
-//		$EVENT_ADDRESS.= $EVENT_VENUE.'<br />';
-		$EVENT_ADDRESS.= $EVENT_STREET.'<br />';
 
-		if ($EVENT_CITY && $EVENT_COUNTRY)
+		if ($EVENT_STREET && $EVENT_POSTAL_CODE)
 		{
-			$EVENT_ADDRESS.= $EVENT_POSTAL_CODE.', '.$EVENT_COUNTRY.'<br />';
+			$EVENT_POSTAL_CODE = str_replace($EVENT_STREET . ', ', '', $item->address);
+			$EVENT_POSTAL_CODE = substr( $EVENT_POSTAL_CODE, 0, strripos( $EVENT_POSTAL_CODE, ',' ) );
 		}
-		elseif ($EVENT_CITY && !$EVENT_COUNTRY)
+
+		$EVENT_ADDRESS = $EVENT_STREET ? $EVENT_STREET . '<br />' : '';
+
+		if ($EVENT_CITY && $EVENT_COUNTRY && $EVENT_POSTAL_CODE)
 		{
-			$EVENT_ADDRESS.= $EVENT_POSTAL_CODE.'<br />';
+			$EVENT_ADDRESS.= $EVENT_POSTAL_CODE . ', ' . $EVENT_COUNTRY . '<br />';
+		}
+		elseif ($EVENT_CITY && !$EVENT_COUNTRY && $EVENT_POSTAL_CODE)
+		{
+			$EVENT_ADDRESS.= $EVENT_POSTAL_CODE . '<br />';
 		}
 		elseif (!$EVENT_CITY && $EVENT_COUNTRY)
 		{
-			$EVENT_ADDRESS.= $EVENT_COUNTRY.'<br />';
+			$EVENT_ADDRESS.= $EVENT_COUNTRY . '<br />';
 		}
 	}
 	else

@@ -51,12 +51,17 @@ class SzavazasokModelLezart extends JModelList {
 		$query	= $db->getQuery(true);			
 		$catid = (int) $this->getState('authorlist.id', 1);		
 		$query = '
-	/* szavazások amik jelenleg vita1 állapotban vannak */
-	/* ================================================ */
-	SELECT sz.megnevezes, sz.leiras, sz.vita1, sz.vita2, sz.szavazas, sz.lezart, sz.szavazas_vege, sz.titkos, sz.vita2_vege,
-	  sz.id, sz.temakor_id
-	FROM #__szavazasok sz
-	WHERE (sz.lezart=1) '.$filterStr;
+		/* szavazások amik jelenleg vita1 állapotban vannak */
+		/* ================================================ */
+		SELECT sz.megnevezes, sz.leiras, sz.vita1, sz.vita2, sz.szavazas, sz.lezart, sz.szavazas_vege, sz.titkos, sz.vita2_vege,
+		  sz.id, sz.temakor_id, sz2.id sz2id
+		FROM #__szavazasok sz
+		LEFT OUTER JOIN #__szavazok sz2 on sz2.user_id = "'.$user->id.'" and sz2.szavazas_id = sz.id
+		';
+		if (JRequest::getVar('temakor') > 0)
+		   $query .= 'WHERE (sz.lezart=1 and sz.temakor_id="'.JRequest::getVar('temakor').'") '.$filterStr;
+		else
+		   $query .= 'WHERE (sz.lezart=1 '.$filterStr;
 		$query .= ' order by '.JRequest::getVar('order','6').' DESC';
 		return $query;  
 	}
@@ -68,11 +73,14 @@ class SzavazasokModelLezart extends JModelList {
   public function getTotal($filterStr='') {
      $result = 0;
      $db = JFactory::getDBO();
-     $db->setQuery('
-/* szavazások amik lezártak */
-SELECT sz.id
-FROM #__szavazasok sz
-WHERE (sz.lezart=1) '.$filterStr);
+     $query = '/* szavazások amik lezártak */
+		SELECT sz.id
+		FROM #__szavazasok sz ';
+	 if (JRequest::getVar('temakor') > 0)
+		$query .= ' WHERE (sz.lezart=1 and sz.temakor_id="'.JRequest::getVar('temakor').'") '.$filterStr;
+	 else 
+		$query .= ' WHERE sz.lezart=1 '.$filterStr;
+	 $db->setQuery($query);
      $res = $db->loadObjectList();
      $result = count($res);
      return $result;

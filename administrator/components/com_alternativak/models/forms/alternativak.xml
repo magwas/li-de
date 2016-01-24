@@ -77,6 +77,20 @@
 			class="inputbox"
 			size="10"
 			format="%Y-%m-%d"/>			
+
+		<field
+			id="elbiralasra_var"
+			name="elbiralasra_var"
+			type="list"
+			required="true"
+			label="elbiralasra_var"
+			description="Ha ez 'Igen' akkor csak az adminisztrátorok látják"
+			class="inputbox"
+			size="1"
+			defaultt="0">
+			<option value="1">Igen</option>
+			<option value="0">Nem</option>
+		</field>	
 							
 									
 	</fields>	

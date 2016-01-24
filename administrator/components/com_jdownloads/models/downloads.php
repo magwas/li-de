@@ -95,7 +95,8 @@ class jdownloadsModeldownloads extends JModelList
                 'custom_field_14', 'a.custom_field_14',
                 'access', 'a.access', 'access_level',
                 'language', 'a.language',
-                'ordering', 'a.ordering',                                                
+                'ordering', 'a.ordering',
+                'featured', 'a.featured',                                                                
                 'published', 'a.published',                                                
                 'checked_out', 'a.checked_out',
                 'checked_out_time', 'a.checked_out_time',
@@ -137,6 +138,9 @@ class jdownloadsModeldownloads extends JModelList
         $published = $this->getUserStateFromRequest($this->context . '.filter.published', 'filter_published', '');
         $this->setState('filter.published', $published);
 
+        $featured = $this->getUserStateFromRequest($this->context . '.filter.featured', 'filter_featured', '');
+        $this->setState('filter.featured', $featured);
+        
         $categoryId = $this->getUserStateFromRequest($this->context . '.filter.category_id', 'filter_category_id');
         $this->setState('filter.category_id', $categoryId);
 
@@ -168,7 +172,6 @@ class jdownloadsModeldownloads extends JModelList
          
         // Check if the ordering field is in the white list, otherwise use the incoming value.
         $value = $app->getUserStateFromRequest($this->context . '.ordercol', 'filter_order', $default_ordering);
-
         if (!in_array($value, $this->filter_fields)){
             $value = $default_ordering;
             $app->setUserState($this->context . '.ordercol', $value);
@@ -177,7 +180,6 @@ class jdownloadsModeldownloads extends JModelList
 
         // Check if the ordering direction is valid, otherwise use the incoming value.
         $value = $app->getUserStateFromRequest($this->context . '.orderdirn', 'filter_order_Dir', $default_direction);
-
         if (!in_array(strtoupper($value), array('ASC', 'DESC', ''))){
             $value = $direction;
             $app->setUserState($this->context . '.orderdirn', $value);
@@ -186,8 +188,8 @@ class jdownloadsModeldownloads extends JModelList
 
         $value = $app->getUserStateFromRequest($this->context . '.limitstart', 'limitstart', 0);
         $limitstart = ($limit != 0 ? (floor($value / $limit) * $limit) : 0);
+        $app->setUserState($this->context . '.limitstart', $limitstart);
         $this->setState('list.start', $limitstart);        
-        
         
         // Force a language
         /*$forcedLanguage = $app->input->get('forcedLanguage');
@@ -219,6 +221,7 @@ class jdownloadsModeldownloads extends JModelList
         $id    .= ':'.$this->getState('filter.published');
         $id    .= ':'.$this->getState('filter.category_id');
         $id    .= ':'.$this->getState('filter.language');
+        $id    .= ':'.$this->getState('filter.featured');
 
         return parent::getStoreId($id);
     }
@@ -247,7 +250,7 @@ class jdownloadsModeldownloads extends JModelList
                 'list.select',
                 'a.file_id, a.file_title, a.file_alias, a.description, a.file_pic, a.price, a.release, a.cat_id, '.
                 'a.size, a.date_added, a.publish_from, a.publish_to, a.use_timeframe, a.url_download, a.other_file_id, a.extern_file, a.downloads, '.
-                'a.extern_site, a.notes, a.access, a.language, a.checked_out, a.checked_out_time, a.ordering, a.published, a.asset_id'
+                'a.extern_site, a.notes, a.access, a.language, a.checked_out, a.checked_out_time, a.ordering, a.featured, a.published, a.asset_id'
             )
         );
         $query->from('`#__jdownloads_files` AS a');
@@ -283,6 +286,15 @@ class jdownloadsModeldownloads extends JModelList
         elseif ($published === '') {
             $query->where('(a.published = 0 OR a.published = 1)');
         }
+        
+        // Filter by featured state
+        $featured = $this->getState('filter.featured');
+        if (is_numeric($featured)) {
+            $query->where('a.featured = ' . (int) $featured);
+        }
+        elseif ($featured === '' || $featured === 'all') {
+            $query->where('(a.featured = 0 OR a.featured = 1)');
+        }        
         
         // Filter by a single or group of categories
         $baselevel = 1;

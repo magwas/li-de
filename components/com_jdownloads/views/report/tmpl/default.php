@@ -25,8 +25,16 @@ defined('_JEXEC') or die('Restricted access');
     if ($this->user_rules->view_captcha){
         // get captcha plugin
         JPluginHelper::importPlugin('captcha');
+        $plugin = JPluginHelper::getPlugin('captcha', 'recaptcha');
+
+        // Get plugin param
+        $pluginParams = new JRegistry($plugin->params);
+        $captcha_version = $pluginParams->get('version');        
+        
         $dispatcher = JDispatcher::getInstance();
-        $dummy = $jinput->getString('recaptcha_response_field');
+        $dummy = $jinput->getString('g-recaptcha-response');
+        if (!$dummy) $dummy = $jinput->getString('recaptcha_response_field');        
+        
         // check now whether user has used the captcha already
         if (isset($dummy)){
                 $captcha_res = $dispatcher->trigger('onCheckAnswer', $dummy);

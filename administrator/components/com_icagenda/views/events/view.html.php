@@ -133,7 +133,7 @@ class iCagendaViewEvents extends JViewLegacy
 		$document->setTitle($title);
 
 		//Check if the form exists before showing the add/edit buttons
-		$formPath = JPATH_COMPONENT_ADMINISTRATOR.'/views/event';
+		$formPath = JPATH_COMPONENT_ADMINISTRATOR . '/views/event';
 
 		if (file_exists($formPath)
 			&& $icagenda_categories

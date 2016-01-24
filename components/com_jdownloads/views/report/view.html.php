@@ -83,7 +83,11 @@ class jdownloadsViewReport extends JViewLegacy
                 }');
 
         $document->addStyleSheet( JURI::base()."components/com_jdownloads/assets/css/jdownloads_fe.css", "text/css", null, array() );
-        $document->addStyleSheet( JURI::base()."components/com_jdownloads/assets/rating/css/ajaxvote.css", "text/css", null, array() );         
+        
+         if ($jlistConfig['view.ratings']){
+             $document->addStyleSheet( JURI::base()."components/com_jdownloads/assets/rating/css/ajaxvote.css", "text/css", null, array() );         
+         }       
+
         
         $custom_css_path = JPATH_ROOT.'/components/com_jdownloads/assets/css/jdownloads_custom.css';
         if (JFile::exists($custom_css_path)){

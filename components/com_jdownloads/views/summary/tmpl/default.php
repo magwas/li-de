@@ -55,8 +55,16 @@ defined('_JEXEC') or die('Restricted access');
         if ($this->user_rules->view_captcha){
             // get captcha plugin
             JPluginHelper::importPlugin('captcha');
+            $plugin = JPluginHelper::getPlugin('captcha', 'recaptcha');
+
+            // Get plugin param
+            $pluginParams = new JRegistry($plugin->params);
+            $captcha_version = $pluginParams->get('version');
+            
             $dispatcher = JDispatcher::getInstance();
-            $dummy = $jinput->getString('recaptcha_response_field');
+            $dummy = $jinput->getString('g-recaptcha-response');
+            if (!$dummy) $dummy = $jinput->getString('recaptcha_response_field');
+               
             // check now whether user has used the captcha already
             if (isset($dummy)){
                 $captcha_res = $dispatcher->trigger('onCheckAnswer', $dummy);
@@ -443,7 +451,11 @@ defined('_JEXEC') or die('Restricted access');
                         // we use for the form action the request_uri
                         $captcha = '<div id="jd_container" class="jd_recaptcha">';
                         if ($captcha_invalid_msg == ''){
-                            $captcha .= JText::_('COM_JDOWNLOADS_FIELD_CAPTCHA_HINT');
+                            if ($captcha_version == '1.0'){
+                                $captcha .= JText::_('COM_JDOWNLOADS_FIELD_CAPTCHA_HINT');
+                            } elseif ($captcha_version == '2.0'){
+                                $captcha .= JText::_('COM_JDOWNLOADS_FIELD_CAPTCHA_HINT_VERSION_2');
+                            }    
                         }    
                         $captcha .= '<form action="'.$form_uri.'" method="post" id="summary" class="form-validate" enctype="multipart/form-data" accept-charset="utf-8">';
                         $captcha .= '<div id="dynamic_recaptcha_1">&#160;</div>';
@@ -718,6 +730,15 @@ defined('_JEXEC') or die('Restricted access');
         } else {
             $html_sum = str_replace('{user_limitations}', '', $html_sum);
         }
+        
+         // report download link
+         if ($jd_user_settings->view_report_form && count($files) == 1){
+             // create also link for report link when only one file selected
+             $report_link = '<a href="'.JRoute::_("index.php?option=com_jdownloads&amp;view=report&amp;id=".(int)$files[0]->file_id."&amp;catid=".$files[0]->cat_id."&amp;Itemid=".$root_itemid).'" rel="nofollow">'.JText::_('COM_JDOWNLOADS_FRONTEND_REPORT_FILE_LINK_TEXT').'</a>';                
+             $html_sum = str_replace('{report_link}', $report_link, $html_sum);
+         } else {
+            $html_sum = str_replace('{report_link}', '', $html_sum);
+         }         
     
         $html .= $html_sum;
         

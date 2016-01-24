@@ -128,7 +128,9 @@ class plgContentJdownloads extends JPlugin
                 $document->addStyleSheet( JURI::base()."components/com_jdownloads/assets/css/jdownloads_fe.css", 'text/css', null, array() );
                 $document->addStyleSheet( JURI::base()."components/com_jdownloads/assets/css/jdownloads_buttons.css", 'text/css', null, array() );
                 
-                $document->addStyleSheet( JURI::base()."components/com_jdownloads/assets/rating/css/ajaxvote.css", "text/css", null, array() );         
+                if ($jlistConfigM['view.ratings']){
+                    $document->addStyleSheet( JURI::base()."components/com_jdownloads/assets/rating/css/ajaxvote.css", "text/css", null, array() );         
+                }
                 
                 if ($jlistConfigM['use.lightbox.function']){
                     // Only when lightbox is activated in jD
@@ -152,7 +154,9 @@ class plgContentJdownloads extends JPlugin
                 }
                 
                 // add rating script
-                $document->addScript(JURI::base().'components/com_jdownloads/assets/rating/js/ajaxvote.js');
+                if ($jlistConfigM['view.ratings']){
+                    $document->addScript(JURI::base().'components/com_jdownloads/assets/rating/js/ajaxvote.js');
+                }  
                                 
             }     
             $jDFPloaded = 1;
@@ -622,7 +626,10 @@ class plgContentJdownloads extends JPlugin
       } else {
           // Allowed
           $download_allowed = 1;
-      }                                 
+      }
+      
+      $files->tags = new JHelperTags;
+      $files->tags->getItemTags('com_jdownloads.download', $files->file_id);                                       
       
       // Plugin enabled or disabled
       if ($jlistConfigM['fileplugin.enable_plugin'] == 0){
@@ -644,7 +651,7 @@ class plgContentJdownloads extends JPlugin
 
       $jd_template = jd_file_fill_downloadok($jd_template, $files, $jd_template_symbol_off, $matches[1], $download_allowed);
 
-      return $jd_template;
+      return '<div class="jd_content">'.$jd_template.'</div>';
     }
 
     function jd_file_fill_nodownload($p_Template, $p_Title, $p_Description, $p_Filepic){
@@ -683,6 +690,9 @@ class plgContentJdownloads extends JPlugin
 
       $l_Template = str_replace("{hits_title}",'',$l_Template);
       $l_Template = str_replace("{hits_value}",'',$l_Template);
+      
+      $l_Template = str_replace('{category_title}', '', $l_Template);
+      $l_Template = str_replace('{category_name}', '', $l_Template);
       
       // remove images placeholders
       if (strpos($l_Template, "{screenshot_end}") > 0) {
@@ -738,8 +748,14 @@ class plgContentJdownloads extends JPlugin
       $l_Template = str_replace("{report_link}",'',$l_Template);
       $l_Template = str_replace("{sum_jcomments}",'',$l_Template);
       $l_Template = str_replace("{rating}",'',$l_Template);
+      $l_Template = str_replace("{rating_title}",'',$l_Template);
       $l_Template = str_replace("{file_date}", '', $l_Template); 
       $l_Template = str_replace("{file_date_title}", '', $l_Template);
+      $l_Template = str_replace("{tags_title}", '', $l_Template);
+      $l_Template = str_replace("{tags}", '', $l_Template);
+      $l_Template = str_replace("{featured_class}", '', $l_Template);
+      $l_Template = str_replace("{featured_detail_class}", '', $l_Template);
+      $l_Template = str_replace("{featured_pic}", '', $l_Template);
       
        // delete the tabs placeholder 
        $l_Template = str_replace('{tabs begin}', '', $l_Template);
@@ -905,14 +921,39 @@ class plgContentJdownloads extends JPlugin
             $l_Template = str_replace('{filesize_value}', '', $l_Template); 
             
         } 
+
+        // category title        
+        $l_Template = str_replace('{category_title}', JText::_('COM_JDOWNLOADS_CATEGORY_LABEL'), $l_Template);
+        $l_Template = str_replace('{category_name}', $files->category_title, $l_Template);
         
         // insert rating system
         if ($jlistConfigM['view.ratings']){
             $rating_system = JDHelper::getRatings($files->file_id, $files->rating_count, $files->rating_sum);
             $l_Template = str_replace('{rating}', $rating_system, $l_Template);
+            $l_Template = str_replace('{rating_title}', JText::_('COM_JDOWNLOADS_RATING_LABEL'), $l_Template);
         } else {
             $l_Template = str_replace('{rating}', '', $l_Template);
-        } 
+            $l_Template = str_replace('{rating_title}', '', $l_Template);
+        }
+        
+        // replace 'featured' placeholders
+        if ($files->featured){
+            // add the css class
+            $l_Template = str_replace('{featured_class}', 'jd_featured', $l_Template);
+            $l_Template = str_replace('{featured_detail_class}', 'jd_featured_detail', $l_Template);            
+            // add the pic
+            if ($jlistConfigM['featured.pic.filename']){
+                $featured_pic = '<img class="jd_featured_star" src="'.JURI::base().'images/jdownloads/featuredimages/'.$jlistConfigM['featured.pic.filename'].'" width="'.$jlistConfigM['featured.pic.size'].'" height="'.$jlistConfigM['featured.pic.size.height'].'" alt="'.$jlistConfigM['featured.pic.filename'].'" />';
+                $l_Template = str_replace('{featured_pic}', $featured_pic, $l_Template);
+            } else {
+                $l_Template = str_replace('{featured_pic}', '', $l_Template);
+            }
+        } else {
+            $l_Template = str_replace('{featured_class}', '', $l_Template);
+            $l_Template = str_replace('{featured_detail_class}', '', $l_Template);
+            $l_Template = str_replace('{featured_pic}', '', $l_Template);
+        }
+         
         
         // Build the license info data and build link
         if ($files->license == '') $files->license = 0;
@@ -1060,13 +1101,13 @@ class plgContentJdownloads extends JPlugin
         }    
       
         // file size
-        if (!$files->size == '') {
-            $l_Template = str_replace('{size}', $jdpic_size.$files->size, $l_Template);
-            $l_Template = str_replace('{filesize_value}', $jdpic_size.$files->size, $l_Template);
-        } else {
+        if ($files->size == '' || $files->size == '0 B') {
             $l_Template = str_replace('{size}', '', $l_Template);
             $l_Template = str_replace('{filesize_value}', '', $l_Template);
-        }
+        } else {
+            $l_Template = str_replace('{size}', $jdpic_size.$files->size, $l_Template);
+            $l_Template = str_replace('{filesize_value}', $jdpic_size.$files->size, $l_Template);
+        } 
         
         // price
         if ($files->price != '') {
@@ -1230,7 +1271,7 @@ class plgContentJdownloads extends JPlugin
             }  
         }            
         
-        if ( !$jlistConfigM['flowplayer.use'] && $files->itemtype == 'mp3' ){
+        if ( !$jlistConfigM['flowplayer.use'] && !$jlistConfigM['html5player.use'] && $files->itemtype == 'mp3' ){
             // we use only the 'OLD' mp3 player
             if ($extern_media){
                 $mp3_path = $files->extern_file;
@@ -1244,7 +1285,6 @@ class plgContentJdownloads extends JPlugin
                 }   
             }    
             $mp3_config = trim($jlistConfigM['mp3.player.config']);
-            $mp3_config = str_replace('', '', $mp3_config);
             $mp3_config = str_replace(';', '&amp;', $mp3_config);
             
             $mp3_player =  
@@ -1253,74 +1293,134 @@ class plgContentJdownloads extends JPlugin
             <param name="wmode" value="transparent"/>
             <param name="FlashVars" value="mp3='.$mp3_path.'&amp;'.$mp3_config.'" />
             </object>';   
+           
+            if (strpos($l_Template, '{mp3_player}')){
+                $l_Template = str_replace('{mp3_player}', $mp3_player, $l_Template);
+                $l_Template = str_replace('{preview_player}', '', $l_Template);
+            } else {                
+                $l_Template = str_replace('{preview_player}', $mp3_player, $l_Template);
+            }            
             
-            $l_Template = str_replace('{mp3_player}', $mp3_player, $l_Template);            
         } 
         
-        if ( $jlistConfigM['flowplayer.use'] && $is_playable ){
-            // we will use the new flowplayer option
-            if ($extern_media){
-                $media_path = $files->extern_file;
-            } else {        
-                if ($is_preview){
-                    // we need the relative path to the "previews" folder
-                    $media_path = basename($jlistConfigM['files.uploaddir']).'/'.$jlistConfigM['preview.files.folder.name'].'/'.$files->preview_filename;
-                } else {
-                    // we use the normal download file for the player
-                    $media_path = basename($jlistConfigM['files.uploaddir']).'/'.$category_dir.'/'.$files->url_download;
-                }   
-            }    
-
-            $ipadcode = '';
-
-            if ($files->itemtype == 'mp3'){
-                $fullscreen = 'false';
-                $autohide = 'false';
-                $playerheight = (int)$jlistConfigM['flowplayer.playerheight.audio'];
-                // we must use also the ipad plugin identifier when required
-                // see http://flowplayer.blacktrash.org/test/ipad-audio.html and http://flash.flowplayer.org/plugins/javascript/ipad.html
-                if ($ipad_user){
-                   $ipadcode = '.ipad();'; 
-                }    
-            } else {
-                $fullscreen = 'true';
-                $autohide = 'true';
-                $playerheight = (int)$jlistConfigM['flowplayer.playerheight'];
-            }
+        if ( $is_playable ){
             
-            $player = '<a href="'.$media_path.'" style="display:block;width:'.$jlistConfigM['flowplayer.playerwidth'].'px; height:'.$playerheight.'px;" class="player" id="player'.$files->file_id.'"></a>';
-            $player .= '<script language="JavaScript">
-            // install flowplayer into container
-                        flowplayer("player'.$files->file_id.'", "'.JURI::base().'components/com_jdownloads/assets/flowplayer/flowplayer-3.2.16.swf",  
-                         {  
-                plugins: {
-                    controls: {
-                        // insert at first the config settings
-                        '.$jlistConfigM['flowplayer.control.settings'].'
-                        // and now the basics
-                        fullscreen: '.$fullscreen.',
-                        height: '.(int)$jlistConfigM['flowplayer.playerheight.audio'].',
-                        autoHide: '.$autohide.',
+            if ($jlistConfigM['html5player.use']){
+                // we will use the new HTML5 player option
+                if ($extern_media){
+                    $media_path = $files->extern_file;
+                } else {        
+                    if ($is_preview){
+                        // we need the relative path to the "previews" folder
+                        $media_path = JUri::base().basename($jlistConfigM['files.uploaddir']).'/'.$jlistConfigM['preview.files.folder.name'].'/'.$files->preview_filename;
+                    } else {
+                        // we use the normal download file for the player
+                        $media_path = JUri::base().basename($jlistConfigM['files.uploaddir']).'/'.$category_dir.'/'.$files->url_download;
+                    }   
+                }    
+                        
+                // create the HTML5 player
+                $player = JDHelper::getHTML5Player($files, $media_path);
+                
+                // we use the player for video files only in listings, when the option allowed this
+                if ($jlistConfigM['html5player.view.video.only.in.details'] && $files->itemtype != 'mp3' && $files->itemtype != 'wav' && $files->itemtype != 'oga'){
+                    $l_Template = str_replace('{mp3_player}', '', $l_Template);
+                    $l_Template = str_replace('{preview_player}', '', $l_Template);
+                } else {                            
+                    if ($files->itemtype == 'mp4' || $files->itemtype == 'webm' || $files->itemtype == 'ogg' || $files->itemtype == 'ogv' || $files->itemtype == 'mp3' || $files->itemtype == 'wav' || $files->itemtype == 'oga'){
+                        // We will replace at first the old placeholder when exist
+                        if (strpos($l_Template, '{mp3_player}')){
+                            $l_Template = str_replace('{mp3_player}', $player, $l_Template);
+                            $l_Template = str_replace('{preview_player}', '', $l_Template);
+                        } else {                
+                            $l_Template = str_replace('{preview_player}', $player, $l_Template);
+                        }    
+                    } else {
+                        $l_Template = str_replace('{mp3_player}', '', $l_Template);
+                        $l_Template = str_replace('{preview_player}', '', $l_Template);
+                    }    
+                }                
+            
+            } else {        
+    
+                if ( $jlistConfigM['flowplayer.use'] && $is_playable ){
+                    // we will use the new flowplayer option
+                    if ($extern_media){
+                        $media_path = $files->extern_file;
+                    } else {        
+                        if ($is_preview){
+                            // we need the relative path to the "previews" folder
+                            $media_path = basename($jlistConfigM['files.uploaddir']).'/'.$jlistConfigM['preview.files.folder.name'].'/'.$files->preview_filename;
+                        } else {
+                            // we use the normal download file for the player
+                            $media_path = basename($jlistConfigM['files.uploaddir']).'/'.$category_dir.'/'.$files->url_download;
+                        }   
+                    }    
+
+                    $ipadcode = '';
+
+                    if ($files->itemtype == 'mp3'){
+                        $fullscreen = 'false';
+                        $autohide = 'false';
+                        $playerheight = (int)$jlistConfigM['flowplayer.playerheight.audio'];
+                        // we must use also the ipad plugin identifier when required
+                        // see http://flowplayer.blacktrash.org/test/ipad-audio.html and http://flash.flowplayer.org/plugins/javascript/ipad.html
+                        if ((bool) strpos($_SERVER['HTTP_USER_AGENT'], 'iPad') || (bool) strpos($_SERVER['HTTP_USER_AGENT'], 'iPhone')){        
+                            $ipadcode = '.ipad();'; 
+                        }
+                    } else {
+                        $fullscreen = 'true';
+                        $autohide = 'true';
+                        $playerheight = (int)$jlistConfigM['flowplayer.playerheight'];
                     }
                     
-                },
-                clip: {
-                    autoPlay: false,
-                    // optional: when playback starts close the first audio playback
-                     onBeforeBegin: function() {
-                        $f("player'.$files->file_id.'").close();
+                    $player = '<a href="'.$media_path.'" style="display:block;width:'.$jlistConfigM['flowplayer.playerwidth'].'px; height:'.$playerheight.'px;" class="player" id="player'.$files->file_id.'"></a>';
+                    $player .= '<script language="JavaScript">
+                    // install flowplayer into container
+                                flowplayer("player'.$files->file_id.'", "'.JURI::base().'components/com_jdownloads/assets/flowplayer/flowplayer-3.2.16.swf",  
+                                 {  
+                        plugins: {
+                            controls: {
+                                // insert at first the config settings
+                                '.$jlistConfigM['flowplayer.control.settings'].'
+                                // and now the basics
+                                fullscreen: '.$fullscreen.',
+                                height: '.(int)$jlistConfigM['flowplayer.playerheight.audio'].',
+                                autoHide: '.$autohide.',
+                            }
+                            
+                        },
+                        clip: {
+                            autoPlay: false,
+                            // optional: when playback starts close the first audio playback
+                             onBeforeBegin: function() {
+                                $f("player'.$files->file_id.'").close();
+                            }
+                        }
+                    })'.$ipadcode.'; </script>';
+                    // the 'ipad code' above is only required for ipad/iphone users                
+                    
+                    // we use the player for video files only in listings, when the option allowed this
+                    if ($jlistConfigM['flowplayer.view.video.only.in.details'] && $files->itemtype != 'mp3'){ 
+                        $l_Template = str_replace('{mp3_player}', '', $l_Template);
+                        $l_Template = str_replace('{preview_player}', '', $l_Template);            
+                    } else {    
+                        if ($files->itemtype == 'mp4' || $files->itemtype == 'flv' || $files->itemtype == 'mp3'){    
+                            // We will replace at first the old placeholder when exist
+                            if (strpos($l_Template, '{mp3_player}')){
+                                $l_Template = str_replace('{mp3_player}', $player, $l_Template);
+                                $l_Template = str_replace('{preview_player}', '', $l_Template);
+                            } else {
+                                $l_Template = str_replace('{preview_player}', $player, $l_Template);
+                            }                                
+                        } else {
+                            $l_Template = str_replace('{mp3_player}', '', $l_Template);
+                            $l_Template = str_replace('{preview_player}', '', $l_Template);
+                        }
                     }
                 }
-            })'.$ipadcode.'; </script>';
-            // the 'ipad code' above is only required for ipad/iphone users                
-            
-            // We will replace at first the old placeholder when exist
-            if (strpos($l_Template, '{mp3_player}')){
-                $l_Template = str_replace('{mp3_player}', $player, $l_Template);
-            } else {                
-                $l_Template = str_replace('{preview_player}', $player, $l_Template);
-            }    
-        } 
+            }
+        }                 
             
         if ($jlistConfigM['mp3.view.id3.info'] && $files->itemtype == 'mp3' && !$extern_media){
            // read mp3 infos
@@ -1382,8 +1482,18 @@ class plgContentJdownloads extends JPlugin
             $l_Template = str_replace('{preview_url}', $media_path, $l_Template);
         } else {
             $l_Template = str_replace('{preview_url}', '', $l_Template);
-        }                 
-       
+        }
+        
+        // render the tags
+        if (!empty($files->tags->itemTags)){ 
+            $files->tagLayout = new JLayoutFile('joomla.content.tags');
+            $l_Template = str_replace('{tags}', $files->tagLayout->render($files->tags->itemTags), $l_Template);
+            $l_Template = str_replace('{tags_title}', JText::_('COM_JDOWNLOADS_TAGS_LABEL'), $l_Template);
+        } else {
+            $l_Template = str_replace('{tags}', '', $l_Template);
+            $l_Template = str_replace('{tags_title}', '', $l_Template);
+        }        
+                         
         $user_can_see_download_url = false;
        
         // only view download link when user has correct access level
@@ -1569,6 +1679,7 @@ class plgContentJdownloads extends JPlugin
       $l_Template = str_replace('{report_link}','', $l_Template);
       $l_Template = str_replace('{sum_jcomments}','', $l_Template);
       $l_Template = str_replace('{rating}','', $l_Template);
+      $l_Template = str_replace('{rating_title}','', $l_Template);
       
       // custom fields
       $custom_fields_arr = existsCustomFieldsTitlesPlg();

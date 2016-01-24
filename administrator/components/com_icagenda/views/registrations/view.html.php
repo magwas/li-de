@@ -10,7 +10,7 @@
  * @author      Cyril Rezé (Lyr!C)
  * @link        http://www.joomlic.com
  *
- * @version     3.5.6 2015-06-10
+ * @version     3.5.9 2015-07-22
  * @since       2.0
  *------------------------------------------------------------------------------
 */
@@ -23,9 +23,12 @@ defined('_JEXEC') or die();
  */
 class iCagendaViewRegistrations extends JViewLegacy
 {
+	protected $params;
+	protected $state;
 	protected $items;
 	protected $pagination;
-	protected $state;
+	protected $events;
+	protected $dates;
 
 	/**
 	 * Display the view
@@ -41,9 +44,11 @@ class iCagendaViewRegistrations extends JViewLegacy
 			JHtml::stylesheet('com_icagenda/icagenda-back.j25.css', false, true);
 		}
 
+		$this->params		= JComponentHelper::getParams('com_icagenda');
 		$this->state		= $this->get('State');
 		$this->items		= $this->get('Items');
 		$this->pagination	= $this->get('Pagination');
+
 		$this->events		= $this->get('Events');
 		$this->dates		= $this->get('Dates');
 
@@ -78,7 +83,8 @@ class iCagendaViewRegistrations extends JViewLegacy
 		require_once JPATH_COMPONENT . '/helpers/icagenda.php';
 
 		$state	= $this->get('State');
-		$canDo	= iCagendaHelper::getActions($state->get('filter.registration_id'));
+//		$canDo	= iCagendaHelper::getActions($state->get('filter.registration_id'));
+		$canDo	= iCagendaHelper::getActions();
 
 		// Set Title
 		if (version_compare(JVERSION, '3.0', 'lt'))

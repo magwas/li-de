@@ -47,6 +47,10 @@
 		</param>
 		<param name="@spacer" type="spacer" default="" label="" description="" />
 		<param name="customcss" cols="40" rows="5" type="textarea" default="" label="Custom CSS" description="You can specify here some CSS which will be added to the registration page" />
+        <param name="deletebehavior" type="radio" default="0" label="User deletion behavior" description="Choose if the AcyMailing user should also be deleted when the Joomla account is deleted">
+            <option value="0">Delete AcyMailing user</option>
+            <option value="1">Keep AcyMailing user</option>
+        </param>
 	</params>
 	<config>
 		<fields name="params" addfieldpath="/components/com_acymailing/params">
@@ -84,6 +88,10 @@
 				</field>
 				<field name="@spacer" type="spacer" default="" label="" description="" />
 				<field name="customcss" cols="40" rows="5" type="textarea" default="" label="Custom CSS" description="You can specify here some CSS which will be added to the registration page" />
+                <field name="deletebehavior" type="radio" default="0" label="User deletion behavior" description="Choose if the AcyMailing user should also be deleted when the Joomla account is deleted">
+                    <option value="0">Delete AcyMailing user</option>
+                    <option value="1">Keep AcyMailing user</option>
+                </field>
 			</fieldset>
 		</fields>
 	</config>

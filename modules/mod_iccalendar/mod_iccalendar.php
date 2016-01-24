@@ -10,7 +10,7 @@
  * @author      Cyril Rezé (Lyr!C) - doorknob
  * @link        http://www.joomlic.com
  *
- * @version		3.5.7 2015-07-05
+ * @version		3.5.13 2015-11-23
  * @since       1.0
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -133,14 +133,16 @@ $modid		= $module->id;
 $moduleclass_sfx	= htmlspecialchars($params->get('moduleclass_sfx'));
 $mouseover			= $params->get('mouseover', 'click');
 $mouseout			= $params->get('mouseout', 1);
-$mon				= $params->get('mon', ' ');
-$tue				= $params->get('tue', ' ');
-$wed				= $params->get('wed', ' ');
-$thu				= $params->get('thu', ' ');
-$fri				= $params->get('fri', ' ');
-$sat				= $params->get('sat', ' ');
-$sun				= $params->get('sun', ' ');
-$firstday			= $params->get('firstday');
+$columns_bg_color	= array(
+						$params->get('sun', ' '),
+						$params->get('mon', ' '),
+						$params->get('tue', ' '),
+						$params->get('wed', ' '),
+						$params->get('thu', ' '),
+						$params->get('fri', ' '),
+						$params->get('sat', ' '),
+					);
+$firstday			= $params->get('firstday', '1');
 $calfontcolor		= $params->get('calfontcolor', ' ');
 $OneEventbgcolor	= $params->get('OneEventbgcolor', ' ');
 $Eventsbgcolor		= $params->get('Eventsbgcolor', ' ');
@@ -168,43 +170,18 @@ $data		= $cal->getStamp($params);
 $url_date	= JRequest::getVar('date');
 $iccaldate	= JRequest::getVar('iccaldate');
 
-
-//function GetNbDays ($month = null, $year = null)
-//{
-//	$month = ($month) ? $month : date('m');
-//	$year = ($year) ? $year : date('Y');
-
-//	return intval(date("t",strtotime("$year-$month-01")));
-//}
-
-
 // First day of the current month
 $this_month	= $firstMonth
-			? date("Y-m-d", strtotime("+1 month", strtotime($firstMonth)))
+//			? date("Y-m-d", strtotime("+1 month", strtotime($firstMonth)))
+			? date("Y-m-01", strtotime($firstMonth))
 			: JHtml::date('now', 'Y-m-01', null);
-//			: date('Y-m') . '-01';
 
 if ( isset($iccaldate)
 	&& !empty($iccaldate) )
 {
 	// This should be the first day of a month
 	$date_start = date('Y-m-01', strtotime($iccaldate));
-//	$date_start = JHtml::date($iccaldate, 'Y-m-01', null);
 }
-//elseif (isset($url_date)&&(!empty($url_date)))
-//{
-//	$dateget = explode ('-', $url_date);
-//	$year_ajust = $dateget['0'];
-//	$month_ajust = $dateget['1'];
-//	$day_ajust = $dateget['2'];
-//	$dateget = $year_ajust.'-'.$month_ajust.'-'.$day_ajust;
-//	$time = strtotime($dateget);
-//	$nbMdays = GetNbDays($month_ajust, $year_ajust);
-//	echo $nbMdays;
-//	$date_return = date("Y-m-d", strtotime("+1 month", $time));
-//
-//	$date_start = $dateget;
-//}
 else
 {
 	$date_start	= $this_month;
@@ -212,19 +189,6 @@ else
 
 $nav = $cal->getNav($date_start, $modid);
 
-
-// Set first day
-if ($firstday == NULL) {
-	$firstday = '1';
-}
-if ($firstday == '0')
-{
-	$na=7;$nb=1;$nc=2;$nd=3;$ne=4;$nf=5;$ng=6;
-}
-elseif ($firstday == '1')
-{
-	$na=1;$nb=2;$nc=3;$nd=4;$ne=5;$nf=6;$ng=7;
-}
 
 // Search template of iC Calendar from the selected Theme Pack
 $themes_path = '/components/com_icagenda/themes/packs/';
@@ -354,8 +318,8 @@ $close_btn		= ($closebutton == 1) ? $closebutton_custom : JText::_('MOD_ICCALEND
 // Minimum popup width for mobile phone mode
 $mobile_min_width = 320;
 
-$stamp = new cal($data, $t_calendar, $t_day, $nav, $mon, $tue, $wed, $thu, $fri, $sat, $sun, $firstday, $calfontcolor,
-		$OneEventbgcolor, $Eventsbgcolor, $bgcolor, $bgimage, $bgimagerepeat, $na, $nb, $nc, $nd, $ne, $nf, $ng,
+$stamp = new cal($data, $t_calendar, $t_day, $nav, $firstday, $columns_bg_color, $calfontcolor,
+		$OneEventbgcolor, $Eventsbgcolor, $bgcolor, $bgimage, $bgimagerepeat,
 		$moduleclass_sfx, $modid, $theme_calendar, $ictip_ordering, $header_text);
 
 // Load Calendar Template
@@ -484,6 +448,7 @@ require $t_calendar;
 </script>
 <?php
 if ( ! $setTodayTimezone && $server_date
+	&& ! $firstMonth
 	&& $lang->getTag() != 'fa-IR')
 {
 	$document->addScriptDeclaration('

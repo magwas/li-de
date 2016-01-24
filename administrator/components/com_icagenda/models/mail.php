@@ -10,7 +10,7 @@
  * @author      Cyril Rezé (Lyr!C)
  * @link        http://www.joomlic.com
  *
- * @version     3.3.0 2014-02-27
+ * @version     3.5.9 2015-07-30
  * @since       2.0
  *------------------------------------------------------------------------------
 */
@@ -19,13 +19,13 @@
 defined('_JEXEC') or die();
 
 jimport('joomla.application.component.modeladmin');
-jimport( 'joomla.mail.mail' );
+jimport('joomla.mail.mail');
 
 
 /**
  * iCagenda model.
  */
-class iCagendaModelmail extends JModelAdmin
+class iCagendaModelMail extends JModelAdmin
 {
 	/**
 	 * @var		string	The prefix to use with controller messages.
@@ -33,38 +33,23 @@ class iCagendaModelmail extends JModelAdmin
 	 */
 	protected $text_prefix = 'COM_ICAGENDA';
 
-
 	/**
-	 * Returns a reference to the a Table object, always creating it.
+	 * Method to get the row form.
 	 *
-	 * @param	type	The table type to instantiate
-	 * @param	string	A prefix for the table class name. Optional.
-	 * @param	array	Configuration array for model. Optional.
-	 * @return	JTable	A database object
-	 * @since	1.6
-	 */
-	public function getTable($type = 'Event', $prefix = 'iCagendaTable', $config = array())
-	{
-		return JTable::getInstance($type, $prefix, $config);
-	}
-
-	/**
-	 * Method to get the record form.
+	 * @param   array    $data      An optional array of data for the form to interogate.
+	 * @param   boolean  $loadData  True if the form is to load its own data (default case), false if not.
 	 *
-	 * @param	array	$data		An optional array of data for the form to interogate.
-	 * @param	boolean	$loadData	True if the form is to load its own data (default case), false if not.
-	 * @return	JForm	A JForm object on success, false on failure
-	 * @since	1.6
+	 * @return  JForm	A JForm object on success, false on failure
+	 *
+	 * @since   1.6
 	 */
 	public function getForm($data = array(), $loadData = true)
 	{
-		// Initialise variables.
-		$app	= JFactory::getApplication();
-
 		// Get the form.
-		$datamail = array('control' => 'jform', 'load_data' => $loadData);
-		$form = $this->loadForm('com_icagenda.mail', 'mail', $datamail);
-		if (empty($form)) {
+		$form = $this->loadForm('com_icagenda.mail', 'mail', array('control' => 'jform', 'load_data' => $loadData));
+
+		if (empty($form))
+		{
 			return false;
 		}
 
@@ -74,20 +59,32 @@ class iCagendaModelmail extends JModelAdmin
 	/**
 	 * Method to get the data that should be injected in the form.
 	 *
-	 * @return	mixed	The data for the form.
-	 * @since	1.6
+	 * @return  mixed  The data for the form.
+	 *
+	 * @since   1.6
 	 */
 	protected function loadFormData()
 	{
 		// Check the session for previously entered form data.
-		if(version_compare(JVERSION, '3.0', 'lt')) {
-			$data = JFactory::getApplication()->getUserState('com_icagenda.edit.event.data', array());
-			if (empty($data)) {
-				$data = $this->getItem();
+		if (version_compare(JVERSION, '3.0', 'lt'))
+		{
+			$data = JFactory::getApplication()->getUserState('com_icagenda.display.mail.data', array());
+
+			if (empty($data))
+			{
+//				$data = $this->getItem();
+				$data = JFactory::getApplication()->getUserState('com_icagenda.mail.data', array());
+			}
+		}
+		else
+		{
+			$data = JFactory::getApplication()->getUserState('com_icagenda.display.mail.data', array());
+
+			if (empty($data))
+			{
+				$data = JFactory::getApplication()->getUserState('com_icagenda.mail.data', array());
 			}
 
-		} else {
-			$data = JFactory::getApplication()->getUserState('com_icagenda.edit.mail.data', array());
 			$this->preprocessData('com_icagenda.mail', $data);
 		}
 
@@ -95,53 +92,16 @@ class iCagendaModelmail extends JModelAdmin
 	}
 
 	/**
-	 * Method to get a single record.
+	 * Method to preprocess the form
 	 *
-	 * @param	integer	The id of the primary key.
+	 * @param   JForm   $form   A form object.
+	 * @param   mixed   $data   The data expected for the form.
+	 * @param   string  $group  The name of the plugin group to import (defaults to "content").
 	 *
-	 * @return	mixed	Object on success, false on failure.
-	 * @since	1.6
-	 */
-	public function getItem($pk = null)
-	{
-		if ($item = parent::getItem($pk)) {
-
-			//Do any procesing on fields here if needed
-
-		}
-
-		return $item;
-	}
-
-	/**
-	 * Prepare and sanitise the table prior to saving.
+	 * @return  void
 	 *
-	 * @since	1.6
-	 */
-	protected function prepareTable( $table )
-	{
-		jimport('joomla.filter.output');
-
-		if (empty($table->id)) {
-
-			// Set ordering to the last item if not set
-			if (@$table->ordering === '') {
-				$db = JFactory::getDbo();
-				$db->setQuery('SELECT MAX(ordering) FROM #__icagenda_events');
-				$max = $db->loadResult();
-				$table->ordering = $max+1;
-			}
-
-		}
-	}
-
-	/**
-	 * Override preprocessForm to load the user plugin group instead of content.
-	 *
-	 * @param   object	A form object.
-	 * @param   mixed	The data expected for the form.
-	 * @throws	Exception if there is an error in the form event.
 	 * @since   1.6
+	 * @throws  Exception if there is an error loading the form.
 	 */
 	protected function preprocessForm(JForm $form, $data, $group = 'user')
 	{
@@ -149,95 +109,176 @@ class iCagendaModelmail extends JModelAdmin
 	}
 
 	/**
-	 * Send mail
+	 * Send the email
 	 *
+	 * @return  boolean
 	 */
-
-
-	function getMail(){
-
+	public function send()
+	{
 		$app    = JFactory::getApplication();
 		$data   = $app->input->post->get('jform', array(), 'array');
 		$user   = JFactory::getUser();
 		$access = new JAccess;
-		$db     = $this->getDbo();
+
+		// Set Form Data to Session
+		$session = JFactory::getSession();
+		$session->set('ic_newsletter', $data);
 
 		$mailer = JFactory::getMailer();
 		$config = JFactory::getConfig();
 
-		$send='';
-		if(version_compare(JVERSION, '3.0', 'lt'))
-		{
-			$sender = array(
-		    	$config->getValue( 'config.mailfrom' ),
-		    	$config->getValue( 'config.fromname' ));
-		}
-		else
-		{
-			$sender = array(
-		    	$app->getCfg( 'mailfrom' ),
-		    	$app->getCfg( 'fromname' ));
-		}
+		$send	= '';
+
+		$sender = array(
+		    $app->getCfg( 'mailfrom' ),
+		    $app->getCfg( 'fromname' )
+		    );
 
 		$mailer->setSender($sender);
 
-		$list = array_key_exists('list', $data) ? $data['list'] : '';
-		$subject = array_key_exists('subject', $data) ? $data['subject'] : '';
-		$messageget = array_key_exists('message', $data) ? $data['message'] : '';
+//		$list		= array_key_exists('list', $data) ? $data['list'] : ''; // DEPRECATED
+		$eventid	= array_key_exists('eventid', $data) ? $data['eventid'] : '';
+		$date		= array_key_exists('date', $data) ? $data['date'] : '';
 
-		$recipient = explode(', ', $list);
-		$obj   = $subject;
-		$message   = $messageget;
+		$db     = $this->getDbo();
+		$query	= $db->getQuery(true);
+		$query->select('r.email, r.eventid, r.state, r.date, r.people')
+			->from('`#__icagenda_registration` AS r');
+		$query->where('r.state = 1');
+		$query->where('r.email <> ""');
+		$query->where('r.eventid = ' . (int) $eventid);
 
+		if ($date != 'all')
+		{
+			if (iCDate::isDate($date))
+			{
+				$query->where('r.date = ' . $db->q($date));
+			}
+			elseif ($date == 1)
+			{
+				$query->where('r.period = 1');
+			}
+			elseif ($date)
+			{
+				// Fix for old date saving data
+				$query->where('r.date = ' . $db->q($date));
+			}
+			else
+			{
+				$query->where('r.period = 0');
+			}
+		}
 
-		$recipient = array_filter($recipient);
+		$db->setQuery($query);
+
+		$result	= $db->loadObjectList();
+
+		$list	= '';
+		$people	= 0;
+
+		foreach ($result as $v)
+		{
+			$list.= $v->email . ', ';
+			$people = ($people + $v->people);
+		}
+
+		$subject	= array_key_exists('subject', $data) ? $data['subject'] : '';
+		$messageget	= array_key_exists('message', $data) ? $data['message'] : '';
+
+		$list_emails	= explode(', ', $list);
+
+		// Remove dupplicated email addresses
+		$recipient			= array_unique($list_emails);
+		$dupplicated_emails	= count($list_emails) - count($recipient);
+
+		$obj		= $subject;
+		$message	= $messageget;
+
+		$recipient	= array_filter($recipient);
 //		$mailer->addRecipient($recipient);
 //		$mailer->addRecipient($sender);
 		$mailer->addBCC($recipient);
 
-		$content = stripcslashes($message);
-		$body=str_replace('src="images/', 'src="' . JURI::root() . '/images/', $content);
+		$content	= stripcslashes($message);
+		$body		= str_replace('src="images/', 'src="' . JURI::root() . '/images/', $content);
+
 //		$mailer->setSender(array( $mailfrom, $fromname ));
 		$mailer->setSubject($obj);
 		$mailer->isHTML(true);
 		$mailer->Encoding = 'base64';
 		$mailer->setBody($body);
 
-		if ( $obj == "" ) {
-			echo '<div><b>'.JText::_('COM_ICAGENDA_NEWSLETTER_NO_OBJ_ALERT').'</b></div>';
-			echo '<script type="text/javascript">';
-			echo '	alert("'.JText::_('COM_ICAGENDA_NEWSLETTER_NO_OBJ_ALERT', true).'");';
-			echo '</script>';
-		}
-		if ( $body == "" ) {
-			echo '<div><b>'.JText::_('COM_ICAGENDA_NEWSLETTER_NO_BODY_ALERT').'</b></div>';
-			echo '<script type="text/javascript">';
-			echo '	alert("'.JText::_('COM_ICAGENDA_NEWSLETTER_NO_BODY_ALERT', true).'");';
-			echo '</script>';
-		}
-		if (( $obj != "" ) && ( $body != "" )){
+		if ($obj && $body && $eventid && ($date || $date == '0'))
+		{
 			$send = $mailer->Send();
 		}
-		if ( $send !== true ) {
-//		    echo 'Error in sending the e-mail: ' . $send->message;
-		    echo '<div>'.JText::_('COM_ICAGENDA_NEWSLETTER_ERROR_ALERT').'</div>';
-		} else {
-		    echo '<div><h2>'.JText::_('COM_ICAGENDA_NEWSLETTER_SUCCESS').'<h2></div>';
-			function listArray($recipient, $level = 0) {
-				foreach($recipient AS $key => $value) {
-					if (is_array($value) | is_object($value)) listArray($value, $level+=1);
-					else {
-						$number = ($key + 1);
-						echo str_repeat("&nbsp;", $level*3);
-						echo $number." : ".$value."<br>";
-					}
-				}
-		    	echo '<div>&nbsp;</div>';
-				echo '<i>'.JText::_('COM_ICAGENDA_NEWSLETTER_NB_EMAIL_SEND').' = '.$number.'</i>';
+
+		if ($send !== true)
+		{
+		    $app->enqueueMessage(JText::_('COM_ICAGENDA_NEWSLETTER_ERROR_ALERT'), 'error');
+
+		    if ( ! $obj)
+		    {
+		    	$app->enqueueMessage('- ' . JText::_('COM_ICAGENDA_NEWSLETTER_NO_OBJ_ALERT'), 'error');
+		    }
+		    if ( ! $body)
+		    {
+		    	$app->enqueueMessage('- ' . JText::_('COM_ICAGENDA_NEWSLETTER_NO_BODY_ALERT'), 'error');
+		    }
+		    if ( ! $eventid && ( ! $date && $date != '0'))
+		    {
+		    	$app->enqueueMessage('- ' . JText::_('COM_ICAGENDA_NEWSLETTER_NO_EVENT_SELECTED'), 'error');
+		    }
+		    elseif ( $eventid && ( ! $date && $date != '0'))
+		    {
+		    	$app->enqueueMessage('- ' . JText::_('COM_ICAGENDA_NEWSLETTER_NO_DATE_SELECTED'), 'error');
+		    }
+
+		    return false;
+		}
+		else
+		{
+		    $app->enqueueMessage('<h2>' . JText::_('COM_ICAGENDA_NEWSLETTER_SUCCESS') . '</h2>', 'message');
+
+			$app->enqueueMessage($this->listSend($recipient, 0, $people), 'message');
+
+			if ($dupplicated_emails)
+			{
+				$app->enqueueMessage('<i>' . JText::sprintf('COM_ICAGENDA_NEWSLETTER_NB_EMAIL_NOT_SEND', $dupplicated_emails) . '</i>', 'message');
 			}
-			  listArray($recipient);
+
+//			$app->setUserState('com_icagenda.mail.data', null);
 //			echo '<pre>'.print_r($recipient, true).'</pre>';
+
+		    return true;
 		}
 	}
 
+	public function listSend($recipient, $level = 0, $people = null)
+	{
+		$number		= 0;
+		$list_send	= '';
+
+		foreach($recipient AS $key => $value)
+		{
+			if (is_array($value) | is_object($value))
+			{
+				parent::listArray($value, $level+=1);
+			}
+			else
+			{
+//				$number = ($key + 1);
+				$number = ($number + 1);
+
+				$list_send.= str_repeat("&nbsp;", $level*3);
+				$list_send.= $number . " : " . $value . "<br>";
+			}
+		}
+
+//		$list_send.= '<div>&nbsp;</div>';
+		$list_send.= '<h4>' . JText::_('COM_ICAGENDA_NEWSLETTER_NB_EMAIL_SEND').' = ' . $number . '';
+		$list_send.= '<small> (' . JText::_('COM_ICAGENDA_REGISTRATION_TICKETS').': ' . $people . ')</small></h4>';
+
+		return $list_send;
+	}
 }

@@ -36,8 +36,10 @@ class SzavazasokModelSzavazas_folyik extends JModelList {
 	 * @return	object	A JDatabaseQuery object to retrieve the data set.
 	 */
 	protected function getListQuery()	{
+	$user = JFactory::getUser();	
     $w = explode('|',urldecode(JRequest::getVar('filterStr','')));
     $user = JFactory::getUser();
+	if (JRequest::getVar('order',1) < 7) JRequest::setVar('order',7);
     $filterStr = $w[0];
     $filterAktiv = $w[1];
     if ($filterAktiv==1)
@@ -51,13 +53,20 @@ class SzavazasokModelSzavazas_folyik extends JModelList {
 	$query	= $db->getQuery(true);			
 	$catid = (int) $this->getState('authorlist.id', 1);		
 	$query = '
-/* szavazások amik jelenleg vita1 állapotban vannak */
-/* ================================================ */
-SELECT sz.megnevezes, sz.leiras, sz.vita1, sz.vita2, sz.szavazas, sz.lezart, sz.szavazas_vege, sz.titkos, sz.vita2_vege,
-  sz.id, sz.temakor_id
-FROM #__szavazasok sz
-WHERE (sz.szavazas=1) '.$filterStr;
-    $query .= ' order by '.JRequest::getVar('order','6');
+	/* szavazások amik jelenleg folyamatban vannak */
+	/* ================================================ */
+	SELECT sz.megnevezes, sz.leiras, sz.vita1, sz.vita2, sz.szavazas, sz.lezart, sz.szavazas_vege, sz.titkos, sz.vita2_vege,
+	  sz.id, sz.temakor_id, u.username, sz2.user_id sz2id, datediff(sz.szavazas_vege, curdate()) hatravan
+	FROM #__szavazasok sz
+	LEFT OUTER JOIN #__users u on u.id = sz.letrehozo
+	LEFT OUTER JOIN #__szavazok sz2 on sz2.szavazas_id = sz.id and sz2.user_id = '.$user->id;
+	;
+	if (JRequest::getVar('temakor') > 0)
+	  $query .= ' WHERE (sz.szavazas=1 and sz.temakor_id="'.JRequest::getVar('temakor').'") '.$filterStr;
+	else
+	  $query .= ' WHERE sz.szavazas=1 '.$filterStr;
+    $query .= ' order by '.JRequest::getVar('order','7');
+	//DBG echo $query.'<br>';
     return $query;  
 	}
 	
@@ -68,11 +77,14 @@ WHERE (sz.szavazas=1) '.$filterStr;
   public function getTotal($filterStr='') {
      $result = 0;
      $db = JFactory::getDBO();
-     $db->setQuery('
-/* szavazások amik vita1 statuszban vannak */
-SELECT sz.id
-FROM #__szavazasok sz
-WHERE (sz.szavazas=1) '.$filterStr);
+     $query = '/* szavazások amik vita1 statuszban vannak */
+		SELECT sz.id
+		FROM #__szavazasok sz ';
+		if (JRequest::getVar('temakor') > 0)
+		  $query .= ' WHERE (sz.szavazas=1) and sz.temakor_id='.JRequest::getVar('temakor').' '.$filterStr;
+		else
+		  $query .= ' WHERE sz.szavazas=1 '.$filterStr;
+	 $db->setQuery($query); 
      $res = $db->loadObjectList();
      $result = count($res);
      return $result;

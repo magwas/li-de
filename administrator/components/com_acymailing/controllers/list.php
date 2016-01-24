@@ -1,7 +1,7 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.0.1
+ * @version	4.9.3
  * @author	acyba.com
  * @copyright	(C) 2009-2015 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
@@ -21,19 +21,20 @@ class ListController extends acymailingController{
 		if(!$this->isAllowed($this->aclCat,'manage')) return;
 		JRequest::checkToken() or die( 'Invalid Token' );
 
+		$app = JFactory::getApplication();
 		$listClass = acymailing_get('class.list');
 		$status = $listClass->saveForm();
 		if($status){
-			acymailing_enqueueMessage(JText::_( 'JOOMEXT_SUCC_SAVED' ), 'message');
+			$app->enqueueMessage(JText::_( 'JOOMEXT_SUCC_SAVED' ), 'message');
 			if($listClass->newlist){
 				$listid = JRequest::getInt('listid');
-				acymailing_enqueueMessage('<a href="index.php?option=com_acymailing&ctrl=filter&listid='.$listid.'">'.JText::sprintf( 'SUBSCRIBE_LIST').'</a>', 'message');
+				$app->enqueueMessage('<a href="index.php?option=com_acymailing&ctrl=filter&listid='.$listid.'">'.JText::sprintf( 'SUBSCRIBE_LIST').'</a>', 'message');
 			}
 		}else{
-			acymailing_enqueueMessage(JText::_( 'ERROR_SAVING' ), 'error');
+			$app->enqueueMessage(JText::_( 'ERROR_SAVING' ), 'error');
 			if(!empty($listClass->errors)){
 				foreach($listClass->errors as $oneError){
-					acymailing_enqueueMessage($oneError, 'error');
+					$app->enqueueMessage($oneError, 'error');
 				}
 			}
 		}
@@ -41,6 +42,7 @@ class ListController extends acymailingController{
 
 	function remove(){
 		if(!$this->isAllowed($this->aclCat,'delete')) return;
+		$app = JFactory::getApplication();
 
 		JRequest::checkToken() or die( 'Invalid Token' );
 
@@ -49,7 +51,7 @@ class ListController extends acymailingController{
 		$subscriberObject = acymailing_get('class.list');
 		$num = $subscriberObject->delete($listIds);
 
-		acymailing_enqueueMessage(JText::sprintf('SUCC_DELETE_ELEMENTS',$num), 'message');
+		$app->enqueueMessage(JText::sprintf('SUCC_DELETE_ELEMENTS',$num), 'message');
 
 		JRequest::setVar( 'layout', 'listing'  );
 		return parent::display();

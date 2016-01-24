@@ -12,6 +12,8 @@
 
 defined('_JEXEC') or die;
 
+    JHTML::_('bootstrap.tooltip');
+
     $html = '';
 	
     if ($files){

@@ -32,6 +32,7 @@ class jdownloadsViewcssedit extends JViewLegacy
    
         $this->setFile();
         $this->addToolbar();
+        $this->sidebar = JHtmlSidebar::render();        
         parent::display($tpl);
 	}
     
@@ -46,7 +47,12 @@ class jdownloadsViewcssedit extends JViewLegacy
 
         $css_file2 = JPATH_SITE.DS.'components'.DS.'com_jdownloads'.DS.'assets'.DS.'css'.DS.'jdownloads_buttons.css';
         @chmod ($css_file2, 0755);        
+        
+        $css_file3 = JPATH_SITE.DS.'components'.DS.'com_jdownloads'.DS.'assets'.DS.'css'.DS.'jdownloads_custom.css';
+        @chmod ($css_file3, 0755);        
+        
         clearstatcache();
+        
 
         if ( is_writable( $css_file ) == false ) {
           $css_writable = false;
@@ -60,6 +66,12 @@ class jdownloadsViewcssedit extends JViewLegacy
           $css_writable2 = true;
         }        
 
+        if ( is_writable( $css_file3 ) == false ) {
+          $css_writable3 = false;
+        } else {
+          $css_writable3 = true;
+        }        
+        
         if ($css_writable){
             $f=fopen($css_file,"r");
             $css_text = fread($f, filesize($css_file));
@@ -80,6 +92,17 @@ class jdownloadsViewcssedit extends JViewLegacy
         }
         $this->cssfile2 = $css_file2;
         $this->cssfile_writable2 = $css_writable2;        
+        
+        if ($css_writable3){
+            $f=fopen($css_file3,"r");
+            $css_text3 = fread($f, filesize($css_file3));
+            $this->csstext3 = htmlspecialchars($css_text3);
+        } else {
+            $this->csstext3 = '';
+        }
+        $this->cssfile3 = $css_file3;
+        $this->cssfile_writable3 = $css_writable3;        
+        
      }
     
     /**
@@ -99,7 +122,7 @@ class jdownloadsViewcssedit extends JViewLegacy
         $document = JFactory::getDocument();
         $document->addStyleSheet('components/com_jdownloads/assets/css/style.css');
         
-        JDownloadsHelper::addSubmenu('templates');  
+        //JDownloadsHelper::addSubmenu('templates');  
         
         JToolBarHelper::title(JText::_('COM_JDOWNLOADS').': '.JText::_('COM_JDOWNLOADS_BACKEND_EDIT_CSS_TITLE_EDIT'), 'jdlogo');
         

@@ -1,7 +1,7 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.0.1
+ * @version	4.9.3
  * @author	acyba.com
  * @copyright	(C) 2009-2015 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
@@ -101,6 +101,89 @@ class UserViewUser extends acymailingView
 			}
 		}
 
+		if(acymailing_level(1)){
+			$subscription = $listsClass->onlyCurrentLanguage($subscription);
+
+			$js = "function refreshCaptcha(){
+					var captchaLink = document.getElementById('captcha_picture').src;
+					myregexp = new RegExp('val[-=]([0-9]+)');
+					valToChange=captchaLink.match(myregexp)[1];
+					document.getElementById('captcha_picture').src = captchaLink.replace(valToChange,valToChange+'0');
+				}";
+			$document->addScriptDeclaration( $js );
+		}
+
+		if(acymailing_level(3)){
+			$fieldsClass = acymailing_get('class.fields');
+			$fieldsClass->origin = 'subform';
+			if(!empty($menuparams) && strtolower($menuparams->get('customfields','default')) != 'default'){
+				$extraFields = $fieldsClass->getFields(strtolower($menuparams->get('customfields')),$subscriber);
+			} else{
+				$extraFields = $fieldsClass->getFields('frontcomp',$subscriber);
+			}
+			$this->assignRef('fieldsClass',$fieldsClass);
+			$this->assignRef('extraFields',$extraFields);
+			$js = $fieldsClass->prepareConditionalDisplay($extraFields, 'data[subscriber]', 'modifyForm');
+			if(!empty($js)) $document->addScriptDeclaration($js);
+
+			$requiredFields = array();
+			$validMessages = array();
+			$checkFields = array();
+			$checkFieldsType = array();
+			$checkFieldsRegexp = array();
+			$validCheckMsg = array();
+
+			foreach($extraFields as $oneField){
+				if(in_array($oneField->namekey,array('name','email'))) continue;
+				if(!empty($oneField->required)){
+					$requiredFields[] = $oneField->namekey;
+					if(!empty($oneField->options['errormessage'])){
+						$validMessages[] = addslashes($fieldsClass->trans($oneField->options['errormessage']));
+					}else{
+						$validMessages[] = addslashes(JText::sprintf('FIELD_VALID',$fieldsClass->trans($oneField->fieldname)));
+					}
+				}
+				if($oneField->type == 'text' && !empty($oneField->options['checkcontent'])){
+					$checkFields[] = $oneField->namekey;
+					$checkFieldsType[] = $oneField->options['checkcontent'];
+					if($oneField->options['checkcontent'] == 'regexp') $checkFieldsRegexp[] = $oneField->options['regexp'];
+					if(!empty($oneField->options['errormessagecheckcontent'])){
+						$validCheckMsg[] = addslashes($fieldsClass->trans($oneField->options['errormessagecheckcontent']));
+					}elseif(!empty($oneField->options['errormessage'])){
+						$validCheckMsg[] = addslashes($fieldsClass->trans($oneField->options['errormessage']));
+					} else{
+						$validCheckMsg[] = addslashes(JText::sprintf('FIELD_CONTENT_VALID',$fieldsClass->trans($oneField->fieldname)));
+					}
+				}
+			}
+
+			$doc = JFactory::getDocument();
+			if(!empty($requiredFields)){
+				$js = "
+				acymailing['reqFieldsComp'] = Array('".implode("','",$requiredFields)."');
+				acymailing['validFieldsComp'] = Array('".implode("','",$validMessages)."');
+				";
+				$doc->addScriptDeclaration( $js );
+			}
+			if(!empty($checkFields)){
+				$js = "acymailing['checkFields'] = Array('".implode("','",$checkFields)."');
+				acymailing['checkFieldsType'] = Array('".implode("','",$checkFieldsType)."');
+				acymailing['validCheckFields'] = Array('".implode("','",$validCheckMsg)."');";
+				if(!empty($checkFieldsRegexp)) $js .= "acymailing['checkFieldsRegexp'] = Array('".implode("','",$checkFieldsRegexp)."');";
+				$js .= "
+				";
+				$doc->addScriptDeclaration( $js );
+			}
+
+			$my = JFactory::getUser();
+			foreach($subscription as $listid => $oneList){
+				if(!acymailing_isAllowed($oneList->access_sub)){
+					$subscription[$listid]->published = false;
+					continue;
+				}
+			}
+		}
+
 
 		if(!acymailing_level(3)){
 			if(!empty($menuparams) && strtolower($menuparams->get('customfields','default')) != 'default'){
@@ -116,6 +199,8 @@ class UserViewUser extends acymailingView
 			$hiddenLists = trim($menuparams->get('hiddenlists','None'));
 			if(empty($subscriber)) $allLists = $listsClass->getLists('listid');
 			else $allLists = $subscriberClass->getSubscription($subscriber->subid,'listid');
+			if(acymailing_level(1)) $allLists = $listsClass->onlyCurrentLanguage($allLists);
+			if(acymailing_level(3)) $allLists = $listsClass->onlyAllowedLists($allLists);
 
 			$hiddenListsArray = array();
 			if(strpos($hiddenLists,',') || is_numeric($hiddenLists)){

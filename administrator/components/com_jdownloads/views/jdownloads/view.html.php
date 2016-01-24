@@ -32,6 +32,7 @@ class jdownloadsViewjdownloads extends JViewLegacy
         $this->jdVersion = JDownloadsHelper::getjDownloadsVersion();
 
         $this->addToolbar();
+        $this->sidebar = JHtmlSidebar::render();        
 		parent::display($tpl);
 	}
     

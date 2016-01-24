@@ -1,7 +1,7 @@
 <?php
 
     // For Tooltip
-    JHtml::_('behavior.tooltip');
+    JHTML::_('bootstrap.tooltip');
     
     // Creating new tree object
     $tree = new jdownloadstree();    

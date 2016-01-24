@@ -33,6 +33,7 @@ class jdownloadsViewForm extends JViewLegacy
         // Initialise variables.
 		$app		= JFactory::getApplication();
 		$user		= JFactory::getUser();
+        $jinput     = JFactory::getApplication()->input;
         
         $document = JFactory::getDocument();
         $document->addStyleSheet('components/com_jdownloads/assets/css/jdownloads_fe.css');
@@ -110,9 +111,11 @@ class jdownloadsViewForm extends JViewLegacy
         }');         
         
 		// Get model data.
-		$this->state		= $this->get('State');
-		$this->item			= $this->get('Item');
-		$this->form			= $this->get('Form');
+		$this->state	= $this->get('State');
+		$this->item		= $this->get('Item');
+		$this->form		= $this->get('Form');
+        
+        $catid          = $jinput->get('catid', 0, 'int');
         
         // we must get all 'allowed' category IDs 
         $this->authorised_cats = JDHelper::getAuthorisedJDCategories('core.create', $user);
@@ -278,11 +281,19 @@ class jdownloadsViewForm extends JViewLegacy
 		$this->params	= $params;
 		$this->user		= $user;
 
-        // check whether it is in menu settings defined only a single category
-		if ($params->get('enable_category') == 1) {
-			$this->form->setFieldAttribute('cat_id', 'default',  $params->get('catid', 1));
-			$this->form->setFieldAttribute('cat_id', 'readonly', 'true');
-		}
+        // check whether it is in menu settings defined only a single category (and the Download is new)
+		if (!$this->item->file_id){
+            if ($params->get('enable_category') == 1) {
+			    $this->form->setFieldAttribute('cat_id', 'default',  $params->get('catid', 1));
+			    $this->form->setFieldAttribute('cat_id', 'readonly', 'true');
+		    } else {
+                if ($catid > 1 && in_array($catid, $this->authorised_cats)){
+                    // set the current category as the default target category 
+                    $this->form->setFieldAttribute('cat_id', 'default',  $catid);
+                    $this->form->setFieldAttribute('cat_id', 'readonly', 'false');
+                }
+            }
+        }
 		$this->_prepareDocument();
 		parent::display($tpl);
 	}

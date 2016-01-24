@@ -120,6 +120,8 @@ class AlternativakModelAlternativak  extends JModelItem {
      $user = JFactory::getUser();
      $result = true;
      $table = JTable::getInstance('Alternativak', 'Table');
+	 $db = JFactory::getDBO();
+	 $ujFelvitel = false;
      if ($this->check($item)) {
        $table->bind($item);
        $table->temakor_id = JRequest::getVar('temakor','0');
@@ -127,11 +129,87 @@ class AlternativakModelAlternativak  extends JModelItem {
        if ($table->id == 0) {
          $table->letrehozo = $user->id;
          $table->letrehozva = date('Y-m-d H:i:s');
+		 $ujFelvitel = true;
        }
        $result = $table->store();
      } else {
        $result = false;
      }
+	 
+	   // PMS a joomla adminoknak ($table->id és a további mezők használhatóak)
+	   $db->setQuery('select * from #__temakorok where id='.$table->temakor_id);
+	   $temakor = $db->loadObject();
+	   $db->setQuery('select * from #__szavazasok where id='.$table->szavazas_id);
+	   $szavazas = $db->loadObject();
+	   if ($ujFelvitel) {
+		   $db->setQuery('select distinct u.email, u.id 
+		   from #__users u
+		   inner join #__user_usergroup_map m on m.user_id = u.id
+		   left outer join #__tagok t on t.user_id = u.id and t.temakor_id='.$table->temakor_id. '
+		   where m.group_id = 8 or m.group_id = 7 or t.admin = 1');
+		   $adminok = $db->loadObjectList();
+		   foreach ($adminok as $admin) {
+			  //$this->ujSzavazasEmail($admin->email,$table);
+			  // PMS a rendszer és témakör adminoknak
+			  $db->setQuery('INSERT INTO #__uddeim 
+				(`id`, 
+				`replyid`, 
+				`fromid`, 
+				`toid`, 
+				`message`, 
+				`datum`, 
+				`toread`, 
+				`totrash`, 
+				`totrashdate`, 
+				`totrashoutbox`, 
+				`totrashdateoutbox`, 
+				`expires`, 
+				`disablereply`, 
+				`systemflag`, 
+				`delayed`, 
+				`systemmessage`, 
+				`archived`, 
+				`cryptmode`, 
+				`flagged`, 
+				`crypthash`, 
+				`publicname`, 
+				`publicemail`
+				)
+				VALUES
+				(0, 
+				0, 
+				'.$db->quote($user->id).', 
+				'.$db->quote($admin->id).', 
+				"Új alternatíva javaslat lett a web oldalra feltöltve'.
+				   '\nTémakör:'.$temakor->megnevezes.
+				   '\nÖtlet megnevezése:'.$szavazas->megnevezes.
+				   '\nAlternatíva megnevezése:'.$table->megnevezes.
+				   '\nFeltöltő:'.$user->username.
+				   '\n[url]'.JURI::base().'SU/alternativak/alternativaklist/browse/'.$table->temakor_id.'/'.$table->id.'/20/0/1/[/url]", 
+				"'.time().'", 
+				0, 
+				0, 
+				0, 
+				0, 
+				0, 
+				0, 
+				0, 
+				1, 
+				0, 
+				"Új alternatíva javaslat", 
+				0, 
+				0, 
+				0, 
+				"", 
+				"", 
+				""
+				);
+			  ');
+			  $db->query();
+		   } // foreach
+	   } // új felvitel
+	 
+	 
      return $result;
    }
    /**

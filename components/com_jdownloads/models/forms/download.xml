@@ -92,6 +92,18 @@
             <option
                 value="0">COM_JDOWNLOADS_UNPUBLISHED</option>
         </field>
+        
+        <field
+            id="featured"
+            name="featured"
+            type="list"
+            label="COM_JDOWNLOADS_FIELD_FEATURED"
+            description="COM_JDOWNLOADS_FIELD_FEATURED_DESC"
+            class="inputbox"
+            default="0">
+            <option value="0">COM_JDOWNLOADS_NO</option>
+            <option value="1">COM_JDOWNLOADS_YES</option>
+        </field>        
 
         <field 
             name="language"

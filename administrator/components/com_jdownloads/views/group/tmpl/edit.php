@@ -311,7 +311,11 @@ $star = '<span class="star">*</span>';
                 
                 <li><input type="hidden" name="jform[form_published]" value="0">
                 <?php echo $this->form->getLabel('form_published'); ?>
-                <?php echo $this->form->getInput('form_published'); ?></li> 
+                <?php echo $this->form->getInput('form_published'); ?></li>
+                
+                <li><input type="hidden" name="jform[form_featured]" value="0">
+                <?php echo $this->form->getLabel('form_featured'); ?>
+                <?php echo $this->form->getInput('form_featured'); ?></li>
                 
                 <li><input type="hidden" name="jform[form_creation_date]" value="0">
                 <?php echo $this->form->getLabel('form_creation_date'); ?>

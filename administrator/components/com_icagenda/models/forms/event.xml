@@ -160,7 +160,6 @@
 			name="displaytime"
 			type="radio"
 			class="btn-group"
-			default="1"
 			label="COM_ICAGENDA_DISPLAY_TIME_LABEL"
 			description="COM_ICAGENDA_DISPLAY_TIME_DESC"
 			>

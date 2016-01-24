@@ -6,7 +6,7 @@
  *
  * @name		default
  * @author		Lyr!C (JoomliC)
- * @version 	3.5.7 2015-07-14
+ * @version 	3.5.10 2015-08-26
  * @since		1.0
  */
 
@@ -126,6 +126,12 @@
 	/* css3 box-sizing added to prevent conflict */
 	box-sizing: content-box;
 }
+
+/* Current period */
+.ic-current-period {
+	text-decoration: overline;
+}
+
 .ic-date {
 	line-height: 0px !important;
 	font-size: 30px;
@@ -464,6 +470,12 @@
 	background: #c72031;
 	color: #fff;
 }
+.icagenda_form .ic-loader {
+	display: block;
+	width: 100%;
+	height: 60px;
+	background: url(../../../../../../media/com_icagenda/images/loader.gif) 50% 50% no-repeat;
+}
 
 /* Style Button Cancel */
 .icagenda_form .buttonx a {
@@ -507,6 +519,50 @@
 /* Style fields required info */
 .ic-required-info {
 	font-size: 0.95em;
+}
+
+/* Style Header*/
+.ic-reg-event {
+	background: none;
+	background: rgba(221,221,221,0.3);
+	border-radius: 2px;
+	margin: 5px 0;
+	padding: 0px;
+}
+
+/* Registration icon */
+.ic-reg-icon {
+	background: url(../../../../../../media/com_icagenda/images/registration-48.png) 50% 50% no-repeat;
+	display: block;
+	width: 48px;
+	height: 48px;
+	padding: 8px;
+	margin-right: 8px;
+}
+
+/* Style Right (Container Event title, category) */
+.ic-reg-content {
+	display: block;
+	border: 0;
+	margin: 0;
+	padding: 8px;
+	vertical-align: top;
+}
+
+/* Category */
+.ic-reg-cat {
+	color: #555555;
+	font-size: 12px;
+	line-height: 20px;
+	font-weight: bold;
+	text-transform: uppercase;
+}
+
+/* Event title */
+.ic-reg-event-title {
+	font-size: 22px;
+	line-height: 28px;
+	font-weight: bold;
 }
 
 /* Style Registration infos */

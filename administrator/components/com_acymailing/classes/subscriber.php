@@ -1,7 +1,7 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.0.1
+ * @version	4.9.3
  * @author	acyba.com
  * @copyright	(C) 2009-2015 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
@@ -184,14 +184,7 @@ class subscriberClass extends acymailingClass{
 		$mailClass->checkEnabled = false;
 		$mailClass->checkAccept = false;
 		$mailClass->report = $config->get('confirm_message',0);
-		$alias = "confirmation";
-		if(JRequest::getCMD('acy_source')){
-			$sourceparams = explode('_',JRequest::getCMD('acy_source'));
-			$this->database->setQuery('SELECT alias FROM #__acymailing_mail WHERE published = 1 AND alias IN ("confirmation",'.$this->database->Quote('confirmation-'.$sourceparams[0]).','.$this->database->Quote('confirmation-'.$sourceparams[0].'-'.@$sourceparams[1]).','.$this->database->Quote('confirmation-'.$sourceparams[0].'-'.@$sourceparams[1].'-'.@$sourceparams[2]).') ORDER BY alias DESC');
-			$alias = $this->database->loadResult();
-		}
-
-		$this->confirmationSentSuccess = $mailClass->sendOne($alias,$myuser);
+		$this->confirmationSentSuccess = $mailClass->sendOne('confirmation',$myuser);
 		$this->confirmationSentError = $mailClass->reportMessage;
 		$this->confirmationSent = true;
 		return true;
@@ -289,7 +282,7 @@ class subscriberClass extends acymailingClass{
 
 		jimport('joomla.filesystem.file');
 		$config= acymailing_config();
-		$uploadFolder = trim(JPath::clean(html_entity_decode(acymailing_getFilesFolder())),DS.' ').DS;
+		$uploadFolder = trim(JPath::clean(html_entity_decode($config->get('uploadfolder'))),DS.' ').DS;
 		$uploadPath = JPath::clean(ACYMAILING_ROOT.$uploadFolder.'userfiles'.DS);
 		acymailing_createDir(JPath::clean(ACYMAILING_ROOT.$uploadFolder),true);
 		acymailing_createDir($uploadPath,true);
@@ -544,6 +537,8 @@ class subscriberClass extends acymailingClass{
 	}
 
 	function identify($onlyvalue = false){
+		$app = JFactory::getApplication();
+
 		$subid = JRequest::getInt("subid",0);
 		$key = JRequest::getString("key",'');
 
@@ -554,7 +549,7 @@ class subscriberClass extends acymailingClass{
 				return $userIdentified;
 			}
 			if(!$onlyvalue){
-				acymailing_enqueueMessage(JText::_('ASK_LOG'),'error');
+				$app->enqueueMessage(JText::_('ASK_LOG'),'error');
 			}
 			return false;
 		}
@@ -563,7 +558,7 @@ class subscriberClass extends acymailingClass{
 		$userIdentified = $this->database->loadObject();
 
 		if(empty($userIdentified)){
-			if(!$onlyvalue) acymailing_enqueueMessage(JText::_('INVALID_KEY'),'error');
+			if(!$onlyvalue) $app->enqueueMessage(JText::_('INVALID_KEY'),'error');
 			return false;
 		}
 

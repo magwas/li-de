@@ -24,11 +24,14 @@ class jdownloadsController extends JControllerLegacy
     
     function __construct($config = array())
     {
+        $this->input = JFactory::getApplication()->input;
         
         // Frontpage Editor 'select download' proxying:
-        if (JRequest::getCmd('view') === 'downloads' && (JRequest::getCmd('layout') === 'modal' || JRequest::getCmd('layout') === 'modallist')) {
-            JHtml::_('stylesheet', 'system/adminlist.css', array(), true);
-            $config['base_path'] = JPATH_COMPONENT_ADMINISTRATOR;
+        if ($this->input->get('view') === 'downloads' || $this->input->get('view') === 'list'){ 
+            if ($this->input->get('layout') === 'modal' || $this->input->get('layout') === 'modallist'){
+                JHtml::_('stylesheet', 'system/adminlist.css', array(), true);
+                $config['base_path'] = JPATH_COMPONENT_ADMINISTRATOR;
+            }
         }        
         
         parent::__construct($config);    
@@ -61,7 +64,7 @@ class jdownloadsController extends JControllerLegacy
         $user = JFactory::getUser();
 
         $safeurlparams = array('catid'=>'INT', 'id'=>'INT', 'cid'=>'ARRAY', 'list'=>'STRING', 'user'=>'UINT', 'type'=>'STRING', 'm'=>'UINT', 'year'=>'INT', 'month'=>'INT', 'limit'=>'UINT', 'limitstart'=>'UINT',
-            'showall'=>'INT', 'return'=>'BASE64', 'filter'=>'STRING', 'order'=>'CMD', 'filter_order'=>'CMD', 'dir'=>'CMD', 'filter_order_Dir'=>'CMD', 'filter-search'=>'STRING', 'print'=>'BOOLEAN', 'lang'=>'CMD');
+            'showall'=>'INT', 'return'=>'BASE64', 'filter'=>'STRING', 'order'=>'CMD', 'filter_order'=>'CMD', 'dir'=>'CMD', 'filter_order_Dir'=>'CMD', 'filter-search'=>'STRING', 'print'=>'BOOLEAN', 'lang'=>'CMD', 'Itemid' => 'INT');
 
         // Check for edit form.
         if ($vName == 'form' && !$this->checkEditId('com_jdownloads.edit.download', $id)) {

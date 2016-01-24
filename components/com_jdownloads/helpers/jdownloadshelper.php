@@ -632,19 +632,110 @@ class JDHelper
         $ext = self::getFileExtension($filename);
         
         switch($ext) {
-            case 'mp3':
-            case 'mp4':
-            case 'flv':
+            case 'mp3':  // audio
+            case 'mp4':  // video
+            case 'flv':  // video 
+            case 'ogg':  // audio OR video?
+            case 'oga':  // audio
+            case 'ogv':  // video
+            case 'wav':  // audio
+            case 'webm': // video
                 return true;
                 break;
             
             default:
                 return false;
                 break;
-    }
+        }
 
-    return false;
+        return false;
     }
+    
+    /**
+    * Create the data to get a valid HTML5-Player for audio or video
+    * 
+    * @param mixed $html5player
+    */
+    public static function getHTML5Player($file, $media_path)
+    {
+        global $jlistConfig;
+        
+        if (!$file->itemtype) return ''; 
+
+        $player = '';
+        
+        switch($file->itemtype){
+            // audio formats
+            case 'mp3' :
+                    $playertype = 'audio';
+                    $mediatype  = 'type="audio/mpeg"';
+                    $playerwidth  = 'style="width:'.(int)$jlistConfig['html5player.audio.width'].'px;" ';
+                    $playerheight = '';
+            break;        
+
+            case 'wav' :
+                    $playertype = 'audio';
+                    $mediatype  = 'type="audio/wav"';
+                    $playerwidth  = 'style="width:'.(int)$jlistConfig['html5player.audio.width'].'px;" ';
+                    $playerheight = '';
+            break;
+
+            case 'oga' :
+                    $playertype = 'audio';
+                    $mediatype  = 'type="audio/ogg"';
+                    $playerwidth  = 'style="width:'.(int)$jlistConfig['html5player.audio.width'].'px;" ';
+                    $playerheight = '';
+            break; 
+
+            // video formats
+            // an ogg file can be an audio or a video file - so we must use it always as video, as we can not find out what is it really                       
+            case 'ogg' :
+                    $playertype = 'video';
+                    $mediatype  = 'type="video/ogg"';
+                    $playerwidth  = 'width="'.(int)$jlistConfig['html5player.width'].'" ';
+                    $playerheight = 'height="'.(int)$jlistConfig['html5player.height'].'" ';
+            break; 
+            
+            case 'ogv' :
+                    $playertype = 'video';
+                    $mediatype  = 'type="video/ogg"';
+                    $playerwidth  = 'width="'.(int)$jlistConfig['html5player.width'].'" ';
+                    $playerheight = 'height="'.(int)$jlistConfig['html5player.height'].'" ';
+            break; 
+
+            case 'mp4' :
+                    $playertype   = 'video';
+                    $mediatype    = 'type="video/mp4"';
+                    $playerwidth  = 'width="'.(int)$jlistConfig['html5player.width'].'" ';
+                    $playerheight = 'height="'.(int)$jlistConfig['html5player.height'].'" ';
+            break;
+             
+            case 'webm' :
+                    $playertype   = 'video';
+                    $mediatype    = 'type="video/webm"';
+                    $playerwidth  = 'width="'.(int)$jlistConfig['html5player.width'].'" ';
+                    $playerheight = 'height="'.(int)$jlistConfig['html5player.height'].'" ';
+            break;
+        }
+       
+        if ($playertype == 'video'){
+            $player = '<'.$playertype.' style="width: 100%;" '.'controls>';
+        } else {
+            $player = '<'.$playertype.' style="width:'.(int)$jlistConfig['html5player.audio.width'].'px; "'.' controls>';
+        }
+            
+        $player .= '<source src="'.$media_path.'" '.$mediatype.">";
+        $player .= JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_HTML5_NOT_SUPPORTED_MSG');
+        $player .= '</'.$playertype.'>';
+        
+        if ($playertype == 'video'){
+            $player_maxwidth  = 'max-width:'.(int)$jlistConfig['html5player.width'].'px; ';
+            $player_maxheight = 'max-height:'.(int)$jlistConfig['html5player.height'].'px; '; 
+            $player = '<div class="jd_video_wrapper" style="'.$player_maxwidth.' '.$player_maxheight.'"><div class="jd_video_container">'.$player.'</div></div>';
+        }
+        
+        return $player;   
+    }    
     
     /**
      * Returns an array of the categories 
@@ -695,6 +786,12 @@ class JDHelper
         $query->where('c.parent_id > 0');
         $query->where('c.published = 1');
         $query->where('c.access IN (' . implode(',', $user->getAuthorisedViewLevels()) . ')');
+
+        // The number of child category levels
+        $levels = (int)$jlistConfig['show.header.catlist.levels'];
+        if ($levels > 0){
+            $query->where('c.level BETWEEN 1 AND '.$levels);
+        }         
         
         $query->leftJoin($db->quoteName('#__jdownloads_files') . ' AS files ON files.cat_id = c.id AND files.published = 1');
         $query->select('COUNT(files.' . $db->quoteName('file_id') . ') as numitems ');
@@ -1135,58 +1232,57 @@ class JDHelper
      * 
      * 
     */
-    public static function getID3v2Tags($file,$blnAllFrames=0)
+    public static function getID3v2Tags($file, $blnAllFrames=0)
     {
         if (is_file($file)){
-            $arrTag['_file']=$file;
-            $fp=fopen($file,"rb");
+            $arrTag['_file'] = $file;
+            $fp = fopen($file,"rb");
             if($fp){
-                $id3v2=fread($fp,3);
-                if($id3v2=="ID3"){// a ID3v2 tag always starts with 'ID3'
-                    $arrTag['_ID3v2']=1;
-                    $arrTag['_version']=ord(fread($fp,1)).".".ord(fread($fp,1));// = version.revision
-                    fseek($fp,6);// skip 1 'flag' byte, because i don't need it :)
-                    unset($tagSize);
-                    for($i=0;$i<4;$i++){
-                        $tagSize=$tagSize.base_convert(ord(fread($fp,1)),10,16);
+                $id3v2 = fread($fp,3);
+                if($id3v2 == "ID3"){ // a ID3v2 tag always starts with 'ID3'
+                    $arrTag['_ID3v2'] = 1;
+                    $arrTag['_version'] = ord(fread($fp,1)).".".ord(fread($fp,1)); // = version.revision
+                    fseek($fp,6); // skip 1 'flag' byte, because i don't need it :)
+                    $tagSize = '';
+                    for ($i=0; $i<4; $i++){
+                        $tagSize = $tagSize.base_convert(ord(fread($fp,1)),10,16);
                     }
-                    $tagSize=hexdec($tagSize);
-                    if($tagSize>filesize($file)){
-                        $arrTag['_error']=4;// = tag is bigger than file
+                    $tagSize = hexdec($tagSize);
+                    if ($tagSize > filesize($file)){
+                        $arrTag['_error'] = 4;  // = tag is bigger than file
                     }
-                    fseek($fp,10);
-                    while(preg_match("/^[A-Z][A-Z0-9]{3}$/",$frameName=fread($fp,4))){
-                        unset($frameSize);
-                        for($i=0;$i<4;$i++){
-                            $frameSize=$frameSize.base_convert(ord(fread($fp,1)),10,16);
+                    fseek($fp, 10);
+                    
+                    while (preg_match("/^[A-Z][A-Z0-9]{3}$/", $frameName = fread($fp,4))){
+                        $frameSize = '';
+                        for ($i=0; $i<4; $i++){
+                            $frameSize = $frameSize.base_convert(ord(fread($fp,1)),10,16);
                         }
-                        $frameSize=hexdec($frameSize);
-                        if($frameSize>$tagSize){
-                            $arrTag['_error']=5;// = frame is bigger than tag
+                        $frameSize = hexdec($frameSize);
+                        if ($frameSize > $tagSize){
+                            $arrTag['_error'] = 5; // = frame is bigger than tag
                             break;
                         }
-                        fseek($fp,ftell($fp)+2);// skip 2 'flag' bytes, because i don't need them :)
-                        if($frameSize<1){
-                            $arrTag['_error']=6;// = frame size is smaller then 1
+                        fseek ($fp, ftell($fp)+2); // skip 2 'flag' bytes, because i don't need them :)
+                        if ($frameSize < 1){
+                            $arrTag['_error'] = 6; // = frame size is smaller then 1
                             break;
                         }
-                        if($blnAllFrames==0){
-                            if(!preg_match("/^T/",$frameName)){// = not a text frame, they always starts with 'T'
-                                unset($arrTag[$frameName]);
-                                fseek($fp,ftell($fp)+$frameSize);// go to next frame
-                                continue;// read next frame
+                        if ($blnAllFrames == 0){
+                            if (!preg_match("/^T/",$frameName)){ // = not a text frame, they always starts with 'T'
+                                unset ($arrTag[$frameName]);
+                                fseek($fp, ftell($fp) + $frameSize); // go to next frame
+                                continue; // read next frame
                             }
                         }
-                        $frameContent=fread($fp,$frameSize);
-                        if(!$arrTag[$frameName]){
-                            $arrTag[$frameName]=trim(utf8_encode($frameContent));// the frame content (always?) starts with 0, so it's better to remove it
-                        }
-                        else{
-                            $arrTag[$frameName]=$arrTag[$frameName]."~".trim($frameContent);
+                        $frameContent = fread($fp, $frameSize);
+                        if (!isset($arrTag[$frameName])){
+                            $arrTag[$frameName] = trim(utf8_encode($frameContent)); // the frame content (always?) starts with 0, so it's better to remove it
+                        } else {
+                            $arrTag[$frameName] = $arrTag[$frameName]."~".trim($frameContent);
                         }
                     }
-                }
-                else{
+                } else {
                     $arrTag['_ID3v2']   =   0;// = no ID3v2 tag found
                     $arrTag['_error']   =   3;// = no ID3v2 tag found
                     $arrTag['_version'] =   0;
@@ -1196,20 +1292,24 @@ class JDHelper
                     $arrTag['TCON']     =   '';
                     $arrTag['TYER']     =   '';
                 }
-            }// if($fp)
-            else{
+            } else {
                 $arrTag['_error'] = 2;  // can't open file
             }
             fclose($fp);
-        }
-        else{
+        } else {
             $arrTag['_error'] = 1;  // = file doesn't exists or isn't a mp3
         }
         // convert lenght
-        if ($arrTag['TLEN'] > 0){
-            $arrTag['TLEN'] = round(($arrTag['TLEN'] / 1000)/60,2);
+        if (isset($arrTag['TLEN'])){
+            if ($arrTag['TLEN'] > 0){
+                $arrTag['TLEN'] = round(($arrTag['TLEN'] / 1000)/60,2);
+            }
         }    
-       
+        if (!isset($arrTag['TLEN'])) $arrTag['TLEN'] = '';
+        if (!isset($arrTag['TALB'])) $arrTag['TALB'] = '';
+        if (!isset($arrTag['TPE1'])) $arrTag['TPE1'] = '';
+        if (!isset($arrTag['TCON'])) $arrTag['TCON'] = '';
+        if (!isset($arrTag['TYER'])) $arrTag['TYER'] = '';
         return $arrTag;
     }
     
@@ -3143,8 +3243,8 @@ class JDHelper
             }
         }
         // in this case use we as default the en-GB format
-        if (!$dec_point) $dec_point = '.'; 
-        if (!$thousands_sep) $thousands_sep = ','; 
+        if (!$dec_point || $dec_point == 'DECIMALS_SEPARATOR') $dec_point = '.'; 
+        if (!$thousands_sep || $thousands_sep == 'THOUSANDS_SEPARATOR') $thousands_sep = ','; 
 
         // we will not round a value so we must check it
         if (is_numeric($str) && !is_int($str) && !is_double($str) && $decimals == 0){

@@ -10,7 +10,7 @@
  * @author      Cyril Rezé (Lyr!C)
  * @link        http://www.joomlic.com
  *
- * @version     3.5.6 2015-05-19
+ * @version     3.5.12 2015-09-25
  * @since       1.0
  *------------------------------------------------------------------------------
 */
@@ -202,6 +202,12 @@ class iCagendaModelEvent extends JModelAdmin
 			{
 				$data->weekdays = '0,1,2,3,4,5,6';
 			}
+		}
+
+		// Set displaytime default value
+		if ( ! isset($data->displaytime))
+		{
+			$data->displaytime = JComponentHelper::getParams('com_icagenda')->get('displaytime', '1');
 		}
 
 		// Set Features

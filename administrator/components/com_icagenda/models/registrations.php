@@ -10,7 +10,7 @@
  * @author      Cyril Rezé (Lyr!C)
  * @link        http://www.joomlic.com
  *
- * @version     3.5.7 2015-07-13
+ * @version     3.5.13 2015-12-02
  * @since		2.0
  *------------------------------------------------------------------------------
 */
@@ -46,6 +46,7 @@ class iCagendaModelregistrations extends JModelList
 				'phone', 'phone',
 				'event', 'event',
 				'date', 'a.date',
+				'startdate', 'e.startdate',
 				'people', 'a.people',
 				'notes', 'a.notes',
 				'evt_created_by', 'a.evt_created_by'
@@ -109,6 +110,9 @@ class iCagendaModelregistrations extends JModelList
 		// Compile the store id.
 		$id.= ':' . $this->getState('filter.search');
 		$id.= ':' . $this->getState('filter.state');
+		$id.= ':' . $this->getState('filter.categories');
+		$id.= ':' . $this->getState('filter.events');
+		$id.= ':' . $this->getState('filter.dates');
 
 		return parent::getStoreId($id);
 	}
@@ -135,7 +139,8 @@ class iCagendaModelregistrations extends JModelList
 		$query->from('`#__icagenda_registration` AS a');
 
 		// Join over the events.
-		$query->select('e.title AS event, e.created_by AS evt_created_by, e.state AS evt_state');
+		$query->select('e.title AS event, e.created_by AS evt_created_by, e.state AS evt_state,
+						e.startdate AS startdate, e.enddate AS enddate, e.displaytime AS displaytime');
 		$query->join('LEFT', '#__icagenda_events AS e ON e.id=a.eventid');
 
 		// Join over the categories.
@@ -233,13 +238,23 @@ class iCagendaModelregistrations extends JModelList
 
 		if ($orderCol && $orderDirn)
 		{
-			if(version_compare(JVERSION, '3.0', 'lt'))
+			if (version_compare(JVERSION, '3.0', 'lt'))
 			{
-				$query->order($db->getEscaped($orderCol.' '.$orderDirn));
+				if ($orderCol == 'a.date')
+				{
+					$query->order($db->getEscaped($db->qn('a.period') . ' ' . $orderDirn));
+				}
+
+				$query->order($db->getEscaped($orderCol . ' ' . $orderDirn));
 			}
 			else
 			{
-				$query->order($db->escape($orderCol.' '.$orderDirn));
+				if ($orderCol == 'a.date')
+				{
+					$query->order($db->escape($db->qn('a.period') . ' ' . $orderDirn));
+				}
+
+				$query->order($db->escape($orderCol . ' ' . $orderDirn));
 			}
 		}
 
@@ -336,6 +351,11 @@ class iCagendaModelregistrations extends JModelList
 	 */
 	function getDates()
 	{
+		$params			= $this->getState('params');
+		$dateFormat		= $params->get('date_format_global', 'Y - m - d');
+		$dateSeparator	= $params->get('date_separator', ' ');
+		$timeFormat		= ($params->get('timeformat', '1') == 1) ? 'H:i' : 'h:i A';
+
 		// Create a new query object.
 		$db		= JFactory::getDBO();
 		$query	= $db->getQuery(true);
@@ -343,6 +363,10 @@ class iCagendaModelregistrations extends JModelList
 		// Select the required fields from the table.
 		$query->select('r.date AS date, r.period AS period, r.eventid AS eventid');
 		$query->from('`#__icagenda_registration` AS r');
+
+		// Join over the events (period).
+		$query->select('e.startdate AS startdate, e.enddate AS enddate, e.displaytime AS displaytime');
+		$query->join('LEFT', '#__icagenda_events AS e ON e.id=r.eventid');
 
 		$db->setQuery($query);
 		$dates = $db->loadObjectList();
@@ -357,29 +381,12 @@ class iCagendaModelregistrations extends JModelList
 		// depending of registrations in data, and selected event
 		foreach ($dates as $d)
 		{
-			$date	= (empty($d->date) && $d->period == 0)
-					? '[ ' . ucfirst(JText::_('COM_ICAGENDA_ADMIN_REGISTRATION_FOR_ALL_PERIOD')) . ' ]'
-					: '';
+//			$date	= (empty($d->date) && $d->period == 0)
+//					? '[ ' . ucfirst(JText::_('COM_ICAGENDA_ADMIN_REGISTRATION_FOR_ALL_PERIOD')) . ' ]'
+//					: '';
 			$period	= (empty($d->date) && $d->period == 1)
 					? '[ ' . ucfirst(JText::_('COM_ICAGENDA_ADMIN_REGISTRATION_FOR_ALL_DATES')) . ' ]'
 					: '';
-
-			if (empty($d->date)
-				&& $d->period == 0
-				&& $p == 0
-				)
-			{
-				if ( ! empty($eventId) && $eventId == $d->eventid)
-				{
-					$p = $p+1;
-					$list[1] = $date;
-				}
-				elseif (empty($eventId))
-				{
-					$p = $p+1;
-					$list[1] = $date;
-				}
-			}
 
 			if (empty($d->date)
 				&& $d->period == 1
@@ -403,9 +410,42 @@ class iCagendaModelregistrations extends JModelList
 		// depending of registrations in data, and selected event
 		foreach ($dates as $d)
 		{
-			$date	= iCDate::isDate($d->date)
-					? JHtml::date($d->date, JText::_('DATE_FORMAT_LC3'), null) . ' - ' . date('H:i', strtotime($d->date))
-					: $d->date;
+			$date = '';
+
+			if (empty($d->date) && $d->period == 0)
+			{
+				if ( ! empty($eventId) && $eventId == $d->eventid)
+				{
+					if (iCDate::isDate($d->startdate))
+					{
+						$date = iCGlobalize::dateFormat($d->startdate, $dateFormat, $dateSeparator);
+
+						if ($d->displaytime)
+						{
+							$date.= ' - ' . date($timeFormat, strtotime($d->startdate));
+						}
+					}
+					if (iCDate::isDate($d->enddate))
+					{
+						$date.= ' > ' . iCGlobalize::dateFormat($d->enddate, $dateFormat, $dateSeparator);
+
+						if ($d->displaytime)
+						{
+							$date.= ' - ' . date($timeFormat, strtotime($d->enddate));
+						}
+					}
+				}
+				else
+				{
+					$date = '[ ' . ucfirst(JText::_('COM_ICAGENDA_ADMIN_REGISTRATION_FOR_ALL_PERIOD')) . ' ]';
+				}
+			}
+			else
+			{
+				$date	= iCDate::isDate($d->date)
+						? JHtml::date($d->date, JText::_('DATE_FORMAT_LC3'), null) . ' - ' . date('H:i', strtotime($d->date))
+						: $d->date;
+			}
 
 			$display_date = ($date != '0000-00-00 00:00:00' && $d->date) ? true : false;
 
@@ -421,6 +461,23 @@ class iCagendaModelregistrations extends JModelList
 				)
 			{
 				$list[$d->date] = $date;
+			}
+
+			if (empty($d->date)
+				&& $d->period == 0
+				&& $p == 0
+				)
+			{
+				if ( ! empty($eventId) && $eventId == $d->eventid)
+				{
+					$p = $p+1;
+					$list[1] = $date;
+				}
+				elseif (empty($eventId))
+				{
+					$p = $p+1;
+					$list[1] = $date;
+				}
 			}
 		}
 
@@ -566,6 +623,18 @@ class iCagendaModelregistrations extends JModelList
 	}
 
 	/**
+	 * Get the separator for values.
+	 *
+	 * @return  string    The separator.
+	 *
+	 * @since   3.5.9
+	 */
+	public function getSeparator()
+	{
+		return ($this->getState('separator') == 1) ? "," : ";";
+	}
+
+	/**
 	 * Get the content
 	 *
 	 * @return  string    The content.
@@ -576,6 +645,8 @@ class iCagendaModelregistrations extends JModelList
 	{
 		if (!isset($this->content))
 		{
+			$separator = $this->getSeparator();
+
 			foreach ($this->getItems() as $item)
 			{
 				// Adds filled custom fields
@@ -595,26 +666,69 @@ class iCagendaModelregistrations extends JModelList
 			// Add BOM UTF-8 to csv content
 			$this->content	= chr(239) . chr(187) . chr(191);
 
-			$this->content .= '';
+			$this->content .= '"';
 
-			$this->content .=
-				'"' .
-				str_replace('"', '""', JText::_('COM_ICAGENDA_REGISTRATION_EVENTID')) . '","' .
-				str_replace('"', '""', JText::_('COM_ICAGENDA_REGISTRATION_DATE')) . '","' .
-				str_replace('"', '""', JText::_('COM_ICAGENDA_REGISTRATION_TICKETS')) . '","' .
-				str_replace('"', '""', JText::_('IC_NAME')) . '","' .
-				str_replace('"', '""', JText::_('COM_ICAGENDA_REGISTRATION_EMAIL')) . '","' .
-				str_replace('"', '""', JText::_('COM_ICAGENDA_REGISTRATION_PHONE')) . '","';
-
-			foreach ($header_cfs AS $header)
+			if ($this->getState('event_title'))
 			{
-				$this->content .= str_replace('"', '""', $header) . '","';
+				$this->content .= str_replace('"', '""', JText::_('COM_ICAGENDA_REGISTRATION_EVENTID')) . '"';
+			}
+			else
+			{
+				$this->content .= '#' . '"';
 			}
 
-			$this->content .=
-				str_replace('"', '""', JText::_('COM_ICAGENDA_REGISTRATION_NOTES_DISPLAY_LABEL')) . '","' .
-				str_replace('"', '""', JText::_('JSTATUS')) . '"' .
-				"\n";
+			if ($this->getState('date'))
+			{
+				$this->content .= $separator . '"' . str_replace('"', '""', JText::_('COM_ICAGENDA_REGISTRATION_DATE')) . '"';
+			}
+
+			if ($this->getState('tickets'))
+			{
+				$this->content .= $separator . '"' . str_replace('"', '""', JText::_('COM_ICAGENDA_REGISTRATION_TICKETS')) . '"';
+			}
+
+			if ($this->getState('name'))
+			{
+				$this->content .= $separator . '"' . str_replace('"', '""', JText::_('IC_NAME')) . '"';
+			}
+
+			if ($this->getState('email'))
+			{
+				$this->content .= $separator . '"' . str_replace('"', '""', JText::_('COM_ICAGENDA_REGISTRATION_EMAIL')) . '"';
+			}
+
+			if ($this->getState('phone'))
+			{
+				$this->content .= $separator . '"' . str_replace('"', '""', JText::_('COM_ICAGENDA_REGISTRATION_PHONE')) . '"';
+			}
+
+			if ($this->getState('customfields'))
+			{
+				foreach ($header_cfs AS $header)
+				{
+					$this->content .= $separator . '"' . str_replace('"', '""', $header) . '"';
+				}
+			}
+
+			if ($this->getState('notes'))
+			{
+				$this->content .= $separator . '"' . str_replace('"', '""', JText::_('COM_ICAGENDA_REGISTRATION_NOTES_DISPLAY_LABEL')) . '"';
+			}
+
+			if ($this->getState('status'))
+			{
+				$this->content .= $separator . '"' . str_replace('"', '""', JText::_('JSTATUS')) . '"';
+			}
+
+			if ($this->getState('created'))
+			{
+				$this->content .= $separator . '"' . str_replace('"', '""', JText::_('JGLOBAL_FIELD_CREATED_LABEL')) . '"';
+			}
+
+			$this->content .= "\n";
+
+			// Data Rows
+			$n = 0;
 
 			foreach ($this->getItems() as $item)
 			{
@@ -632,24 +746,68 @@ class iCagendaModelregistrations extends JModelList
 					}
 				}
 
-				$this->content .=
-					'"' .
-					str_replace('"', '""', $item->event) . '","' .
-					str_replace('"', '""', ($item->period == 1 ? JText::_('COM_ICAGENDA_REGISTRATION_ALL_DATES') : $item->date)) . '","' .
-					str_replace('"', '""', $item->people) . '","' .
-					str_replace('"', '""', $item->name) . '","' .
-					str_replace('"', '""', $item->email) . '","' .
-					str_replace('"', '""', $item->phone) . '","';
+				$this->content .= '"';
 
-				foreach ($values_cfs AS $value)
+				if ($this->getState('event_title'))
 				{
-					$this->content .= str_replace('"', '""', $value) . '","';
+					$this->content .= str_replace('"', '""', $item->event) . '"';
+				}
+				else
+				{
+					$n = $n + 1;
+					$this->content .= $n . '"';
 				}
 
-				$this->content .=
-					str_replace('"', '""', $item->notes) . '","' .
-					str_replace('"', '""', $this->getStatusName($item->state)) . '"' .
-					"\n";
+				if ($this->getState('date'))
+				{
+					$this->content .= $separator . '"' .
+						str_replace('"', '""', ($item->period == 1 ? JText::_('COM_ICAGENDA_REGISTRATION_ALL_DATES') : $item->date)) . '"';
+				}
+
+				if ($this->getState('tickets'))
+				{
+					$this->content .= $separator . '"' . str_replace('"', '""', $item->people) . '"';
+				}
+
+				if ($this->getState('name'))
+				{
+					$this->content .= $separator . '"' . str_replace('"', '""', $item->name) . '"';
+				}
+
+				if ($this->getState('email'))
+				{
+					$this->content .= $separator . '"' . str_replace('"', '""', $item->email) . '"';
+				}
+
+				if ($this->getState('phone'))
+				{
+					$this->content .= $separator . '"' . str_replace('"', '""', $item->phone) . '"';
+				}
+
+				if ($this->getState('customfields'))
+				{
+					foreach ($values_cfs AS $value)
+					{
+						$this->content .= $separator . '"' . str_replace('"', '""', $value) . '"';
+					}
+				}
+
+				if ($this->getState('notes'))
+				{
+					$this->content .= $separator . '"' . str_replace('"', '""', $item->notes) . '"';
+				}
+
+				if ($this->getState('status'))
+				{
+					$this->content .= $separator . '"' . str_replace('"', '""', $this->getStatusName($item->state)) . '"';
+				}
+
+				if ($this->getState('created'))
+				{
+					$this->content .= $separator . '"' . str_replace('"', '""', $item->created) . '"';
+				}
+
+				$this->content .= "\n";
 			}
 
 			if ($this->getState('compressed'))

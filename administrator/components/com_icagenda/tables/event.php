@@ -10,7 +10,7 @@
  * @author      Cyril Rezé (Lyr!C)
  * @link        http://www.joomlic.com
  *
- * @version     3.5.3 2015-03-18
+ * @version     3.5.10 2015-08-14
  * @since       1.0
  *------------------------------------------------------------------------------
 */
@@ -49,6 +49,8 @@ class iCagendaTableEvent extends JTable
 	 */
 	public function bind($array, $ignore = '')
 	{
+		$lang	= JFactory::getLanguage();
+
 		// Serialize Single Dates
 		$dev_option = '0';
 
@@ -68,6 +70,30 @@ class iCagendaTableEvent extends JTable
 		else
 		{
 			$dates = $this->getDates($array['dates']);
+
+			if ($lang->getTag() == 'fa-IR'
+				&& $dates != array('0000-00-00 00:00')
+				&& $dates != array('')
+				)
+			{
+				$dates_to_sql = array();
+
+				foreach ($dates AS $date)
+				{
+					if (iCDate::isDate($date))
+					{
+						$year		= date('Y', strtotime($date));
+						$month		= date('m', strtotime($date));
+						$day		= date('d', strtotime($date));
+						$time		= date('H:i', strtotime($date));
+
+						$converted_date = iCGlobalizeConvert::jalaliToGregorian($year, $month, $day, true) . ' ' . $time;
+						$dates_to_sql[] = date('Y-m-d H:i', strtotime($converted_date));
+					}
+				}
+
+				$dates = $dates_to_sql;
+			}
 		}
 
 		$dates = ($dates == array('')) ? array('0000-00-00 00:00') : $dates;
@@ -136,13 +162,27 @@ class iCagendaTableEvent extends JTable
 			{
 				$array['period'] = serialize($period_array);
 
-				if (iCString::isSerialized($array['period']))
+				$period = (iCString::isSerialized($array['period'])) ? unserialize($array['period']) : array();
+
+				if ($lang->getTag() == 'fa-IR')
 				{
-					$period = unserialize($array['period']);
-				}
-				else
-				{
-					$period = $this->getPeriod($array['period']);
+					$period_to_sql = array();
+
+					foreach ($period AS $date)
+					{
+						if (iCDate::isDate($date))
+						{
+							$year		= date('Y', strtotime($date));
+							$month		= date('m', strtotime($date));
+							$day		= date('d', strtotime($date));
+							$time		= date('H:i', strtotime($date));
+
+							$converted_date = iCGlobalizeConvert::jalaliToGregorian($year, $month, $day, true) . ' ' . $time;
+							$period_to_sql[] = date('Y-m-d H:i', strtotime($converted_date));
+						}
+					}
+
+					$period = $period_to_sql;
 				}
 
 				rsort($period);
@@ -169,6 +209,10 @@ class iCagendaTableEvent extends JTable
 		$date_NextPeriod	= JHtml::date($NextPeriod, 'Y-m-d', $eventTimeZone);
 		$time_NextDates		= JHtml::date($NextDates, 'H:i', $eventTimeZone);
 		$time_NextPeriod	= JHtml::date($NextPeriod, 'H:i', $eventTimeZone);
+//		$date_NextDates		= date('Y-m-d', strtotime($NextDates));
+//		$date_NextPeriod	= date('Y-m-d', strtotime($NextPeriod));
+//		$time_NextDates		= date('H:i', strtotime($NextDates));
+//		$time_NextPeriod	= date('H:i', strtotime($NextPeriod));
 
 		// Control the next date
 		if ((strtotime($date_NextDates) >= strtotime($date_today)) && (strtotime($date_NextPeriod) >= strtotime($date_today)))
@@ -346,19 +390,6 @@ class iCagendaTableEvent extends JTable
 	}
 
 	/**
-	 * Get Dates for Period Script Input
-	 */
-	function getPeriod($period)
-	{
-		$period		= str_replace('d=', '', $period);
-		$period		= str_replace('+', ' ', $period);
-		$period		= str_replace('%3A', ':', $period);
-		$ex_period	= explode('&', $period);
-
-		return $ex_period;
-	}
-
-	/**
 	 * Get Next Date from Single Dates
 	 */
 	function getNextDates($dates)
@@ -384,7 +415,8 @@ class iCagendaTableEvent extends JTable
 					}
 				}
 
-				return JHtml::date($nextDate, 'Y-m-d H:i', $eventTimeZone);
+//				return JHtml::date($nextDate, 'Y-m-d H:i', $eventTimeZone);
+				return date('Y-m-d H:i', strtotime($nextDate));
 			}
 		}
 	}
@@ -416,7 +448,8 @@ class iCagendaTableEvent extends JTable
 				}
 			}
 
-			return JHtml::date($nextPeriod, 'Y-m-d H:i', $eventTimeZone);
+//			return JHtml::date($nextPeriod, 'Y-m-d H:i', $eventTimeZone);
+			return date('Y-m-d H:i', strtotime($nextPeriod));
 		}
 	}
 

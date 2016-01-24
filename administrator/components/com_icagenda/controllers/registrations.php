@@ -10,8 +10,8 @@
  * @author      Cyril RezŽ (Lyr!C)
  * @link        http://www.joomlic.com
  *
- * @version     3.5.7 2015-07-13
- * @since       1.0
+ * @version     3.5.9 2015-07-22
+ * @since       2.0.0
  *------------------------------------------------------------------------------
 */
 
@@ -27,9 +27,9 @@ class iCagendaControllerRegistrations extends JControllerAdmin
 {
 	/**
 	 * Proxy for getModel.
-	 * @since	1.6
+	 * @since	2.0.0
 	 */
-	public function getModel($name = 'event', $prefix = 'iCagendaModel', $config = array('ignore_request' => true))
+	public function getModel($name = 'registration', $prefix = 'iCagendaModel', $config = array('ignore_request' => true))
 	{
 		return parent::getModel($name, $prefix, $config);
 	}

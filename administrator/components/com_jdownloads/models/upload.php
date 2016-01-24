@@ -191,7 +191,7 @@ class jdownloadsModelupload extends JModelLegacy
 		$fileTemp = $_FILES[$fieldName]['tmp_name'];
         $uploadPath  = JPATH_SITE.'/jdownloads/'.$fileName ;
  
-		if(!JFile::upload($fileTemp, $uploadPath)) 
+		if(!JFile::upload($fileTemp, $uploadPath, false, true)) 
 		{
 			echo JText::_( 'COM_JDOWNLOADS_UPLOAD_ERROR_MOVING_FILE' );
 			return;

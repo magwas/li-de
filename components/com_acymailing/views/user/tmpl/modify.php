@@ -1,7 +1,7 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.0.1
+ * @version	4.9.3
  * @author	acyba.com
  * @copyright	(C) 2009-2015 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
@@ -24,19 +24,19 @@ defined('_JEXEC') or die('Restricted access');
 				if($oneExtraField->type == 'category'){
 					if(empty($oneExtraField->fieldcat) && !empty($tmpCatId)){
 						while(!empty($tmpCatId)){
-							echo '</'.str_replace('fldset', 'fieldset', end($tmpCatTag)).'>';
+							echo '</'.end($tmpCatTag).'>';
 							array_pop($tmpCatId);
 							array_pop($tmpCatTag);
 						}
 					}
 					$tmpCatId[] = $oneExtraField->fieldid;
 					$tmpCatTag[] = $oneExtraField->options['fieldcattag'];
-					echo '<'.str_replace('fldset', 'fieldset', end($tmpCatTag)).' class="fieldCategory '.$oneExtraField->options['fieldcatclass'].'" id="tr'.$oneExtraField->namekey.'">';
-					if(in_array(end($tmpCatTag), array('fieldset', 'fldset'))) echo '<legend>'.$oneExtraField->fieldname.'</legend>';
+					echo '<'.end($tmpCatTag).' class="fieldCategory '.$oneExtraField->options['fieldcatclass'].'" id="tr'.$oneExtraField->namekey.'">';
+					if(end($tmpCatTag) == 'fieldset') echo '<legend>'.$oneExtraField->fieldname.'</legend>';
 				}else{
 					if(in_array($oneExtraField->fieldcat, $tmpCatId) || empty($oneExtraField->fieldcat)){
 						while(!empty($tmpCatId) && $oneExtraField->fieldcat != end($tmpCatId)){
-							echo '</'.str_replace('fldset', 'fieldset', end($tmpCatTag)).'>';
+							echo '</'.end($tmpCatTag).'>';
 							array_pop($tmpCatId);
 							array_pop($tmpCatTag);
 						}
@@ -50,7 +50,7 @@ defined('_JEXEC') or die('Restricted access');
 			}
 			$lastVal = end($tmpCatId);
 			while(!empty($lastVal)){
-				echo '</'.str_replace('fldset', 'fieldset', end($tmpCatTag)).'>';
+				echo '</'.end($tmpCatTag).'>';
 				array_pop($tmpCatId);
 				array_pop($tmpCatTag);
 				$lastVal = end($tmpCatId);
@@ -99,6 +99,17 @@ defined('_JEXEC') or die('Restricted access');
 				</div>
 			<?php }
 		}
+		if(empty($this->subscriber->subid) AND $this->config->get('captcha_enabled')){ ?>
+			<div id="trcaptcha" class="acy_onefield">
+				<div class="captchakeycomponent">
+					<img title="<?php echo JText::_('ERROR_CAPTCHA'); ?>" id="captcha_picture" width="<?php echo $this->config->get('captcha_width_component') ?>" height="<?php echo $this->config->get('captcha_height_component') ?>" class="captchaimagecomponent" src="<?php if(ACYMAILING_J16){ echo JRoute::_('index.php?option=com_acymailing&ctrl=captcha&val='.rand(0,10000)); }else{ echo rtrim(JURI::root(),'/').'/index.php?option=com_acymailing&amp;ctrl=captcha&amp;val='.rand(0,10000);} ?>" alt="captcha" />
+					<span class="refreshCaptcha" onClick="refreshCaptcha()">&nbsp;</span>
+				</div>
+				<div class="captchafieldcomponent">
+					<input title="<?php echo JText::_('ERROR_CAPTCHA'); ?>" id="user_captcha" class="inputbox captchafield" type="text" name="acycaptcha" style="width:50px" />
+				</div>
+			</div>
+			<?php }
 ?>
 		</div>
 	</fieldset>

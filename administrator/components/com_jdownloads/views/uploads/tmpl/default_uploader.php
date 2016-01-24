@@ -26,7 +26,20 @@ Technical Support: http://ljufisha.blogspot.com
 ?>
 
 <form action="" method="post" id="adminForm" name="adminForm">
-	<div id="uploader">
+	
+    <?php if (!empty( $this->sidebar)) : ?>
+        <div id="j-sidebar-container" class="span2">
+            <?php echo $this->sidebar; ?>
+        </div>
+        <div id="j-main-container" class="span10">
+    <?php else : ?>
+        <div id="j-main-container">
+    <?php endif;?>    
+    
+    <div class="jdlists-header-info"><?php echo '<img align="left" src="'.JURI::root().'administrator/components/com_jdownloads/assets/images/info22.png" width="22" height="22" border="0" alt="" />&nbsp;&nbsp;'.JText::_('COM_JDOWNLOADS_UPLOADER_DESC').'<br /><br />'.JText::_('COM_JDOWNLOADS_UPLOADER_DESC2'); ?> </div>
+    <div class="clr"> </div>    
+    
+    <div id="uploader">
 		<p><?php JText::printf('COM_JDOWNLOADS_ERROR_RUNTIME_NOT_SUPORTED', $this->runtime) ?></p>
 	</div>
     <!-- we need here the 'task' field to get NOT an error message like: 'TypeError: b.task is undefined' -->

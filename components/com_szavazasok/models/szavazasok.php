@@ -115,6 +115,8 @@ class SzavazasokModelSzavazasok  extends JModelItem {
          $this->_item->vita2 = 0;
          $this->_item->szavazas = 0;
          $this->_item->lezart = 0;
+		 $this->_item->elbiralas_alatt = 0;
+		 $this->_item->elutasitva = '';
          $this->_item->alternativak = array();
       } else if ($table->load($id)) {
 				// Check published state.
@@ -153,6 +155,8 @@ class SzavazasokModelSzavazasok  extends JModelItem {
       $result->vita2 = 0;
       $result->szavazas = 0;
       $result->lezart = 0;
+	  $result->elbiralas_alatt = 0;
+	  $result->elutasitva = '';
       for ($i=0; $i<count($result->alternativak); $i++)
         $result->alternativak[$i]->szavazas_id = 0;
     } else {
@@ -165,8 +169,12 @@ class SzavazasokModelSzavazasok  extends JModelItem {
    * adat olvasás a $source assotiativ tömbből
    * @param array   
    * @return mysql record object
+   * ha vita2_vege nem érkezik akkkor legyen a vita1_vege -vel azonos (UMK projek)
    */         
   public function bind($source) {
+	if (!isset($source['vita2_vege'])) {
+		$source['vita2_vege'] = $source['vita1_vege'];
+	}
     $i = 0;
 		$table = JTable::getInstance('Szavazasok', 'Table');
     $table->bind($source);
@@ -175,17 +183,27 @@ class SzavazasokModelSzavazasok  extends JModelItem {
       $result->$fn = $fv;
     $result->temakor_id = JRequest::getVar('temakor_id',0);
     $result->id = JRequest::getVar('id',0);
-      
     // allapot radiobutton kezelése
+    $result->elbiralas_alatt=0;
     $result->vita1=0;
     $result->vita2=0;
     $result->szavazas=0;
     $result->lezart=0;
+    if (JRequest::getVar('allapot') == 'elbiralas_alatt') $result->elbiralas_alatt = 1;  
     if (JRequest::getVar('allapot') == 'vita1') $result->vita1 = 1;  
     if (JRequest::getVar('allapot') == 'vita2') $result->vita2 = 1;  
     if (JRequest::getVar('allapot') == 'szavazas') $result->szavazas = 1;  
     if (JRequest::getVar('allapot') == 'lezart') $result->lezart = 1;
-      
+    if (JRequest::getVar('elvetve') == 'elvetve') {
+		$result->velbiralas_alatt = 0;
+		$result->vita1 = 0;
+		$result->vita2 = 0;
+		$result->szavazas = 0;
+		$result->lezart = 0;
+	} else {
+		$result->elutasitva = '';
+	}	
+   
     $result->alternativak = array();
     for ($i=0; $i<5; $i++) {
       if (JRequest::getVar('alternativa'.$i)) {
@@ -203,8 +221,8 @@ class SzavazasokModelSzavazasok  extends JModelItem {
 			$result->cimkek .= JRequest::getVar('cimke_'.$i).',';
 		}
 	}
-	
-    return $result;
+	//DBG echo JSON_encode($result); exit();
+	return $result;
   }
   /**
    * adat ellenörzés tárolás elött
@@ -224,10 +242,15 @@ class SzavazasokModelSzavazasok  extends JModelItem {
          $result = false;
          $msg .= JText::_('ROSSZSZAVAZASDATUMVISZONYOK').'<br />';
      } 
-     if (($item->vita1 + $item->vita2 + $item->szavazas + $item->lezart) != 1) {
+     if ((($item->vita1 + $item->vita2 + $item->szavazas + $item->lezart + $item->elbiralas_alatt) != 1) & ($item->elutasitva == '')) {
          $result = false;
-         $msg .= JText::_('ROSSZSZAVAZASALLAPOT').'<br />';
+         $msg .= JText::_('ROSSZSZAVAZASALLAPOT').' '.JSON_encode($item).'<br />';
      }
+     if ((($item->vita1 + $item->vita2 + $item->szavazas + $item->lezart + $item->elbiralas_alatt) == 0) & ($item->elutasitva == '')) {
+         $result = false;
+         $msg .= JText::_('ELUTASITAST_INDOKOLNI_KELL').' '.JSON_encode($item).'<br />';
+     }
+	 
      if ($msg != '')
         $this->setError($msg);
      return $result;
@@ -282,6 +305,21 @@ class SzavazasokModelSzavazasok  extends JModelItem {
          echo $fn.'='.$fv.'<br />';
        }
        */
+	   
+	   // allapot fixálás
+	   if ($table->elutasitva != '') {
+		   $table->vita1 = 0;
+		   $table->vita2 = 0;
+		   $table->szavazas = 0;
+		   $table->lezart = 0;
+		   $table->elbiralas_alatt = 0;
+	   }
+	   if ($table->elbiralas_alatt) {
+		   $table->vita1 = 0;
+		   $table->vita2 = 0;
+		   $table->szavazas = 0;
+		   $table->lezart = 0;
+	   }
        
        $result = $table->store();
        if (($ujfelvitel) & (count($item->alternativak) == 5)) {
@@ -308,29 +346,93 @@ class SzavazasokModelSzavazasok  extends JModelItem {
          }
        }
 	   
-	   // email a joomla adminoknak ($table->id és a további mezők használhatóak)
+	   // PMS a joomla adminoknak ($table->id és a további mezők használhatóak)
+	   $db->setQuery('select * from #__temakorok where id='.$table->temakor_id);
+	   $temakor = $db->loadObject();
 	   if ($ujfelvitel) {
-		   $db->setQuery('select distinct u.email 
-		   from #__users u,#__user_usergroup_map m
-		   where m.user_id = u.id and m.group_id = 8');
+		   $db->setQuery('select distinct u.email, u.id 
+		   from #__users u
+		   inner join #__user_usergroup_map m on m.user_id = u.id
+		   left outer join #__tagok t on t.user_id = u.id and t.temakor_id='.$table->temakor_id. '
+		   where m.group_id = 8 or m.group_id = 7 or t.admin = 1');
 		   $adminok = $db->loadObjectList();
 		   foreach ($adminok as $admin) {
-			  $this->ujSzavazasEmail($admin->email,$table);
-		   }
-	   }
+			  //$this->ujSzavazasEmail($admin->email,$table);
+			  // PMS a rendszer és témakör adminoknak
+			  $db->setQuery('INSERT INTO #__uddeim 
+				(`id`, 
+				`replyid`, 
+				`fromid`, 
+				`toid`, 
+				`message`, 
+				`datum`, 
+				`toread`, 
+				`totrash`, 
+				`totrashdate`, 
+				`totrashoutbox`, 
+				`totrashdateoutbox`, 
+				`expires`, 
+				`disablereply`, 
+				`systemflag`, 
+				`delayed`, 
+				`systemmessage`, 
+				`archived`, 
+				`cryptmode`, 
+				`flagged`, 
+				`crypthash`, 
+				`publicname`, 
+				`publicemail`
+				)
+				VALUES
+				(0, 
+				0, 
+				'.$db->quote($user->id).', 
+				'.$db->quote($admin->id).', 
+				"Új ötlet javaslat lett a web oldalra feltöltve'.
+				   '\nTémakör:'.$temakor->megnevezes.
+				   '\nÖtlet megnevezése:'.$table->megnevezes.
+				   '\nFeltöltő:'.$user->username.
+				   '\n[url]'.JURI::base().'SU/alternativak/alternativaklist/browse/'.$table->temakor_id.'/'.$table->id.'/20/0/1/[/url]", 
+				"'.time().'", 
+				0, 
+				0, 
+				0, 
+				0, 
+				0, 
+				0, 
+				0, 
+				1, 
+				0, 
+				"Új ötlet (javaslat)", 
+				0, 
+				0, 
+				0, 
+				"", 
+				"", 
+				""
+				);
+			  ');
+			  $db->query();
+		   } // foreach
+	   } // új felvitel
 
-       // jdownloader kategoria létrehozása vagy módosítása
-       $this->storeJdownloadsCategory($table->id, $item);
+         // cikk kategoria létrehozása vagy módosítása
+         $this->storeContentCategory($table->id, $item);
 
-       // kapcsolodó cikk létrehozása vagy módosítása
-       $this->storeArtycle($table->id, $item);
+         // jdownloader kategoria létrehozása vagy módosítása
+         $this->storeJdownloadsCategory($table->id, $item);
 
-       // kunena fórum kategória létrehozása vagy módosítása
-       // 2015.05.17 nem generálunk kunena kategoriákat $this->storeKunenaCategory($table->id, $item);
+         // kapcsolodó cikk létrehozása vagy módosítása
+         $this->storeArtycle($table->id, $item);
+
+         // kunena fórum kategória létrehozása vagy módosítása
+         // 2015.05.17 nem generálunk kunena kategoriákat $this->storeKunenaCategory($table->id, $item);
        
-	   // icAgenda események létrehozása, karbantartása
-	   $this->storeEvent($table->id, $item);
-	   
+	
+       if ($table->elbiralas_alatt == 0) {		
+		// icAgenda események létrehozása, karbantartása
+	     $this->storeEvent($table->id, $item);
+	   }
      } else {
        $result = false;
      }
@@ -427,6 +529,7 @@ class SzavazasokModelSzavazasok  extends JModelItem {
      if ($szulo == false) {
        $szulo = new stdClass();
        $szulo->id = 1;
+	   $szulo->level = 1;
        $szulo->cat_dir_parent = '';
        $szulo->cat_dir = '';
      }
@@ -452,23 +555,16 @@ class SzavazasokModelSzavazasok  extends JModelItem {
      $data['title'] = $item->megnevezes;
      $data['description'] = $item->leiras;
      $data['alias'] = 'sz'.$newId;
-     $data['cat_dir'] = 'SZ'.$newId;
+     $data['cat_dir'] = $item->megnevezes;
      $data['access'] = 1;
-     if ($szulo->cat_dir_parent == '')
-       $data['cat_dir_parent'] = $szulo->cat_dir;
-     else
-       $data['cat_dir_parent'] = $szulo->cat_dir_parent.'/'.$szulo->cat_dir;
+     $data['cat_dir_parent'] = '';
      $data['language'] = '*';
      $data['pic'] = 'folder.png';
+	 $data['level'] = $szulo->level + 1;
      
      // rekord store
      $result = $model->save($data, true); // false paraméternél hibát jelez
      
-     // könyvtár ellenörzés ha kell létrehozás
-     $path = './jdownloads/'.$data['cat_dir_parent'].'/'.$data['cat_dir'];
-     if (is_dir($path) == false) {
-       mkdir($path,0777);
-     }
      
      // Jdownloads category jogosultságok beállítása
      // $item->lathatosag: 0-mindenki, 1-regisztraltak, 2-téma tagok
@@ -720,9 +816,57 @@ class SzavazasokModelSzavazasok  extends JModelItem {
 		   return;
 	   }
 	   $this->createEvent($db,$user,$newId,$item->vita1_vege,$item->megnevezes.' vita1 vége',$item->temakor_id);
-	   $this->createEvent($db,$user,$newId,$item->vita2_vege,$item->megnevezes.' vita2 vége',$item->temakor_id);
+	   if ($item->vita2_vege != $item->vita1_vege)
+	     $this->createEvent($db,$user,$newId,$item->vita2_vege,$item->megnevezes.' vita2 vége',$item->temakor_id);
 	   $this->createEvent($db,$user,$newId,$item->szavazas_vege,$item->megnevezes.' szavazás vége',$item->temakor_id);
    }
   
+   /**
+    * Content kategória létrehozása az $item -ben lévő szavazáshoz
+    * @param integer $newId
+    * @param mysqlrecord $item
+    * @return void
+    */
+    protected function storeContentCategory($newId, $item) {
+      $db = JFactory::getDBO();
+      $user = JFactory::getUser();
+      $basePath = JPATH_ADMINISTRATOR . '/components/com_categories';
+      $config = array( 'table_path' => $basePath . '/tables');
+	  
+	  // szülő kategoria elérése
+      $db->setQuery('SELECT * FROM #__categories WHERE alias="t'.$item->temakor_id.'"');
+      $szulo = $db->loadObject();
+      if (!$szulo) {
+        $szulo = new stdClass();
+        $szulo->id = 0;
+      }
+      // megvan már a rekord?
+      $db->setQuery('SELECT * FROM #__categories WHERE alias="sz'.$newId.'"');
+      $old = $db->loadObject();
+      
+	  
+      if ($old == false) {
+        $category_data = array();
+        $category_data['id'] = 0;
+        $category_data['parent_id'] = $szulo->id;
+        $category_data['title'] = $item->megnevezes;
+        $category_data['description'] = $item->leiras;
+        $category_data['alias'] = 'sz'.$newId;
+        $category_data['extension'] = 'com_content';
+        $category_data['published'] = 1;
+        $category_data['language'] = '*';
+        $category_data['access'] = 1;
+        $category_data['params'] = array();
+        $new_category = new CategoriesModelCategory($config);
+        $result = $new_category->save($category_data);
+      } else {
+        $db->setQuery('UPDATE #__categories
+        SET title="'.mysql_escape_string($item->megnevezes).'",
+            description = "'.mysql_escape_string($item->leiras).'"
+        WHERE alias="sz'.$newId.'"');
+        $db->query();
+        if ($db->getErrorNum() > 0) $db->stderr();
+      }
+	}
 } // class
 ?>

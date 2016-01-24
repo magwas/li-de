@@ -20,22 +20,33 @@ JHtml::_('behavior.tooltip');
 
 <form action="<?php echo JRoute::_('index.php?option=com_jdownloads');?>" method="post" name="adminForm" id="adminForm">
     
+    <!--<?php if (!empty( $this->sidebar)) : ?>
+        <div id="j-sidebar-container" class="span2">
+            <?php echo $this->sidebar; ?>
+        </div>
+        <div id="j-main-container" class="span10">
+    <?php else : ?>
+        <div id="j-main-container">
+    <?php endif;?>        -->
+        
         <div>
         <fieldset style="background-color: #ffffff;" class="uploadform">
             <legend><?php echo JText::_(''); ?></legend>
                        
-             <label id="text-lbl" class="hasTip" title="" for="text">
-             <strong>
+             <label id="text-lbl" class="" title="" for="text">
+             
+             <strong><?php echo JText::_('COM_JDOWNLOADS_BACKEND_EDIT_LANG_FIELD_TITLE').': </strong>'.$this->languagefile; ?><br />            
+            
+             <small>
              <?php echo JText::_('COM_JDOWNLOADS_BACKEND_EDIT_LANG_WRITE_STATUS_TEXT')." ";
                 if ($this->languagefile_writable) {
                     echo JText::_('COM_JDOWNLOADS_BACKEND_EDIT_LANG_CSS_FILE_WRITABLE_YES');
                 } else {
                     echo JText::_('COM_JDOWNLOADS_BACKEND_EDIT_LANG_CSS_FILE_WRITABLE_NO'); ?>
-                    </strong>
-                    <br />
-                    <?php echo JText::_('COM_JDOWNLOADS_BACKEND_EDIT_LANG_CSS_FILE_WRITABLE_INFO'); ?><br />
-            <?php } ?>
-            <br /><br /><small><strong><?php echo JText::_('COM_JDOWNLOADS_BACKEND_EDIT_LANG_FIELD_TITLE').': </strong>'.$this->languagefile; ?></small><br />
+                    <br /><strong>
+                    <?php echo JText::_('COM_JDOWNLOADS_BACKEND_EDIT_LANG_CSS_FILE_WRITABLE_INFO'); ?></strong>
+            <?php } ?></small>
+            
             </label>
             
             <div class="clr"></div>

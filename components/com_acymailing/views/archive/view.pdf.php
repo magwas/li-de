@@ -1,7 +1,7 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.0.1
+ * @version	4.9.3
  * @author	acyba.com
  * @copyright	(C) 2009-2015 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
@@ -36,6 +36,28 @@ class archiveViewArchive extends acymailingView
 			}
 
 		$access_sub = true;
+			 if(acymailing_level(3)){
+			$listmail = acymailing_get('class.listmail');
+			$allLists = $listmail->getLists($mailid);
+			$access_sub = false;
+			if(!empty($allLists)){
+				$my = JFactory::getUser();
+				foreach($allLists as $alist){
+					if(empty($alist->mailid)) continue;
+					if(!$alist->published OR !$alist->visible OR $alist->access_sub == 'none') continue;
+					if($alist->access_sub == 'all'){
+						$access_sub = true;
+						break;
+					}
+					if(empty($my->id)) continue;
+					if(acymailing_isAllowed($alist->access_sub)){
+						$access_sub = true;
+						break;
+					}
+
+				}
+			}
+			 }
 
 			$mailClass = acymailing_get('helper.mailer');
 			$mailClass->loadedToSend = false;

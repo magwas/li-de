@@ -37,6 +37,10 @@ class plgSystemjdownloads extends JPlugin
      {
              parent::__construct($subject, $params);
              $this->loadLanguage();
+             
+            // get jD language admin file
+            $language = JFactory::getLanguage();
+            $language->load('com_jdownloads');
      } 
      
      /**

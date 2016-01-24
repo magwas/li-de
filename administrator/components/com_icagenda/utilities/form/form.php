@@ -11,7 +11,7 @@
  * @author      Cyril Rezé (Lyr!C)
  * @link        http://www.joomlic.com
  *
- * @version     3.5.7 2015-07-15
+ * @version     3.5.10 2015-08-14
  * @since       3.4.0
  *------------------------------------------------------------------------------
 */
@@ -40,15 +40,18 @@ class icagendaForm
 		if ($parent_form == 1) $parent_name = 'registration';
 		if ($parent_form == 2) $parent_name = 'event';
 
-		$app = JFactory::getApplication();
+		$app	= JFactory::getApplication();
+		$lang	= JFactory::getLanguage();
+
+		$id_suffix = ($lang->getTag() == 'fa-IR') ? '_jalali' : '';
 
 		if ($app->isAdmin())
 		{
-			$params = JComponentHelper::getParams('com_icagenda');
+			$params		= JComponentHelper::getParams('com_icagenda');
 		}
-		if ($app->isSite())
+		elseif ($app->isSite())
 		{
-			$params = $app->getParams();
+			$params		= $app->getParams();
 		}
 
 		$submit_periodDisplay = $params->get('submit_periodDisplay', 1);
@@ -114,15 +117,15 @@ class icagendaForm
 
 			if ($submit_periodDisplay && $app->isSite())
 			{
-				$ic_script[] = '		var startDate = document.getElementById("startdate");';
-				$ic_script[] = '		var endDate = document.getElementById("enddate");';
+				$ic_script[] = '		var startDate = document.getElementById("startdate' . $id_suffix . '");';
+				$ic_script[] = '		var endDate = document.getElementById("enddate' . $id_suffix . '");';
 				$ic_script[] = '		var isValidStartDate = strpos(startDate.value, nodate, 0);';
 				$ic_script[] = '		var isValidEndDate = strpos(endDate.value, nodate, 0);';
 			}
 			elseif ($app->isAdmin())
 			{
-				$ic_script[] = '		var startDate = document.getElementById("startdate");';
-				$ic_script[] = '		var endDate = document.getElementById("enddate");';
+				$ic_script[] = '		var startDate = document.getElementById("startdate' . $id_suffix . '");';
+				$ic_script[] = '		var endDate = document.getElementById("enddate' . $id_suffix . '");';
 				$ic_script[] = '		var isValidStartDate = strpos(startDate.value, nodate, 0);';
 				$ic_script[] = '		var isValidEndDate = strpos(endDate.value, nodate, 0);';
 			}
@@ -178,26 +181,26 @@ class icagendaForm
 
 			if ($submit_periodDisplay && $app->isSite())
 			{
-				$ic_script[] = '			document.getElementById("startdate").value = emptydatetime;';
-				$ic_script[] = '			document.getElementById("enddate").value = emptydatetime;';
-				$ic_script[] = '			document.getElementById("startdate").addClass("ic-date-invalid");';
-				$ic_script[] = '			document.getElementById("enddate").addClass("ic-date-invalid");';
+				$ic_script[] = '			document.getElementById("startdate' . $id_suffix . '").value = emptydatetime;';
+				$ic_script[] = '			document.getElementById("enddate' . $id_suffix . '").value = emptydatetime;';
+				$ic_script[] = '			document.getElementById("startdate' . $id_suffix . '").addClass("ic-date-invalid");';
+				$ic_script[] = '			document.getElementById("enddate' . $id_suffix . '").addClass("ic-date-invalid");';
 			}
 			elseif ($app->isAdmin())
 			{
-				$ic_script[] = '			document.getElementById("startdate").value = emptydatetime;';
-				$ic_script[] = '			document.getElementById("enddate").value = emptydatetime;';
-				$ic_script[] = '			document.getElementById("startdate").addClass("ic-date-invalid");';
-				$ic_script[] = '			document.getElementById("enddate").addClass("ic-date-invalid");';
+				$ic_script[] = '			document.getElementById("startdate' . $id_suffix . '").value = emptydatetime;';
+				$ic_script[] = '			document.getElementById("enddate' . $id_suffix . '").value = emptydatetime;';
+				$ic_script[] = '			document.getElementById("startdate' . $id_suffix . '").addClass("ic-date-invalid");';
+				$ic_script[] = '			document.getElementById("enddate' . $id_suffix . '").addClass("ic-date-invalid");';
 			}
 
 			if ($submit_datesDisplay && $app->isSite())
 			{
-				$ic_script[] = '			document.getElementById("dTable").addClass("ic-date-invalid");';
+				$ic_script[] = '			document.getElementById("dTable' . $id_suffix . '").addClass("ic-date-invalid");';
 			}
 			elseif ($app->isAdmin())
 			{
-				$ic_script[] = '			document.getElementById("dTable").addClass("ic-date-invalid");';
+				$ic_script[] = '			document.getElementById("dTable' . $id_suffix . '").addClass("ic-date-invalid");';
 			}
 
 			$ic_script[] = '			scroll_to = document.getElementById("ic-dates-fieldset");';
@@ -209,22 +212,22 @@ class icagendaForm
 
 			if ($submit_periodDisplay && $app->isSite())
 			{
-				$ic_script[] = '			document.getElementById("startdate").removeClass("ic-date-invalid");';
-				$ic_script[] = '			document.getElementById("enddate").removeClass("ic-date-invalid");';
+				$ic_script[] = '			document.getElementById("startdate' . $id_suffix . '").removeClass("ic-date-invalid");';
+				$ic_script[] = '			document.getElementById("enddate' . $id_suffix . '").removeClass("ic-date-invalid");';
 			}
 			elseif ($app->isAdmin())
 			{
-				$ic_script[] = '			document.getElementById("startdate").removeClass("ic-date-invalid");';
-				$ic_script[] = '			document.getElementById("enddate").removeClass("ic-date-invalid");';
+				$ic_script[] = '			document.getElementById("startdate' . $id_suffix . '").removeClass("ic-date-invalid");';
+				$ic_script[] = '			document.getElementById("enddate' . $id_suffix . '").removeClass("ic-date-invalid");';
 			}
 
 			if ($submit_datesDisplay && $app->isSite())
 			{
-				$ic_script[] = '			document.getElementById("dTable").removeClass("ic-date-invalid");';
+				$ic_script[] = '			document.getElementById("dTable' . $id_suffix . '").removeClass("ic-date-invalid");';
 			}
 			elseif ($app->isAdmin())
 			{
-				$ic_script[] = '			document.getElementById("dTable").removeClass("ic-date-invalid");';
+				$ic_script[] = '			document.getElementById("dTable' . $id_suffix . '").removeClass("ic-date-invalid");';
 			}
 
 			$ic_script[] = '		}';
@@ -232,13 +235,13 @@ class icagendaForm
 			if ($submit_periodDisplay && $app->isSite())
 			{
 				$ic_script[] = '		if (isValidStartDate && !isValidEndDate) {';
-				$ic_script[] = '			document.getElementById("enddate").value = startDate.value;';
+				$ic_script[] = '			document.getElementById("enddate' . $id_suffix . '").value = startDate.value;';
 				$ic_script[] = '		}';
 			}
 			elseif ($app->isAdmin())
 			{
 				$ic_script[] = '		if (isValidStartDate && !isValidEndDate) {';
-				$ic_script[] = '			document.getElementById("enddate").value = startDate.value;';
+				$ic_script[] = '			document.getElementById("enddate' . $id_suffix . '").value = startDate.value;';
 				$ic_script[] = '		}';
 			}
 		}

@@ -1,6 +1,6 @@
 <?php
 /**
- * szavazasok vita1 állapotban böngésző képernyő
+ * szavazas folyik böngésző képernyő
  * bemenet:
  * $this->Items
  *      ->Akciok      [name=>link,...]
@@ -23,14 +23,56 @@ function thClass($col) {
 }
 
 
-echo '
+echo '<div class="szavazasFolyik">
 <div class="componentheading'.$this->escape($this->params->get('pageclass_sfx')).'">
 ';
+echo '<div class="kepviselok">
+		';
+	  if ($this->AltKepviselo['kepviselojeLink'] != '') {
+        echo '<div class="altKepviselo">
+			 <a class="btnKepviselo" href="'.$this->AltKepviselo['kepviselojeLink'].'">
+             <div class="avatar">'.$this->AltKepviselo['image'].'</div>
+             <br />'.$this->AltKepviselo['nev'].'
+             <br />'.JText::_('GLOBALISKEPVISELO').'
+             </a>
+			 </div>
+             ';
+      }       
+      if ($this->Kepviselo['kepviselojeLink'] != '') {
+        echo '<div class="temaKepviselo">
+			  <a class="btnKepviselo" href="'.$this->Kepviselo['kepviselojeLink'].'">
+             <div class="avatar">'.$this->Kepviselo['image'].'</div>
+             <br />'.$this->Kepviselo['nev'].'
+             <br />'.JText::_('TEMAKORKEPVISELO').'
+             </a>
+			 </div>
+             ';
+      }
+	  if ($this->Kepviselo['kepviseloJeloltLink'] != '') {
+        echo '<div class="temaKepviseloJelolt">
+			  <a class="akcioGomb btnJelolt" href="'.$this->Kepviselo['kepviseloJeloltLink'].'">
+              '.JText::_('TEMAKORKEPVISELOJELOLT').'
+              </a>
+			 </div>
+             ';
+      }
+	  if ($this->Kepviselo['kepviselotValasztLink'] != '') {
+        echo '<div class="temaKepviselotValaszt">
+			  <a class="akcioGomb btnKepviselotValaszt" href="'.$this->Kepviselo['kepviselotValasztLink'].'">
+             '.JText::_('TEMAKORKEPVISELOTVALASZT').'
+              </a>
+			  </div>
+			';	  
+      };
+echo '
+</div>
+<div class="clr"></div>
+';
+
 // filterStr = keresendő_str|activeFlag szétbontása
 $w = explode('|',urldecode(JRequest::getVar('filterStr','')));
 if ($w[1]==1) $filterAktiv = 'checked="checked"';
 echo '
-
 <h2>'.$this->Title.'</h2>
 <div class="szuroKepernyo">
   <form action="'.$this->doFilterLink.'&task=dofilter" method="post">
@@ -46,8 +88,9 @@ echo '
     </div>
   </form>
 </div>
+</div>
 
-<div class="tableKepviselok'.$this->escape($this->params->get('pageclass_sfx')).'">
+<div class="tableSzavazasFolyik'.$this->escape($this->params->get('pageclass_sfx')).'">
 	<table border="0" width="100%">
   <thead>
   <tr>
@@ -135,6 +178,7 @@ echo '
 </table>		
 <div class="lapozosor">
   '.$this->LapozoSor.'
+</div>
 </div>
 </div>
 ';
