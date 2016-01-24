@@ -1,7 +1,7 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.0.1
+ * @version	4.9.3
  * @author	acyba.com
  * @copyright	(C) 2009-2015 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
@@ -123,6 +123,13 @@ if(empty($identifiedUser->subid)){
 	$allLists = $userClass->getSubscription($identifiedUser->subid,'listid');
 }
 
+if(acymailing_level(1)){
+	$allLists = $listsClass->onlyCurrentLanguage($allLists);
+}
+
+if(acymailing_level(3)){
+	$allLists = $listsClass->onlyAllowedLists($allLists);
+}
 
 if(strpos($visibleLists,',') OR is_numeric($visibleLists)){
 	$allvisiblelists = explode(',',$visibleLists);
@@ -191,10 +198,93 @@ $extraFields = array();
 $fieldsize = $params->get('fieldsize', '80%');
 if(is_numeric($fieldsize)) $fieldsize .= 'px';
 
+if(acymailing_level(3)){
+	$fieldsClass = acymailing_get('class.fields');
+	$fieldsClass->origin = 'module';
+	$fieldsClass->prefix = 'user_';
+	$fieldsClass->suffix = '_'.$formName;
+	if(!empty($connectedUser->email)) $fieldsClass->currentUser = $connectedUser;
+	$extraFields = $fieldsClass->getFields('module',$identifiedUser);
+
+	$newOrdering = array();
+	$requiredFields = array();
+	$validMessages = array();
+	$checkFields = array();
+	$checkFieldsType = array();
+	$checkFieldsRegexp = array();
+	$validCheckMsg = array();
+	foreach($extraFields as $fieldnamekey => $oneField){
+		if(in_array($fieldnamekey,$fieldsToDisplay)) $newOrdering[] = $fieldnamekey;
+		if(in_array($oneField->type,array('text','date')) AND $params->get('fieldsize', '80%') AND (empty($extraFields[$fieldnamekey]->options['size']) || $params->get('fieldsize', '80%') < $extraFields[$fieldnamekey]->options['size'])){
+			$extraFields[$fieldnamekey]->options['size'] = $params->get('fieldsize', '80%');
+		}
+		if(strlen($params->get($fieldnamekey.'text')) > 1){
+			$extraFields[$fieldnamekey]->fieldname = $params->get($fieldnamekey.'text');
+		}
+		if(in_array($oneField->namekey,array('name','email'))) continue;
+		if(!empty($oneField->required)){
+			$requiredFields[] = $fieldnamekey;
+			if(!empty($oneField->options['errormessage'])){
+				$validMessages[] = addslashes($fieldsClass->trans($oneField->options['errormessage']));
+			}else{
+				$validMessages[] = addslashes(JText::sprintf('FIELD_VALID',$fieldsClass->trans($oneField->fieldname)));
+			}
+		}
+		if($oneField->type == 'text' && !empty($oneField->options['checkcontent']) && in_array($fieldnamekey, explode(',',$params->get('customfields')))){
+			$checkFields[] = $fieldnamekey;
+			$checkFieldsType[] = $oneField->options['checkcontent'];
+			if($oneField->options['checkcontent'] == 'regexp') $checkFieldsRegexp[] = $oneField->options['regexp'];
+			if(!empty($oneField->options['errormessagecheckcontent'])){
+				$validCheckMsg[] = addslashes($fieldsClass->trans($oneField->options['errormessagecheckcontent']));
+			}elseif(!empty($oneField->options['errormessage'])){
+				$validCheckMsg[] = addslashes($fieldsClass->trans($oneField->options['errormessage']));
+			} else{
+				$validCheckMsg[] = addslashes(JText::sprintf('FIELD_CONTENT_VALID',$fieldsClass->trans($oneField->fieldname)));
+			}
+		}
+	}
+	$fieldsToDisplay = $newOrdering;
+
+	if(!empty($requiredFields)){
+		$js = "acymailing['reqFields".$formName."'] = Array('".implode("','",$requiredFields)."');
+		acymailing['validFields".$formName."'] = Array('".implode("','",$validMessages)."');";
+
+		if($params->get('includejs','header') == 'header'){
+			$doc->addScriptDeclaration( $js );
+		}else{
+			echo "<script type=\"text/javascript\">
+				<!--
+					$js
+				//-->
+					</script>";
+		}
+	}
+	if(!empty($checkFields)){
+		$js = "acymailing['checkFields".$formName."'] = Array('".implode("','",$checkFields)."');
+		acymailing['checkFieldsType".$formName."'] = Array('".implode("','",$checkFieldsType)."');
+		acymailing['validCheckFields".$formName."'] = Array('".implode("','",$validCheckMsg)."');";
+		if(!empty($checkFieldsRegexp)) $js .= "acymailing['checkFieldsRegexp".$formName."'] = Array('".implode("','",$checkFieldsRegexp)."');";
+
+		if($params->get('includejs','header') == 'header'){
+			$doc->addScriptDeclaration( $js );
+		}else{
+			echo "<script type=\"text/javascript\">
+					$js
+					</script>";
+		}
+	}
+
+	$arrayForCondDisplay = array();
+	foreach($fieldsToDisplay as $oneField){
+		$arrayForCondDisplay[$oneField] = $extraFields[$oneField];
+	}
+	$js = $fieldsClass->prepareConditionalDisplay($arrayForCondDisplay, 'user', 'mod_'.$params->get('displaymode'), $formName);
+	if(!empty($js)) $doc->addScriptDeclaration($js);
+}
 
 if(!in_array('email',$fieldsToDisplay) && empty($connectedUser->id)) $fieldsToDisplay[] = 'email';
 
-if($params->get('loadmootools', '1') == 1 && ($params->get('effect') == 'mootools-slide' || $params->get('redirectmode',0) == '3')){
+if($params->get('effect') == 'mootools-slide' || $params->get('redirectmode',0) == '3'){
 	acymailing_loadMootools($params->get('effect') == 'mootools-slide');
 }
 

@@ -1,7 +1,7 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.0.1
+ * @version	4.9.3
  * @author	acyba.com
  * @copyright	(C) 2009-2015 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
@@ -94,6 +94,32 @@ class SubController extends acymailingController{
 			}
 		}
 
+		if(empty($my->id)){
+			if($config->get('captcha_enabled')){
+				$seckey = JRequest::getString('seckey');
+				if(!empty($seckey)){
+					if($config->get('security_key') !== $seckey){
+						if($ajax){
+							echo '{"message":"'.str_replace('"','\"',JText::_('ERROR_SECURE_KEY')).'","type":"error","code":"0"}';
+						}else{
+							echo JText::_('ERROR_SECURE_KEY',true);
+						}
+						exit;
+					}
+				}else{
+					$captchaClass = acymailing_get('class.acycaptcha');
+					$captchaClass->state = 'acycaptchamodule'.JRequest::getCmd('acyformname');
+					if(!$captchaClass->check(JRequest::getString('acycaptcha'))){
+						if($ajax){
+							echo '{"message":"'.str_replace('"','\"',JText::_('ERROR_CAPTCHA')).'","type":"error","code":"0"}';
+						}else{
+							$captchaClass->returnError();
+						}
+						exit;
+					}
+				}
+			}
+		}
 
 		$userClass = acymailing_get('class.subscriber');
 
@@ -388,6 +414,32 @@ class SubController extends acymailingController{
 			header("Content-type:text/html; charset=utf-8");
 		}
 
+		if(empty($my->id)){
+			if($config->get('captcha_enabled')){
+				$seckey = JRequest::getString('seckey');
+				if(!empty($seckey)){
+					if($config->get('security_key') !== $seckey){
+						if($ajax){
+							echo '{"message":"'.str_replace('"','\"',JText::_('ERROR_SECURE_KEY')).'","type":"error","code":"0"}';
+						}else{
+							echo JText::_('ERROR_SECURE_KEY',true);
+						}
+						exit;
+					}
+				}else{
+					$captchaClass = acymailing_get('class.acycaptcha');
+					$captchaClass->state = 'acycaptchamodule'.JRequest::getCmd('acyformname');
+					if(!$captchaClass->check(JRequest::getString('acycaptcha'))){
+						if($ajax){
+							echo '{"message":"'.str_replace('"','\"',JText::_('ERROR_CAPTCHA')).'","type":"error","code":"0"}';
+						}else{
+							$captchaClass->returnError();
+						}
+						exit;
+					}
+				}
+			}
+		}
 
 		$redirectUrl = urldecode(JRequest::getString('redirectunsub'));
 		if(!empty($redirectUrl)) $this->setRedirect($redirectUrl);

@@ -12,7 +12,7 @@
  *
  * @themepack	ic_rounded
  * @template	event_details
- * @version 	3.5.6 2015-05-19
+ * @version 	3.5.13 2015-11-10
  * @since       1.0
  *------------------------------------------------------------------------------
 */
@@ -128,7 +128,7 @@ defined('_JEXEC') or die(); ?>
 			<p>&nbsp;</p>
 
 			<?php // Information ?>
-			<?php if ($EVENT_INFOS || $CUSTOM_FIELDS): ?>
+			<?php if ($EVENT_INFOS): ?>
 			<div class="ic-info-box">
 
 				<?php // Title Box Information ?>

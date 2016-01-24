@@ -162,6 +162,17 @@
                     <option value="100">J100</option>
                     <option value="0">JALL</option>
                 </field>
+                
+                <field name="show_featured" type="list" default="show"
+                       label="COM_JDOWNLOADS_SHOW_FEATURED_DOWNLOADS"
+                       description="COM_JDOWNLOADS_SHOW_FEATURED_DOWNLOADS_DESC"
+                        >
+                    <!--<option value="">JGLOBAL_USE_GLOBAL</option>-->
+                    <option value="show">COM_JDOWNLOADS_SHOW</option>
+                    <option value="hide">COM_JDOWNLOADS_HIDE</option>
+                    <option value="only">COM_JDOWNLOADS_ONLY</option>
+                </field>                
+                
             </fieldset>
 </fields>    
     

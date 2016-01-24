@@ -1,7 +1,7 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.0.1
+ * @version	4.9.3
  * @author	acyba.com
  * @copyright	(C) 2009-2015 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
@@ -20,6 +20,41 @@ class acylistHelper{
 
 	function subscribe($subid,$listids){
 		$app = JFactory::getApplication();
+
+		if(acymailing_level(3)){
+			$campaignClass = acymailing_get('helper.campaign');
+			$campaignClass->campaigndelay = $this->campaigndelay;
+			$campaignClass->skipedfollowups = $this->skipedfollowups;
+			$campaignClass->start($subid,$listids);
+		}
+
+		if($this->forceConf || ($this->sendConf AND !$app->isAdmin())){
+
+			$db = JFactory::getDBO();
+			$db->setQuery('SELECT `welmailid`,`listid` FROM '.acymailing_table('list').' WHERE `listid` IN ('.implode(',',$listids).')  AND `published` = 1 AND `welmailid` != 0');
+			$messages = $db->loadObjectList();
+
+			if(!empty($messages)){
+				$alreadySent = array();
+				$config = acymailing_config();
+				$mailHelper = acymailing_get('helper.mailer');
+				$mailHelper->report = $config->get('welcome_message',true);
+				foreach($messages as $oneMessage){
+					$mailid = $oneMessage->welmailid;
+					if($mailid == '-1'){
+						$db->setQuery('SELECT l.mailid FROM #__acymailing_listmail as l JOIN #__acymailing_mail as m ON l.mailid = m.mailid WHERE l.`listid` = '.intval($oneMessage->listid).' AND m.published = 1 AND m.type = \'news\' ORDER BY m.senddate DESC LIMIT 1');
+						$mailid = $db->loadResult();
+						if(empty($mailid)) continue;
+					}
+
+					if(isset($alreadySent[$mailid])) continue;
+
+					$mailHelper->trackEmail = true;
+					$mailHelper->sendOne($mailid,$subid);
+					$alreadySent[$mailid] = true;
+				}
+			}
+		}//end only frontend
 
 
 		JPluginHelper::importPlugin('acymailing');

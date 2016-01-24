@@ -23,7 +23,11 @@
 .jwajaxvote-star-rating a.four-stars {width:80%;z-index:3;}
 .jwajaxvote-star-rating a.five-stars {width:100%;z-index:2;}
 .jwajaxvote-star-rating .current-rating {z-index:1;background-position:0 center;margin:0;padding:0;}
-.jwajaxvote-box {margin:0 0 0 5px;padding:0;float:left;}
+.jwajaxvote-box {
+	margin:0 0 0 5px;
+	padding: 0;
+	float:left;
+}
 .jwajaxvote-clr {clear:both;}
 
 /* --- End of stylesheet --- */

@@ -20,14 +20,19 @@ if (JFactory::getApplication()->isSite()) {
 
 require_once JPATH_ROOT . '/components/com_jdownloads/helpers/route.php';
 
-JHtml::_('behavior.tooltip');
+
+JHtml::_('bootstrap.tooltip');
+JHtml::_('behavior.multiselect');
+JHtml::_('formbehavior.chosen', 'select');
 
 $jinput = JFactory::getApplication()->input;
 
 $function	= $jinput->get('function', 'jSelectDownload');
 $listOrder	= $this->escape($this->state->get('list.ordering'));
 $listDirn	= $this->escape($this->state->get('list.direction'));
+
 ?>
+
 <form action="<?php echo JRoute::_('index.php?option=com_jdownloads&view=downloads&layout=modallist&tmpl=component&function='.$function.'&'.JSession::getFormToken().'=1');?>" method="post" name="adminForm" id="adminForm">
 	<div class="left">
         <b><?php // echo JText::_('COM_JDOWNLOADS_JD_MENU_VIEWDOWNLOAD_LABEL2') ?></b>

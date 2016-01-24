@@ -802,15 +802,29 @@ class jdownloadsControllerDownload extends JControllerForm
             
             // if set the option for direct link to the file
             if (!$jlistConfig['use.php.script.for.download']){
+                
                 $root = str_replace('\\', '/', $_SERVER["DOCUMENT_ROOT"]);
                 $root = rtrim($root, "/");               
-                $host = $_SERVER["HTTP_HOST"].'/';                
-                $filename_direct = str_replace($root, $host, $filename_direct);
-                $filename_direct = str_replace('//', '/', $filename_direct);
-                if (strpos('http://', $filename_direct) === false && strpos('https://', $filename_direct) === false && strpos('ftp://', $filename_direct) === false){
+                $host = $_SERVER["HTTP_HOST"];                
+                
+                // alternate when symlink are used (like "Strato")
+                $joomla_host = JURI::root();
+                $joomla_root = JPATH_ROOT.'/';
+                $joomla_root = str_replace('\\', '/', $joomla_root);
+                
+                if (strpos($filename_direct, $root) !== false ){
+                    $filename_direct = str_replace($root, $host, $filename_direct);
+                } else {
+                    $filename_direct = str_replace($joomla_root, $joomla_host, $filename_direct);
+                }   
+                    
+                if (strpos($filename_direct, 'http://') === false && strpos($filename_direct, 'https://') === false && strpos($filename_direct, 'ftp://') === false){
+                    //$filename_direct = str_replace('//', '/', $filename_direct);
                     $filename_direct = 'http://'.$filename_direct;
                 }
+                
                 $app->redirect($filename_direct);
+
             } else {    
                 $only_filename = basename($filename);
                 $extension = JDHelper::getFileExtension($only_filename);

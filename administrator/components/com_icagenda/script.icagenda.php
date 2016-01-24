@@ -10,7 +10,7 @@
  * @author      Cyril Rezé (Lyr!C)
  * @link        http://www.joomlic.com
  *
- * @version     3.5.6 2015-06-29
+ * @version     3.5.12 2015-10-12
  * @since       2.0
  *------------------------------------------------------------------------------
 */
@@ -86,6 +86,8 @@ class com_icagendaInstallerScript
 			'administrator/components/com_icagenda/sql/install.mysql.utf8.sql',
 			'administrator/components/com_icagenda/sql/uninstall.mysql.utf8.sql',
 			'administrator/components/com_icagenda/models/fields/custom_field.php',
+			'administrator/components/com_icagenda/tables/mail.php',
+			'administrator/components/com_icagenda/models/fields/modal/mailinglist.php',
 		),
 		'folders' => array(
 			'modules/mod_iccalendar/tmpl',
@@ -218,24 +220,38 @@ class com_icagendaInstallerScript
 		echo '<br />'.JText::_('COM_ICAGENDA_INSTALL_MINIMUM_JOOMLA_VERSION') . '<b> '.$this->minimum_joomla_release.'</b>';
 		echo '<br />'.JText::_('COM_ICAGENDA_INSTALL_CURRENT_JOOMLA_VERSION') . '<b> '.$jversion->getShortVersion().'</b><br /><br />';
 
-		// abort if the current Joomla release is older
-		if( version_compare( $jversion->getShortVersion(), $this->minimum_joomla_release, 'lt' ) ) {
-			Jerror::raiseWarning(null, ' ' . JText::_('COM_ICAGENDA_INSTALL_ERROR_JOOMLA_VERSION') . ' '.$this->minimum_joomla_release);
+		// Abort if the current Joomla release is older
+		if (version_compare($jversion->getShortVersion(), $this->minimum_joomla_release, 'lt'))
+		{
+			Jerror::raiseWarning(null, ' ' . JText::_('COM_ICAGENDA_INSTALL_ERROR_JOOMLA_VERSION') . ' ' . $this->minimum_joomla_release);
+
 			return false;
 		}
 
-		// abort if the component being installed is not newer than the currently installed version
-		if ( $type == 'update' ) {
-			echo '<span style="text-transform:uppercase; font-size: 14px"><b>' . JText::_('COM_ICAGENDA') . ' : ' . JText::_('COM_ICAGENDA_UPDATE') .' ' . $this->release . ' !</b></span><br><br>';
+		// Abort if Joomla 3 release is prior to 3.2.3
+		if (version_compare(JVERSION, '3.0.0', 'ge')
+			&& version_compare(JVERSION, '3.2.3', 'lt'))
+		{
+			JFactory::getApplication()->enqueueMessage(JText::_('COM_ICAGENDA_INSTALL_ERROR_JOOMLA_VERSION') . ' ' . '3.2.3', 'error');
+
+			return false;
+		}
+
+		// Abort if the component being installed is not newer than the currently installed version
+		if ($type == 'update')
+		{
+			echo '<span style="text-transform:uppercase; font-size: 14px"><b>' . JText::_('COM_ICAGENDA') . ' : ' . JText::_('COM_ICAGENDA_UPDATE') . ' ' . $this->release . ' !</b></span><br><br>';
 			$oldRelease = $this->getParam('version');
 			$rel = ' ' . $oldRelease . ' to ' . $this->release;
 //			if ( version_compare( $this->release, $oldRelease, 'le' ) ) {
 //				Jerror::raiseWarning(null, ' ' . JText::_('COM_ICAGENDA_INSTALL_INCORRECT_VERSION') . ' ' . $rel);
 //				return false;
 //			}
-
 		}
-		else { $rel = $this->release; }
+		else
+		{
+			$rel = $this->release;
+		}
 
 //		echo '<span style="text-transform:uppercase; font-size: 8px">' . JText::_('COM_ICAGENDA_PREFLIGHT_') . ': ' . $type . $rel . ' | </span>';
 	}

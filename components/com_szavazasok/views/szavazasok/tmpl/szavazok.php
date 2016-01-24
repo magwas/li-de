@@ -168,12 +168,14 @@ if (count($this->Item->alternativak)==0) {
   return;
 }
 foreach ($this->Item->alternativak as $res1) {
+  if ($res1->elbiralasra_var == 0) {	
   echo '<tr onclick="select_row(this, event.shiftKey||event.ctrlKey);">
            <td class="choice">'.$res1->megnevezes.'</td>
            <td><select id="pos'.$res1->id.'" name="pos'.$res1->id.'" onchange="sort_rows()" class="pos">'.options(count($this->Item->alternativak)).'</select>
            </td>
         </tr>
         ';
+  }		
 }
 ?>
 </table>

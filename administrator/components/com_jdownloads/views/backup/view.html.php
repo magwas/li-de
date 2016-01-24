@@ -32,6 +32,7 @@ class jdownloadsViewbackup extends JViewLegacy
     function display($tpl = null)
     {
         $this->addToolbar();
+        $this->sidebar = JHtmlSidebar::render();
         parent::display($tpl);
     }
     

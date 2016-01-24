@@ -10,7 +10,7 @@
  * @author      Cyril Rezé (Lyr!C)
  * @link        http://www.joomlic.com
  *
- * @version 	3.5.7 2015-07-14
+ * @version 	3.5.13 2015-11-21
  * @since       3.4.0
  *------------------------------------------------------------------------------
 */
@@ -219,7 +219,7 @@ class iCagendaModelEvents extends JModelList
 			$query->where('(e.state IN (0, 1))');
 		}
 
-		$userGroups	= $user->groups;
+		$userGroups = $user->getAuthorisedGroups();
 		$groupid	= JComponentHelper::getParams('com_icagenda')->get('approvalGroups', array("8"));
 		$groupid	= is_array($groupid) ? $groupid : array($groupid);
 

@@ -251,10 +251,10 @@
     if ($total_cats < $this->pagination->limit){
         $amount = $total_cats;
     } else {
-        if ($this->pagination->limitstart.$this->pagination->limit > $total_cats){
-            $amount = $total_cats; // - $this->pagination->limitstart; 
+        if (($this->pagination->limitstart + $this->pagination->limit) > $total_cats){
+            $amount = $total_cats; 
         } else {
-            $amount = $this->pagination->limit;
+            $amount = $this->pagination->limitstart + $this->pagination->limit;
         }
     }    
 
@@ -374,9 +374,11 @@
                  // tags creation
                  if ($this->params->get('show_cat_tags', 1) && !empty($cats[$i]->tags->itemTags)){
                     $cats[$i]->tagLayout = new JLayoutFile('joomla.content.tags'); 
-                    $html_cat = str_replace('{tags}', $cats[$i]->tagLayout->render($cats[$i]->tags->itemTags), $html_cat);   
+                    $html_cat = str_replace('{tags}', $cats[$i]->tagLayout->render($cats[$i]->tags->itemTags), $html_cat); 
+                    $html_cat = str_replace('{tags_title}', JText::_('COM_JDOWNLOADS_TAGS_LABEL'), $html_cat); 
                  } else {
                     $html_cat = str_replace('{tags}', '', $html_cat);
+                    $html_cat = str_replace('{tags_title}', '', $html_cat); 
                  }                 
                  
                  $html_cat = str_replace('{cat_pic}', $catpic, $html_cat);

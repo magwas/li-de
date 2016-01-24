@@ -24,36 +24,43 @@ function thClass($col) {
 }
 
 
-echo '
+echo '<div class="temakorokList">
 <div class="componentheading'.$this->escape($this->params->get('pageclass_sfx')).'">
 <h2>'.Jtext::_('TEMAKOROK').'</h2></div>
-<div class="kepviselo">
+<div class="kepviselok">
 ';
       if ($this->Kepviselo['kepviselojeLink'] != '') {
-        echo '<a class="btnKepviselo" href="'.$this->Kepviselo['kepviselojeLink'].'">
-             '.$this->Kepviselo['image'].'
+        echo '<div class="altKepviselo">
+			 <a class="btnKepviselo" href="'.$this->Kepviselo['kepviselojeLink'].'">
+             <div class="avatar">'.$this->Kepviselo['image'].'</div>
              <br />'.$this->Kepviselo['nev'].'
              <br />'.JText::_('GLOBALISKEPVISELO').'
              </a>
+			 </div>
              ';
       }
       if ($this->Kepviselo['kepviseloJeloltLink'] != '') {
-        echo '<a class="akcioGomb btnJelolt" href="'.$this->Kepviselo['kepviseloJeloltLink'].'">
+        echo '<div class="altKepviseloJelolt">
+			  <a class="akcioGomb btnJelolt" href="'.$this->Kepviselo['kepviseloJeloltLink'].'">
               '.JText::_('KEPVISELOJELOLT').'
               </a>
+			  </div>
              ';
       }
       if ($this->Kepviselo['kepviselotValasztLink'] != '') {
-        echo '<a class="akcioGomb btnKepviselotValaszt" href="'.$this->Kepviselo['kepviselotValasztLink'].'">
+        echo '<div class="altKepviselotValaszt">
+			  <a class="akcioGomb btnKepviselotValaszt" href="'.$this->Kepviselo['kepviselotValasztLink'].'">
              '.JText::_('GLOBALISKEPVISELOTVALASZT').'
               </a>
+			  </div>
               ';
       }
       if ($this->Kepviselo['ujJeloltLink'] != '') {        
-        echo '
+        echo '<div class="altKepviseloJelolt">
               <a class="akcioGomb btnUjJelolt" href="'.$this->Kepviselo['ujJeloltLink'].'">
              '.JText::_('UJGLOBALISKEPVISELOJELOLT').'
              </a>
+			 </div>
              ';
       };
 echo '
@@ -138,6 +145,7 @@ echo '
 </table>		
 <div class="lapozosor">
   '.$this->LapozoSor.'
+</div>
 </div>
 </div>
 ';

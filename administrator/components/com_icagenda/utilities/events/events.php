@@ -11,7 +11,7 @@
  * @author      Cyril Rezé (Lyr!C)
  * @link        http://www.joomlic.com
  *
- * @version     3.5.7 2015-07-14
+ * @version     3.5.13 2015-11-21
  * @since       3.4.0
  *------------------------------------------------------------------------------
 */
@@ -157,7 +157,7 @@ class icagendaEvents
 			}
 
 //			$day.= '<span style="border-radius: 10px; padding: 0 5px; border: 2px dotted gray;">' . $day_today . '</span>';
-			$day.= '<span style="text-decoration: overline">' . $day_today . '</span>';
+			$day.= '<span class="ic-current-period">' . $day_today . '</span>';
 //			$day.= $day_today;
 
 			if ($day_today < $day_enddate)
@@ -214,6 +214,7 @@ class icagendaEvents
 		return $value;
 	}
 
+// DEPRECATED 3.6
 	/**
 	 * Function to return time formated depending on AM/PM option
 	 * Format Time (eg. 00:00 (AM/PM))
@@ -244,15 +245,22 @@ class icagendaEvents
 	 *
 	 * @since 3.5.6
 	 */
-	public static function shortDescription($text, $isModule = null, $option = null)
+	public static function shortDescription($text, $isModule = null, $option = null, $limit = null)
 	{
 		$descdata		= $text;
 		$desc_full		= self::deleteAllBetween('{', '}', $descdata);
 
+		// Menu Options
 		$app			= JFactory::getApplication();
 		$params			= $app->getParams();
-		$limitGlobal	= ! $isModule ? $params->get('limitGlobal', 0) : 1;
-		$customlimit	= ! $isModule ? $params->get('limit', '100') : false;
+
+//		$limitGlobal	= ! $isModule ? $params->get('limitGlobal', 0) : 1;
+//		$customlimit	= ! $isModule ? $params->get('limit', '100') : false;
+		$limitGlobal	= ! $isModule ? $params->get('limitGlobal', 0) : 0;
+		$customlimit	= ! $isModule ? $params->get('limit', '100') : $limit;
+
+		// Global Options Component iCagenda
+		$iCparams		= JComponentHelper::getParams('com_icagenda');
 
 		if ($limitGlobal == 1)
 		{
@@ -260,13 +268,13 @@ class icagendaEvents
 		}
 		else
 		{
-			$limit_global_option = $params->get('ShortDescLimit', '100');
+			$limit_global_option = $iCparams->get('ShortDescLimit', '100');
 			$limit = is_numeric($customlimit) ? $customlimit : $limit_global_option;
 		}
 
 		// Html tags removal Global Option (component iCagenda) - Short Description
-		$Filtering_ShortDesc_Global	= $params->get('Filtering_ShortDesc_Global', '');
-		$HTMLTags_ShortDesc_Global	= $params->get('HTMLTags_ShortDesc_Global', array());
+		$Filtering_ShortDesc_Global	= $iCparams->get('Filtering_ShortDesc_Global', '');
+		$HTMLTags_ShortDesc_Global	= $iCparams->get('HTMLTags_ShortDesc_Global', array());
 
 		// Get Module Option
 		$Filtering_ShortDesc_Module	= $isModule ? $option : '';
@@ -405,6 +413,30 @@ class icagendaEvents
 	}
 
 	/**
+	 * Function to check if user has access rights to defined access
+	 *
+	 * $accessLevel		Access level of the item to check User Permissions
+	 *
+	 * If in super user group, always allowed
+	 */
+	static public function accessLevels($accessLevel)
+	{
+		// Get User Access Levels
+		$user		= JFactory::getUser();
+		$userLevels	= $user->getAuthorisedViewLevels();
+		$userGroups = $user->getAuthorisedGroups();
+
+		// Control: if access level, or Super User
+		if (in_array($accessLevel, $userLevels)
+			|| in_array('8', $userGroups))
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
 	 * Process a string in a JOOMLA_TRANSLATION_STRING standard.
 	 * This method processes a string and replaces all accented UTF-8 characters by unaccented
 	 * ASCII-7 "equivalents" and the string is uppercase. Spaces replaced by underscore.
@@ -415,8 +447,6 @@ class icagendaEvents
 	 *
 	 * @since   3.3.3
 	 */
-
-
 	public static function deleteAllBetween($start, $end, $string)
 	{
 		$startPos = strpos($string, $start);

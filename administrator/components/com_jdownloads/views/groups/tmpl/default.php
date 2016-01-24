@@ -31,7 +31,17 @@ $listDirn	= $this->escape($this->state->get('list.direction'));
 </script>
 
 <form action="<?php echo JRoute::_('index.php?option=com_jdownloads&view=groups');?>" method="post" name="adminForm" id="adminForm">
-	<fieldset id="jdfilter-bar">
+
+    <?php if (!empty( $this->sidebar)) : ?>
+        <div id="j-sidebar-container" class="span2">
+            <?php echo $this->sidebar; ?>
+        </div>
+        <div id="j-main-container" class="span10">
+    <?php else : ?>
+        <div id="j-main-container">
+    <?php endif;?>	
+    
+    <fieldset id="jdfilter-bar">
 		<div class="filter-search jdfltlft">
 			<!--<label class="filter-search-lbl jdfltlft" for="filter_search"><?php echo JText::_('COM_JDOWNLOADS_USERGROUPS_SEARCH_GROUPS_LABEL'); ?></label>-->
 			<input type="text" name="filter_search" id="filter_search" value="<?php echo $this->escape($this->state->get('filter.search')); ?>" />

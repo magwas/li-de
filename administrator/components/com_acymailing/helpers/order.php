@@ -1,7 +1,7 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.0.1
+ * @version	4.9.3
  * @author	acyba.com
  * @copyright	(C) 2009-2015 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
@@ -54,13 +54,15 @@ class acyorderHelper{
 
 		$status = $status1 && $status2;
 		if($status){
-			acymailing_enqueueMessage(JText::_( 'SUCC_MOVED' ), 'message');
+			$app = JFactory::getApplication();
+			$app->enqueueMessage(JText::_( 'SUCC_MOVED' ), 'message');
 		}
 
 		return $status;
 	}
 
 	function save(){
+		$app = JFactory::getApplication();
 		$pkey = $this->pkey;
 
 		$cid	= JRequest::getVar( 'cid', array(), 'post', 'array' );
@@ -105,9 +107,9 @@ class acyorderHelper{
 		}
 
 		if($status){
-			acymailing_enqueueMessage(JText::_( 'ACY_NEW_ORDERING_SAVED' ), 'message');
+			$app->enqueueMessage(JText::_( 'ACY_NEW_ORDERING_SAVED' ), 'message');
 		}else{
-			acymailing_enqueueMessage(JText::_( 'ERROR_ORDERING' ), 'error');
+			$app->enqueueMessage(JText::_( 'ERROR_ORDERING' ), 'error');
 		}
 		return $status;
 	}

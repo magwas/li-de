@@ -12,7 +12,7 @@
  *
  * @themepack	default
  * @template	event_registration
- * @version 	3.5.6 2015-05-19
+ * @version 	3.5.10 2015-08-05
  * @since       2.0
  *------------------------------------------------------------------------------
 */
@@ -24,30 +24,24 @@ defined('_JEXEC') or die(); ?>
 
 <?php // Header of Registration page ?>
 <?php // Show event ?>
-<div class="ic-event">
-	<div class="ic-box">
+<div class="ic-reg-event ic-clearfix">
+	<div class="ic-reg-box">
 		<?php if ($EVENT_NEXT): ?>
-		<div class="ic-reg-icon ic-float-left ic-align-center">
-			<img src="media/com_icagenda/images/registration-48.png" alt="">
+		<div class="ic-reg-icon ic-float-left">
 		</div>
 		<?php endif; ?>
-		<div class="ic-content">
+		<div class="ic-reg-content">
 
 			<?php // Category ?>
-			<div class="ic-cat">
+			<div class="ic-reg-cat">
 				<?php echo $CATEGORY_TITLE; ?>
 			</div>
 
 			<?php // Event Title with link to event ?>
-			<h2>
+			<div class="ic-reg-event-title">
 				<a href="<?php echo $EVENT_URL; ?>" title="<?php echo $EVENT_TITLE; ?>"><?php echo $EVENT_TITLE; ?></a>
-			</h2>
-			<?php // Add Registration infos (places left) ?>
-			<?php if ($SEATS_AVAILABLE): ?>
-			<div class="ic-reg-info">
-				<?php echo JTEXT::_('COM_ICAGENDA_REGISTRATION_PLACES_LEFT');  ?>: <?php echo $SEATS_AVAILABLE; ?>
 			</div>
-			<?php endif; ?>
 		</div>
 	</div>
 </div>
+<?php // END Header ?>

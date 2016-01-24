@@ -1,11 +1,194 @@
 <?php defined('_JEXEC') or die(); ?>
 
-<div style="text-align:center"><img src='../media/com_icagenda/images/iconicagenda48.png' alt='' /><br/><big style="color:#555">ChangeLog</big></div>
+<div style="text-align:center"><img src='../media/com_icagenda/images/iconicagenda48.png' alt='iCagenda' /><br/><big style="color:#555">ChangeLog</big></div>
 ================================================================================
-? <center><strong><big>Welcome to iCagenda 3.5.8 release!</big></strong></center><br />This is a bug fix release. It fixes a bug in module calendar where no events displayed if menus option 'Filter by dates' is set to 'Use Global'.<br />We recommend every user to update, to keep your iCagenda updated.<br /><br /><center><strong><big>Enjoy!</big></strong></center>
+? <center><strong><big>Welcome to iCagenda 3.5.13 release!</big></strong></center><br />This is a maintenance release. See the release notes for details.<br />We recommend every user to update, to keep your iCagenda updated.<br />
 ================================================================================
 : <span class="ic-box-important ic-box-12">!</span><span class="ic-important">important</span>&nbsp;<span class="ic-box-added ic-box-12">+</span><span class="ic-added">added</span>&nbsp;<span class="ic-box-removed ic-box-12">-</span><span class="ic-removed">removed</span>&nbsp;<span class="ic-box-changed ic-box-12">~</span><span class="ic-changed">changed</span>&nbsp;<span class="ic-box-fixed ic-box-12">#</span><span class="ic-fixed">fixed</span><br/><i>Info: access to the beta versions and pre-releases are reserved to users with a valid pro subscription.</i><br/>iCagenda™ is distributed under the terms of the GNU General Public License version 3 or later; see LICENSE.txt.
 ================================================================================
+
+
+iCagenda 3.5.13 <small style="font-weight:normal;">(2015.12.05)</small>
+================================================================================
++ Added : in registrations csv export, new option to display 'created date' (when the user registered).
+# [MEDIUM] Fixed : error getimagesize if original image deleted.
+# [LOW] Fixed : not able to get user groups after logged-in user changed his password in frontend (return error message in component and modules).
+# [LOW] Fixed : issue since Joomla 3.4.5 with upload of custom Theme Packs.
+# [LOW] Fixed : issue with date and DST (Day Saving Time) with export to Outlook.
+# [LOW] Fixed : private access level for event information was broken if custom fields.
+# [LOW] Fixed : admin language ordering in events list.
+# [LOW] Fixed : category and search list filters with no effect in registration csv export.
+# [MODULE iC calendar][LOW] Fixed : Loading calendar on defined month/year not working in some cases.
+
+* Changed files in 3.5.13
+~ admin/controllers/registrations.raw.php
+~ admin/models/events.php
+~ admin/models/forms/download.xml
+~ admin/models/registrations.php
+~ admin/models/themes.php
+~ admin/utilities/events/data.php
+~ admin/utilities/events/events.php
+~ admin/utilities/menus/menus.php
+~ [LIBRARY] libraries/ic_library/thumb/get.php
+~ [MODULE][PRO] modules/mod_ic_event_list/mod_ic_event_list.php
+~ [MODULE] modules/mod_iccalendar/helper.php
+~ [MODULE] modules/mod_iccalendar/mod_iccalendar.php
+~ [PLUGIN] plugins/search/icagenda/icagenda.php
+~ site/helpers/icmodel.php
+~ site/models/events.php
+~ site/models/submit.php
+~ site/themes/packs/default/default_day.php
+~ site/themes/packs/default/default_event.php
+~ site/themes/packs/ic_rounded/ic_rounded_day.php
+~ site/themes/packs/ic_rounded/ic_rounded_event.php
+~ site/views/list/tmpl/default_vcal.php
+~ site/views/list/tmpl/event.php
+
+iCagenda 3.5.12 <small style="font-weight:normal;">(2015.10.12)</small>
+================================================================================
++ Added : option field 'Time display' in 'Submit an event' form.
++ Added : global option to Select if 'Time Display' option is set by default on 'Show' or 'hide' when creating a new event ('General Settings' tab of the Global Options of the component).
++ Added : missing separator option in global options for date format.
++ [MODULE iC calendar] Added : option to set custom limit for auto-intro description.
++ [MODULE iC Event List][PRO] Added : option to set HTML filtering for auto-intro description.
+~ Changed : use global date format option in registrations list, and display start and end date when registration for a period.
+# [MODULE iC calendar][LOW] Fixed : display of "booking closed" when events only singles dates, and all upcoming, but registration type option for this event is set to "for all dates of the event".
+# [MODULE iC calendar][LOW] Fixed : in "auto" mode for option "Link to Menu Item", the global option for filter by dates was not defined, if not on a list of events page ("auto" not working properly in this case, in a few cases, depending of your settings, if one at least of the menu item(s) to a list of events was set to use global options for Filter by dates).
+# [MODULE iC calendar][LOW] Fixed : option for filtering HTML tags of intro-text not working in tooltip if not on list of events page.
+# [LOW] Fixed : not displaying full address if country and/or city included in the place name.
+# [LOW] Fixed : display of long content in registrations admin list (overlap in data display).
+
+* Changed files in 3.5.12
+~ admin/config.xml
+~ admin/models/event.php
+~ admin/models/forms/event.xml
+~ admin/models/registrations.php
+~ admin/utilities/events/events.php
+~ admin/utilities/menus/menus.php
+~ admin/views/registrations/tmpl/default.php
+~ [MODULE][PRO] modules/mod_ic_event_list/helper.php
+~ [MODULE][PRO] modules/mod_ic_event_list/mod_ic_event_list.php
+~ [MODULE][PRO] modules/mod_ic_event_list/mod_ic_event_list.xml
+~ [MODULE][PRO] modules/mod_ic_event_list/tmpl/default.php
+~ [MODULE][PRO] modules/mod_ic_event_list/tmpl/icrounded.php
+~ [MODULE] modules/mod_iccalendar/helper.php
+~ [MODULE] modules/mod_iccalendar/mod_iccalendar.xml
+~ script.icagenda.php
+~ site/add/elements/icsetvar.php
+~ site/helpers/icmodel.php
+~ site/models/forms/submit.xml
+~ site/views/submit/tmpl/default.php
+~ site/views/submit/tmpl/default.xml
+~ site/views/submit/view.html.php
+
+
+iCagenda 3.5.11 <small style="font-weight:normal;">(2015.09.05)</small>
+================================================================================
+# [LOW] Fixed : date format with short month broken (in 3.5.10).
+# [LOW] Fixed : date format with separator broken (since 3.5.6).
+# [MODULE iC calendar][LOW] Fixed : display of current month, whereas option 'Loading on Date' is set on a day of the previous month.
+
+* Changed files in 3.5.11
+~ [LIBRARY] libraries/ic_library/globalize/culture/en-GB.php
+~ [LIBRARY] libraries/ic_library/globalize/culture/en-US.php
+~ [LIBRARY] libraries/ic_library/globalize/culture/fa-IR.php
+~ [LIBRARY] libraries/ic_library/globalize/globalize.php
+~ [MODULE] modules/mod_iccalendar/helper.php
+~ [MODULE] modules/mod_iccalendar/mod_iccalendar.php
+~ site/helpers/ichelper.php
+~ site/helpers/icmodel.php
+
+
+iCagenda 3.5.10 <small style="font-weight:normal;">(2015.09.01)</small>
+================================================================================
++ Added : Compatible with Jalali/Persian calendar in admin (use of Joomla calendar for datetime picker).
++ Added : missing field to select 'Registration type' in the 'Submit an event' form, if registration options displayed.
++ Added : function to disable the submit button in frontend forms, after first click (to prevent multiple clicks during data process).
+~ Changed : Asynchronous Loading of the AddThis widget script
+~ Changed : auto-detect if https/ssl server for loading the AddThis widget script.
+~ [MODULE iC calendar] Changed : you can now select one of the seven days of the week, as the first day of the calendar.
+~ [THEME PACK] Changed : registration header is simplified, and use now its own css classes (ic-reg + suffix)
+~ [THEME PACK] Changed : new ic-current-period class used to replace inline css when for the overline when period started and current (box date in list of events)
+# [LOW] Fixed : a few issues with Jalali calendar in frontend (day 31 of a period not dislayed in calendar, possible datetime contruct error if no single dates in event details view).
+# [LOW] Fixed : if only single dates with no period, and registration type option set to "for all dates of event", the date in registration email notifications was wrong.
+# [LOW] Fixed : loading of event custom fields in registrations list if same id (missing parent_form control).
+# [LOW] Fixed : date could include non-breaking space (&nbsp;) in notification email.
+# [MODULE iC Event List][LOW] Fixed : display of month in the date box, on last day of a month (eg. 31 August) was next month, and not current month.
+
+* Changed files in 3.5.10
+~ admin/models/fields/modal/date.php
+~ admin/models/fields/modal/enddate.php
+~ admin/models/fields/modal/startdate.php
+~ admin/tables/event.php
+~ admin/utilities/customfields/customfields.php
+~ admin/utilities/events/events.php
+~ admin/utilities/form/form.php
+~ admin/views/icagenda/tmpl/default.php
+~ admin/views/registrations/tmpl/default.php
++ [LIBRARY] libraries/ic_library/globalize/convert.php
+~ [LIBRARY] libraries/ic_library/globalize/globalize.php
++ [MEDIA] media/images/loader.gif
+~ [MEDIA] media/js/icdates.js
+~ [MODULE][PRO] modules/mod_ic_event_list/mod_ic_event_list.php
+~ [MODULE] modules/mod_iccalendar/helper.php
+~ [MODULE] modules/mod_iccalendar/mod_iccalendar.php
+~ [MODULE] modules/mod_iccalendar/mod_iccalendar.xml
+~ site/add/elements/icsetvar.php
+~ site/helpers/icmodel.php
+~ site/models/forms/submit.xml
+~ site/models/submit.php
+~ [THEME PACK] site/themes/packs/default/css/default_component.css
+~ [THEME PACK] site/themes/packs/default/default_registration.php
+~ [THEME PACK] site/themes/packs/ic_rounded/css/ic_rounded_component.css
+~ [THEME PACK] site/themes/packs/ic_rounded/ic_rounded_events.php
+~ [THEME PACK] site/themes/packs/ic_rounded/ic_rounded_registration.php
+~ site/views/list/tmpl/registration.php
+~ site/views/submit/tmpl/default.php
+
+
+iCagenda 3.5.9 <small style="font-weight:normal;">(2015.08.01)</small>
+================================================================================
+! Added options for export in csv of a list of registrations (select info to be exported, and select between comma or semicolon as separator for values)
+! You can now send a newsletter for all users registered for an event (all dates), or only for users registered to only one date (or period) of the event.
+~ Changed : dropdowns for event and date in registration form, as well as for newsletter now use ajax for updating the date depending of the selected event, without reloading the page.
+~ Changed : set 'All Events' as default value for 'Filter by Dates' global option (on new install).
+~ [THEME PACK] Changed : ic_rounded module calendar css for table, by addition of class ic-table (minor change to prevent some possible css conflict with site template).
+~ Changed : minimum joomla 3 release is now 3.2.3 (for websites using iCagenda on Joomla 3).
+# [MEDIUM] Fixed : when trying to change state of a registration (broken since 3.5.7) the event state was sometimes changed in the same time (but not removed from database). Sorry for any inconvenience.
+# [LOW] Fixed : change state not working in admin registrations list (not possible to trash or unpublished a registration entry).
+# [LOW] Fixed : lost of changes if changing event in registration admin edition (fixed by using ajax to generate the date list).
+# [MODULES][LOW] Fixed : 'Filter by dates' could be broken for modules, if set in all menus to 'Use Global', and set to 'All Events' in global options.
+# [MODULE iC Event List][LOW] Fixed : notice error if no events to be displayed (undefined variable).
+
+* Changed files in 3.5.9
+~ admin/config.xml
+~ admin/controllers/mail.php
+~ admin/controllers/registration.php
+~ admin/controllers/registrations.php
+~ admin/controllers/registrations.raw.php
+~ admin/models/fields/modal/evt.php
+~ admin/models/fields/modal/evt_date.php
+- admin/models/fields/modal/mailinglist.php
+~ admin/models/forms/download.xml
+~ admin/models/forms/mail.xml
+~ admin/models/forms/registration.xml
+~ admin/models/mail.php
+~ admin/models/registration.php
+~ admin/models/registrations.php
+- admin/tables/mail.php
+~ admin/tables/registration.php
++ admin/utilities/ajax/ajax.php
+~ admin/utilities/events/events.php
+~ admin/utilities/menus/menus.php
+~ admin/views/mail/tmpl/edit.php
+~ admin/views/mail/view.html.php
+~ admin/views/registration/tmpl/edit.php
+~ admin/views/registrations/tmpl/default.php
+~ admin/views/registrations/view.html.php
+~ [MODULE][PRO] modules/mod_ic_event_list/mod_ic_event_list.php
+~ [MODULE] modules/mod_iccalendar/helper.php
+~ script.icagenda.php
+~ [THEME PACK] site/themes/packs/ic_rounded/css/ic_rounded_module.css
 
 
 iCagenda 3.5.8 <small style="font-weight:normal;">(2015.07.17)</small>

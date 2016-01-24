@@ -65,6 +65,8 @@
 			size="1">
       <option value="1">REGISZTRALTAK</option>
       <option value="2">TAGOK</option>
+      <option value="4">SSO HITELES REGISZTRÁLTAK</option>
+      <option value="5">SSO HITELES TAGOK</option>
     </field>  						
 								
 														
@@ -80,6 +82,8 @@
       <option value="1">REGISZTRALTAK</option>
       <option value="2">TAGOK</option>
       <option value="3">ADMINISZTRATOROK</option>
+      <option value="4">SSO HITELES REGISZTRÁLTAK</option>
+      <option value="5">SSO HITELES TAGOK</option>
     </field>  						
 								
 														

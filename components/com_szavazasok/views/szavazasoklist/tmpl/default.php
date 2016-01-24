@@ -26,7 +26,7 @@ function thClass($col) {
 }
 
 
-echo '
+echo '<div class="szavazasokList">
 <div class="componentheading'.$this->escape($this->params->get('pageclass_sfx')).'">
 <h3>'.$this->Temakor->megnevezes.'
   <a href="javascript:infoClick()" class="akcioIkon btnInfo" title="Infó" id="iconInfo" style="display:none">&nbsp;</a>';
@@ -49,35 +49,47 @@ echo '
 		  '.$this->Temakor->leiras.'
 		</div>
 		</div>
-		<div class="kepviselo">
+		<div class="kepviselok">
 		';
-  if ($this->AltKepviselo['kepviselojeLink'] != '') {
-        echo '<a class="btnKepviselo" href="'.$this->AltKepviselo['kepviselojeLink'].'">
-             '.$this->AltKepviselo['image'].'
+	   if ($this->AltKepviselo['kepviselojeLink'] != '') {
+        echo '<div class="altKepviselo">
+			 <a class="btnKepviselo" href="'.$this->AltKepviselo['kepviselojeLink'].'">
+             <div class="avatar">'.$this->AltKepviselo['image'].'</div>
              <br />'.$this->AltKepviselo['nev'].'
              <br />'.JText::_('GLOBALISKEPVISELO').'
              </a>
+			 </div>
              ';
       }       
       if ($this->Kepviselo['kepviselojeLink'] != '') {
-        echo '<a class="btnKepviselo" href="'.$this->Kepviselo['kepviselojeLink'].'">
-             '.$this->Kepviselo['image'].'
+        echo '<div class="temaKepviselo">
+			 <a class="btnKepviselo" href="'.$this->Kepviselo['kepviselojeLink'].'">
+             <div class="avatar">'.$this->Kepviselo['image'].'</div>
              <br />'.$this->Kepviselo['nev'].'
              <br />'.JText::_('TEMAKORKEPVISELO').'
              </a>
+			 </div>
              ';
-      } else if ($this->Kepviselo['kepviseloJeloltLink'] != '') {
-        echo '<a class="akcioGomb btnJelolt" href="'.$this->Kepviselo['kepviseloJeloltLink'].'">
+      }
+	  if ($this->Kepviselo['kepviseloJeloltLink'] != '') {
+        echo '<div class="temaKepviseloJelolt">
+			  <a class="akcioGomb btnJelolt" href="'.$this->Kepviselo['kepviseloJeloltLink'].'">
               '.JText::_('TEMAKORKEPVISELOJELOLT').'
               </a>
+			 </div>
              ';
-      } else if ($this->Kepviselo['kepviselotValasztLink'] != '') {
-        echo '<a class="akcioGomb btnKepviselotValaszt" href="'.$this->Kepviselo['kepviselotValasztLink'].'">
+      } 
+	  if ($this->Kepviselo['kepviselotValasztLink'] != '') {
+        echo '<div class="temaKepviselotValaszt">
+			  <a class="akcioGomb btnKepviselotValaszt" href="'.$this->Kepviselo['kepviselotValasztLink'].'">
              '.JText::_('TEMAKORKEPVISELOTVALASZT').'
               </a>
+			  </div>
+			  <div class="temaKepviseloJelolt">
               <a class="akcioGomb btnUjJelolt" href="'.$this->Kepviselo['ujJeloltLink'].'">
              '.JText::_('UJTEMAKORKEPVISELOJELOLT').'
              </a>
+			 </div>
              ';
       };
 echo '
@@ -228,6 +240,7 @@ echo '
 </table>		
 <div class="lapozosor">
   '.$this->LapozoSor.'
+</div>
 </div>
 </div>
 <script type="text/javascript">

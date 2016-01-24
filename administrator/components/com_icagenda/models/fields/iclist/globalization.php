@@ -75,12 +75,12 @@ class JFormFieldiClist_globalization extends JFormField
 		$dateglobalize_array[] = $dateglobalize_2;
 		$dateglobalize_array[] = $dateglobalize_3;
 		$dateglobalize_array[] = $dateglobalize_4;
-		$dateglobalize_array[] = isset($dateglobalize_5) ? $dateglobalize_5 : '';
+		$dateglobalize_array[] = isset($dateglobalize_5) ? $dateglobalize_5 : ''; // en-GB, en-US
 		$dateglobalize_array[] = $dateglobalize_6;
 		$dateglobalize_array[] = $dateglobalize_7;
 		$dateglobalize_array[] = $dateglobalize_8;
-		$dateglobalize_array[] = isset($dateglobalize_9) ? $dateglobalize_9 : '';
-		$dateglobalize_array[] = isset($dateglobalize_10) ? $dateglobalize_10 : '';
+		$dateglobalize_array[] = isset($dateglobalize_9) ? $dateglobalize_9 : ''; // en-GB
+		$dateglobalize_array[] = isset($dateglobalize_10) ? $dateglobalize_10 : ''; // en-GB
 		$dateglobalize_array[] = $dateglobalize_11;
 		$dateglobalize_array[] = $dateglobalize_12;
 

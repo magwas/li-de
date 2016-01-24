@@ -75,9 +75,13 @@ class jdownloadsViewSummary extends JViewLegacy
         
         // add all needed cripts and css files
         $document = JFactory::getDocument();
+        
         $document->addScript(JURI::base().'components/com_jdownloads/assets/js/jdownloads.js');
-        $document->addScript(JURI::base().'components/com_jdownloads/assets/rating/js/ajaxvote.js');
-		
+
+        if ($jlistConfig['view.ratings']){
+            $document->addScript(JUri::base().'components/com_jdownloads/assets/rating/js/ajaxvote.js');
+        }        
+        
         $document->addScriptDeclaration('var live_site = "'.JURI::base().'";');
         $document->addScriptDeclaration('function openWindow (url) {
                 fenster = window.open(url, "_blank", "width=550, height=480, STATUS=YES, DIRECTORIES=NO, MENUBAR=NO, SCROLLBARS=YES, RESIZABLE=NO");
@@ -87,8 +91,12 @@ class jdownloadsViewSummary extends JViewLegacy
         if ($jlistConfig['use.css.buttons.instead.icons']){
            $document->addStyleSheet( JURI::base()."components/com_jdownloads/assets/css/jdownloads_buttons.css", "text/css", null, array() ); 
         }
+        
         $document->addStyleSheet( JURI::base()."components/com_jdownloads/assets/css/jdownloads_fe.css", "text/css", null, array() );
-        $document->addStyleSheet( JURI::base()."components/com_jdownloads/assets/rating/css/ajaxvote.css", "text/css", null, array() );         
+
+        if ($jlistConfig['view.ratings']){
+            $document->addStyleSheet( JURI::base()."components/com_jdownloads/assets/rating/css/ajaxvote.css", "text/css", null, array() );         
+        }
 
         $custom_css_path = JPATH_ROOT.'/components/com_jdownloads/assets/css/jdownloads_custom.css';
         if (JFile::exists($custom_css_path)){
@@ -205,14 +213,40 @@ class jdownloadsViewSummary extends JViewLegacy
 			$this->params->def('page_heading', JText::_('COM_JDOWNLOADS_DOWNLOADS'));
 		}
 
-		$title = JText::_('COM_JDOWNLOADS_FRONTEND_HEADER_SUMMARY_PAGE_TITLE'); //$this->params->get('page_title', '');
+		if (count($this->items) > 1){
+            $title = JText::_('COM_JDOWNLOADS_FRONTEND_HEADER_SUMMARY_PAGE_TITLE'); 
+        } else {
+            $title = $this->params->get('page_title', '');
+            $title .= ' - '.JText::_('COM_JDOWNLOADS_FRONTEND_HEADER_SUMMARY_PAGE_TITLE');
+        }    
 
-		$id = (int) @$menu->query['id'];
-
-		// if the menu item does not concern this download
+        if (isset($menu->query['catid'])){
+            $id = (int) @$menu->query['catid'];  // the Download category has an own menu item
+        } else {
+            $id = 0;  // the Download category has not an own menu item 
+        }
+        
 		if ($menu)
 		{
-            $path = array(array('title' => JText::_('COM_JDOWNLOADS_FRONTEND_HEADER_SUMMARY_PAGE_TITLE'), 'link' => ''));
+            
+                // we have a single download process - so we can add the link to this download in the breadcrumbs
+                if ($this->items[0]->file_title && count($this->items) == 1) {
+                    $title = $this->items[0]->file_title;
+                    $title .= ' - '.JText::_('COM_JDOWNLOADS_FRONTEND_HEADER_SUMMARY_PAGE_TITLE');
+                }
+                $path = array(array('title' => JText::_('COM_JDOWNLOADS_FRONTEND_HEADER_SUMMARY_PAGE_TITLE'), 'link' => ''));
+                
+                if (count($this->items) == 1){
+                    $path[] = array('title' => $this->items[0]->file_title, 'link' => JdownloadsHelperRoute::getDownloadRoute($this->items[0]->slug, $this->items[0]->cat_id, $this->items[0]->language));
+                }
+
+                $category = JDCategories::getInstance('Download')->get($this->items[0]->cat_id);
+                
+                while ($category && ($menu->query['option'] != 'com_jdownloads' || ($id == 0 && $id != $category->id)) && $category->id != 'root'){
+                    $path[] = array('title' => $category->title, 'link' => JdownloadsHelperRoute::getCategoryRoute($category->id, true));
+                    $category = $category->getParent();
+                }                   
+            
             
         	$path = array_reverse($path);
 			foreach($path as $item)

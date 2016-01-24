@@ -16,6 +16,7 @@
 // No direct access to this file
 defined( '_JEXEC' ) or die( 'Restricted access' );
 
+// TODO : Remove Short month (not available in Persian, and could return errors
 			// Reference Date : 30 April 1993, the birth of the web
 
 			$dateglobalize_1 = '1372/02/10';
@@ -23,9 +24,6 @@ defined( '_JEXEC' ) or die( 'Restricted access' );
 
 			$dateglobalize_2 = JText::_('FEBRUARY') . ' 10, 1372';
 			$datevalue_2 = 'F _ d , _ Y';
-
-			$dateglobalize_3 = JText::_('FEBRUARY_SHORT') . ' 10, 1372';
-			$datevalue_3 = 'd _ M , _ Y';
 
 			$dateglobalize_4 = JText::_('FEBRUARY') . ' 10';
 			$datevalue_4 = 'F _ d';
@@ -38,12 +36,6 @@ defined( '_JEXEC' ) or die( 'Restricted access' );
 
 			$dateglobalize_8 = JText::_('FRIDAY') . ' , _ ' . JText::_('FEBRUARY'). ' 10';
 			$datevalue_8 = 'l , _ F _ d';
-
-			$dateglobalize_11 = JText::_('FRI') . ' , _ ' . JText::_('FEBRUARY_SHORT'). ' 10, 1372';
-			$datevalue_11 = 'D , _ M _ d , _ Y';
-
-			$dateglobalize_12 = JText::_('FRI') . ' , _ ' . JText::_('FEBRUARY_SHORT'). ' 10';
-			$datevalue_12 = 'D , _ M _ d';
 
 
 			$dmy_text_5 = '10␣' . JText::_('FEBRUARY') . '␣1372';

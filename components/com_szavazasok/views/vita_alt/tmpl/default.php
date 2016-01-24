@@ -23,7 +23,7 @@ function thClass($col) {
 }
 
 
-echo '
+echo '<div class="szavazasVita1">
 <div class="componentheading'.$this->escape($this->params->get('pageclass_sfx')).'">
 ';
 // filterStr = keresendő_str|activeFlag szétbontása
@@ -32,6 +32,48 @@ if ($w[1]==1) $filterAktiv = 'checked="checked"';
 echo '
 
 <h2>'.$this->Title.'</h2>
+<div class="kepviselok">
+		';
+	  if ($this->AltKepviselo['kepviselojeLink'] != '') {
+        echo '<div class="altKepviselo">
+			 <a class="btnKepviselo" href="'.$this->AltKepviselo['kepviselojeLink'].'">
+             <div class="avatar">'.$this->AltKepviselo['image'].'</div>
+             <br />'.$this->AltKepviselo['nev'].'
+             <br />'.JText::_('GLOBALISKEPVISELO').'
+             </a>
+			 </div>
+             ';
+      }       
+      if ($this->Kepviselo['kepviselojeLink'] != '') {
+        echo '<div class="temaKepviselo">
+			  <a class="btnKepviselo" href="'.$this->Kepviselo['kepviselojeLink'].'">
+             <div class="avatar">'.$this->Kepviselo['image'].'</div>
+             <br />'.$this->Kepviselo['nev'].'
+             <br />'.JText::_('TEMAKORKEPVISELO').'
+             </a>
+			 </div>
+             ';
+      }
+	  if ($this->Kepviselo['kepviseloJeloltLink'] != '') {
+        echo '<div class="temaKepviseloJelolt">
+			  <a class="akcioGomb btnJelolt" href="'.$this->Kepviselo['kepviseloJeloltLink'].'">
+              '.JText::_('TEMAKORKEPVISELOJELOLT').'
+              </a>
+			 </div>
+             ';
+      }
+	  if ($this->Kepviselo['kepviselotValasztLink'] != '') {
+        echo '<div class="temaKepviselotValaszt">
+			  <a class="akcioGomb btnKepviselotValaszt" href="'.$this->Kepviselo['kepviselotValasztLink'].'">
+             '.JText::_('TEMAKORKEPVISELOTVALASZT').'
+              </a>
+			  </div>
+			';	  
+      };
+echo '
+</div>
+<div class="clr"></div>
+
 <div class="szuroKepernyo">
   <form action="'.$this->doFilterLink.'&task=dofilter" method="post">
     <div class="szurourlap">
@@ -46,8 +88,9 @@ echo '
     </div>
   </form>
 </div>
+</div>
 
-<div class="tableKepviselok'.$this->escape($this->params->get('pageclass_sfx')).'">
+<div class="tableSzavazasVita1'.$this->escape($this->params->get('pageclass_sfx')).'">
 	<table border="0" width="100%">
   <thead>
   <tr>
@@ -133,7 +176,8 @@ echo '
   }  
 echo '
 </tbody>
-</table>		
+</table>
+</div>		
 <div class="lapozosor">
   '.$this->LapozoSor.'
 </div>

@@ -15,7 +15,7 @@ defined('_JEXEC') or die('Restricted access');
 
 global $jlistConfig;
 
-//JHtml::_('behavior.tooltip');
+JHtml::_('behavior.tooltip');
 JHtml::_('bootstrap.tooltip');
 JHtml::_('behavior.multiselect');
 JHtml::_('formbehavior.chosen', 'select');
@@ -32,6 +32,16 @@ $images_folder = JURI::root().'administrator/components/com_jdownloads/assets/im
 
 ?>
 <form action="<?php echo JRoute::_('index.php?option=com_jdownloads&view=downloads');?>" method="POST" name="adminForm" id="adminForm">
+
+    <?php if (!empty( $this->sidebar)) : ?>
+        <div id="j-sidebar-container" class="span2">
+            <?php echo $this->sidebar; ?>
+        </div>
+        <div id="j-main-container" class="span10">
+    <?php else : ?>
+        <div id="j-main-container">
+    <?php endif;?>
+
     <fieldset id="jdfilter-bar">
         <div class="filter-search jdfltlft">
             <!--<label class="filter-search-lbl jdfltlft" for="filter_search"><?php echo JText::_(''); ?></label>-->
@@ -45,6 +55,11 @@ $images_folder = JURI::root().'administrator/components/com_jdownloads/assets/im
                 <?php echo JHtml::_('select.options', JHtml::_('jgrid.publishedOptions', array('archived' => 0, 'trash' => 0)), 'value', 'text', $this->state->get('filter.published'), true);?>
             </select>
             
+            <?php
+                // display category list box 
+                echo JHtml::_('select.genericlist', $this->featured_option, 'filter_featured', 'class="inputbox" onchange="this.form.submit()"', 'value', 'text',  $this->state->get('filter.featured')); 
+            ?>
+                        
             <?php
                 // display category list box 
                 echo JHtml::_('select.genericlist', $this->categories, 'filter_category_id', 'class="inputbox" onchange="this.form.submit()"', 'value', 'text',  $this->state->get('filter.category_id')); 
@@ -107,7 +122,10 @@ $images_folder = JURI::root().'administrator/components/com_jdownloads/assets/im
             <th width="5%">
                 <?php echo JHtml::_('grid.sort',  'COM_JDOWNLOADS_STATUS', 'a.published', $listDirn, $listOrder); ?>
             </th>
-            <th width="10%">
+            <th width="5%">                
+                <?php echo JHtml::_('grid.sort',  'COM_JDOWNLOADS_FEATURED', 'a.featured', $listDirn, $listOrder); ?>
+            </th>
+            <th width="5%">
                 <?php echo JHtml::_('grid.sort',  'COM_JDOWNLOADS_ORDERING', 'a.ordering', $listDirn, $listOrder); ?>
                 <?php if ($canOrder && $saveOrder) :?>
                      <?php echo JHtml::_('grid.order',  $this->items, 'filesave.png', 'downloads.saveorder'); ?>
@@ -234,8 +252,13 @@ $images_folder = JURI::root().'administrator/components/com_jdownloads/assets/im
                 </td> 
                 
                 <td class="center">
-                    <?php echo JHtml::_('jgrid.published', $item->published, $i, 'downloads.', $canChange, 'cb', $item->publish_from, $item->publish_to); ?>
+                    <?php 
+                    echo JHtml::_('jgrid.published', $item->published, $i, 'downloads.', $canChange, 'cb', $item->publish_from, $item->publish_to); ?>
                 </td>
+                <td class="center">
+                    <?php 
+                    echo JDownloadsHelper::getFeatureHTML($item->featured, $i, $canChange); ?>            
+                </td>                
                 
                 <td class="order">
                     <?php if ($canChange) : ?>

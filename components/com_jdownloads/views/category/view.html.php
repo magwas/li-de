@@ -85,8 +85,12 @@ class JdownloadsViewCategory extends JViewLegacy
         
         // add all needed cripts and css files
         $document = JFactory::getDocument();
+        
         $document->addScript(JURI::base().'components/com_jdownloads/assets/js/jdownloads.js');
-        $document->addScript(JURI::base().'components/com_jdownloads/assets/rating/js/ajaxvote.js');
+        
+        if ($jlistConfig['view.ratings']){
+            $document->addScript(JURI::base().'components/com_jdownloads/assets/rating/js/ajaxvote.js');
+        }
         
         // loadscript for flowplayer
         if ($jlistConfig['flowplayer.use']){
@@ -116,8 +120,12 @@ class JdownloadsViewCategory extends JViewLegacy
         if ($jlistConfig['use.css.buttons.instead.icons']){
            $document->addStyleSheet( JURI::base()."components/com_jdownloads/assets/css/jdownloads_buttons.css", "text/css", null, array() ); 
         }
+        
         $document->addStyleSheet( JURI::base()."components/com_jdownloads/assets/css/jdownloads_fe.css", "text/css", null, array() );
-        $document->addStyleSheet( JURI::base()."components/com_jdownloads/assets/rating/css/ajaxvote.css", "text/css", null, array() );         
+        
+        if ($jlistConfig['view.ratings']){
+            $document->addStyleSheet( JURI::base()."components/com_jdownloads/assets/rating/css/ajaxvote.css", "text/css", null, array() );         
+        }
 
         $custom_css_path = JPATH_ROOT.'/components/com_jdownloads/assets/css/jdownloads_custom.css';
         if (JFile::exists($custom_css_path)){

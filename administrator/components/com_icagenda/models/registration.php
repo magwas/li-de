@@ -165,7 +165,7 @@ class iCagendaModelregistration extends JModelAdmin
 			$app->enqueueMessage('Test', 'warning');
 		}
 
-		// Get Event ID from the result back to the Table after saving.
+		// Get Registration ID from the result back to the Table after saving.
 		$table = $this->getTable();
 
 		if ($table->save($data) === true)
@@ -203,7 +203,7 @@ class iCagendaModelregistration extends JModelAdmin
 	{
 		if ($item = parent::getItem($pk))
 		{
-			//Do any procesing on fields here if needed
+			// Do any procesing on fields here if needed
 		}
 
 		return $item;

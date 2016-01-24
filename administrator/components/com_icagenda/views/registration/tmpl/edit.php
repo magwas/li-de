@@ -10,7 +10,7 @@
  * @author      Cyril Rezé (Lyr!C)
  * @link        http://www.joomlic.com
  *
- * @version     3.5.7 2015-07-16
+ * @version     3.5.9 2015-07-31
  * @since       3.3.3
  *------------------------------------------------------------------------------
 */
@@ -19,8 +19,8 @@
 defined('_JEXEC') or die();
 
 JHtml::_('behavior.tooltip');
+JHtml::_('behavior.keepalive');
 JHtml::_('behavior.formvalidation');
-//JHtml::_('behavior.keepalive');
 
 $app = JFactory::getApplication();
 

@@ -1,7 +1,7 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.0.1
+ * @version	4.9.3
  * @author	acyba.com
  * @copyright	(C) 2009-2015 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
@@ -109,14 +109,14 @@ class plgAcymailingManagetext extends JPlugin
 			$randNumber = rand(0,count($results[$oneRandTag->id])-1);
 			$results[$oneRandTag->id][count($results[$oneRandTag->id])] = $results[$oneRandTag->id][$randNumber];
 		}
-
-		$tags = array();
-		foreach(array_keys($results) as $oneResult){
-			$tags['{rand:'.$oneResult.'}'] = end($results[$oneResult]);
+		$variables = array('body','altbody');
+		foreach($variables as $var){
+			if(empty($email->$var)) continue;
+			foreach(array_keys($results) as $oneResult){
+				$replace = end($results[$oneResult]);
+				$email->$var = str_replace('{rand:'.$oneResult.'}',$replace,$email->$var);
+			}
 		}
-
-		if(empty($tags)) return;
-		$pluginHelper->replaceTags($email, $tags, true);
 	}
 
 

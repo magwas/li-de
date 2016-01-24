@@ -42,7 +42,8 @@ class jdownloadsModelDownloads extends JModelList
 				'checked_out_time', 'a.checked_out_time',
 				'cat_id', 'a.cat_id', 'category_title',
                 'author', 'a.author',
-				'published', 'a.published',
+				'featured', 'a.featured',
+                'published', 'a.published',
 				'access', 'a.access', 'access_level',
 				'date_added', 'a.date_added',
 				'created_id', 'a.created_id',
@@ -238,6 +239,7 @@ class jdownloadsModelDownloads extends JModelList
 		// Compile the store id.
 		$id .= ':' . serialize($this->getState('filter.published'));
 		$id .= ':' . $this->getState('filter.access');
+        $id .= ':' . $this->getState('filter.featured');
 		$id	.= ':' . serialize($this->getState('filter.category_id'));
 		$id .= ':' . $this->getState('filter.category_id.include');
 		$id	.= ':' . serialize($this->getState('filter.author_id'));
@@ -280,7 +282,7 @@ class jdownloadsModelDownloads extends JModelList
                 'a.url_home, a.author, a.url_author, a.created_id, a.created_mail, a.modified_id, a.modified_date, a.submitted_by, a.set_aup_points, a.downloads, '.
                 'a.cat_id, a.changelog, a.password, a.password_md5, a.views, a.metakey, a.metadesc, a.robots, a.update_active, a.custom_field_1, '.
                 'a.custom_field_2, a.custom_field_3, a.custom_field_4, a.custom_field_5, a.custom_field_6, a.custom_field_7, a.custom_field_8, a.custom_field_9, '.
-                'a.custom_field_10, a.custom_field_11, a.custom_field_12, a.custom_field_13, a.custom_field_14, a.access, a.language, a.ordering, '.                
+                'a.custom_field_10, a.custom_field_11, a.custom_field_12, a.custom_field_13, a.custom_field_14, a.access, a.language, a.ordering, a.featured, '.                
                 'a.published, a.checked_out, a.checked_out_time, ' .
 				// use date_added if modified_date is 0
                 // 'CASE WHEN a.modified_date = 0 THEN a.date_added ELSE a.modified_date END as modified, ' .
@@ -336,7 +338,7 @@ class jdownloadsModelDownloads extends JModelList
         $query->join('LEFT', '#__users AS u2 on u2.id = a.modified_id');        
         
         // Join on license table.
-        $query->select('l.title AS license_title, l.url AS license_url, l.description AS license_text');
+        $query->select('l.title AS license_title, l.url AS license_url, l.description AS license_text, l.id as lid');
         $query->join('LEFT', '#__jdownloads_licenses AS l on l.id = a.license');
         
         // Join on ratings table.
@@ -349,11 +351,11 @@ class jdownloadsModelDownloads extends JModelList
         
         // Join on menu table. We need the single download menu itemid when exist                                                                                                  
         $query->select('menuf.id AS menuf_itemid');
-        $query->join('LEFT', '#__menu AS menuf on menuf.link LIKE CONCAT(\'index.php?option=com_jdownloads&view=download&id=\',a.file_id,\'%\') AND menuf.published = 1 AND menuf.access IN ('.$groups.')') ;
+        $query->join('LEFT', '(SELECT id, link, access, published from #__menu GROUP BY link) AS menuf on menuf.link LIKE CONCAT(\'index.php?option=com_jdownloads&view=download&id=\',a.file_id) AND menuf.published = 1 AND menuf.access IN ('.$groups.')') ;
 
         // Join on menu table. We need the single category menu itemid when exist                                                                                                  
         $query->select('menuc.id AS menuc_cat_itemid');
-        $query->join('LEFT', '#__menu AS menuc on menuc.link LIKE CONCAT(\'index.php?option=com_jdownloads&view=category&catid=\',a.cat_id,\'%\') AND menuc.published = 1 AND menuc.access IN ('.$groups.')') ;
+        $query->join('LEFT', '(SELECT id, link, access, published from #__menu GROUP BY link) AS menuc on menuc.link LIKE CONCAT(\'index.php?option=com_jdownloads&view=category&catid=\',a.cat_id) AND menuc.published = 1 AND menuc.access IN ('.$groups.')') ;
         
 		// Join to check for category published state in parent categories up the tree
 		$query->select('c.published, CASE WHEN badcats.id is null THEN c.published ELSE 0 END AS parents_published');
@@ -518,6 +520,24 @@ class jdownloadsModelDownloads extends JModelList
         if ($this->getState('only_uncategorised')) {
             $query->where('a.cat_id = 1');
         }
+        
+        // Filter by featured state
+        $featured = $this->getState('filter.featured');
+
+        switch ($featured)
+        {
+            case 'hide':
+                $query->where('a.featured = 0');
+                break;
+
+            case 'only':
+                $query->where('a.featured = 1');
+                break;
+
+            case 'show':
+            default:
+                break;
+        }        
 
 		// Add the list ordering clause.
         $order = $this->getState('list.ordering', 'a.ordering').' '.$this->getState('list.direction', 'ASC');

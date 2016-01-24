@@ -60,13 +60,14 @@ class JdownloadsModelCategories extends JModelList
         $mergedParams->merge($params);
 
         $this->setState('params', $mergedParams);
-        $user        = JFactory::getUser();
+        $user = JFactory::getUser();
                 
         // Create a new query object.
-        $db        = $this->getDbo();
-        $query    = $db->getQuery(true);
-        $groups    = implode(',', $user->getAuthorisedViewLevels());
-        $menu_params = $this->state->params;
+        $db           = $this->getDbo();
+        $query        = $db->getQuery(true);
+        $groups       = implode(',', $user->getAuthorisedViewLevels());
+        $menu_params  = $this->state->params;
+        $listOrderNew = '';
 
         $this->setState('filter.published', 1);
         $this->setState('filter.access', true);

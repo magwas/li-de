@@ -164,15 +164,9 @@ class KepviselokController extends JControllerLegacy
       $altKepviseloje = $res->kepviselo_id;
       $kepviseloUser = JFactory::getUser($altKepviseloje);
       if ($kepviseloUser) {
-          // $userEx = HsUser::getInstance($altKepviseloje);
           $altKepviseloLink = JURI::base().'index.php?option=com_kepviselok&view=kepviselok&task=show&id='.$altKepviseloje;
           $altKepviseloNev = $kepviseloUser->name;
-          /*
-          if (isset($userEx->image))
-  				 $altKepviseloImg = $userEx->get('image');
-          else
-  				 $altKepviseloImg = '<img src="components/com_hs_users/asset/images/noimage.png" width="50" height="50" />';
-          */ 
+		  $altKepviseloImg = getAvatar($kepviseloUser->id);
       }  
     }
     
@@ -194,15 +188,9 @@ class KepviselokController extends JControllerLegacy
         $temaKepviseloje = $res->kepviselo_id;
         $kepviseloUser = JFactory::getUser($temaKepviseloje);
         if ($kepviseloUser) {
-            // $userEx = HsUser::getInstance($temaKepviseloje);
             $temaKepviseloLink = JURI::base().'index.php?option=com_kepviselok&view=kepviselok&task=show&id='.$temaKepviseloje;
             $temaKepviseloNev = $kepviseloUser->name;
-            /*
-            if (isset($userEx->image))
-    				 $temaKepviseloImg = $userEx->get('image');
-            else
-    				 $temaKepviseloImg = '<img src="components/com_hs_users/asset/images/noimage.png" width="50" height="50" />';
-            */ 
+    		$temaKepviseloImg = getAvatar($kepviseloUser->id);
         }  
       }
     }

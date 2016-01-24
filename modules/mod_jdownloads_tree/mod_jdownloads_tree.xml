@@ -2,12 +2,12 @@
 <extension type="module" client="site" version="3.1" method="upgrade">
 	<name>jDownloads Tree</name>
 	<author>Josh Prakash</author>
-	<creationDate>2015-06-26</creationDate>
+	<creationDate>2015-09-17</creationDate>
 	<copyright>Copyright (C) 2008-2010 youthpole.com. All rights reserved.</copyright>
 	<license>http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL</license>
 	<authorEmail>joshprakash@yahoo.com</authorEmail>
 	<authorUrl>www.youthpole.com</authorUrl>
-	<version>3.2.34</version>
+	<version>3.2.38</version>
 	<description>MOD_JDOWNLOADS_TREE_XML_DESCRIPTION</description>
 	<files>
 		<filename module="mod_jdownloads_tree">mod_jdownloads_tree.php</filename>

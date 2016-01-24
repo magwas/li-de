@@ -10,7 +10,7 @@
  * @author      Cyril Rezé (Lyr!C)
  * @link        http://www.joomlic.com
  *
- * @version     3.5.7 2015-07-13
+ * @version     3.5.9 2015-07-22
  * @since       3.3.3
  *------------------------------------------------------------------------------
 */
@@ -32,6 +32,19 @@ class iCagendaControllerRegistration extends JControllerForm
     }
 
 	/**
+	 * Return Ajax to load date select options
+	 *
+	 * @since 3.5.9
+	 */
+	function dates()
+	{
+		icagendaAjax::getOptionsEventDates('registration');
+
+		// Cut the execution short
+//		JFactory::getApplication()->close();
+	}
+
+	/**
 	 * Method override to check if you can edit an existing record.
 	 *
 	 * @param   array   $data  An array of input data.
@@ -39,7 +52,7 @@ class iCagendaControllerRegistration extends JControllerForm
 	 *
 	 * @return  boolean
 	 *
-	 * @since   1.6
+	 * @since   3.3.3
 	 */
 	protected function allowEdit($data = array(), $key = 'id')
 	{
@@ -49,14 +62,14 @@ class iCagendaControllerRegistration extends JControllerForm
 		$userId		= $user->get('id');
 
 		// Check general edit permission first.
-		if ($user->authorise('core.edit', 'com_icagenda.registration . ' . $recordId))
+		if ($user->authorise('core.edit', 'com_icagenda.registration.' . $recordId))
 		{
 			return true;
 		}
 
 		// Fallback on edit.own.
 		// First test if the permission is available.
-		if ($user->authorise('core.edit.own', 'com_icagenda.registration . ' . $recordId))
+		if ($user->authorise('core.edit.own', 'com_icagenda.registration.' . $recordId))
 		{
 			// Now test the owner is the user.
 			$ownerId = (int) isset($data['created_by']) ? $data['created_by'] : 0;

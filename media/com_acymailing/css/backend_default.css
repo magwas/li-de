@@ -1,6 +1,6 @@
 /**
  * @package    AcyMailing for Joomla!
- * @version    5.0.1
+ * @version    5.1.0
  * @author     acyba.com
  * @copyright  (C) 2009-2015 ACYBA S.A.R.L. All rights reserved.
  * @license    GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
@@ -30,6 +30,14 @@
 
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
+}
+
+.acyicon-distribution:before{
+	content: "\e900";
+}
+
+.acyicon-connection:before{
+	content: "\e901";
 }
 
 .acyicon-location:before{
@@ -164,7 +172,7 @@
 	content: "\e607";
 }
 
-.acyicon-template:before{
+.acyicon-template:before, .acyicon-saveastmpl:before{
 	content: "\e608";
 }
 
@@ -402,7 +410,7 @@
 	text-shadow: none;
 }
 
-.acytoolbarmenu .acytoolbar_save:hover, .acytoolbarmenu .acytoolbar_new:hover{
+.acytoolbarmenu .acytoolbar_save:hover, .acytoolbarmenu .acytoolbar_new:hover, .acytoolbarmenu .acytoolbar_saveastmpl:hover{
 	background-color: #51a351;
 }
 
@@ -1932,7 +1940,7 @@ ul.buttonOptions{
 	margin: 0 10px 0 0;
 }
 
-.buttonOptions .acyicon-apply, .buttonOptions .acyicon-copy{
+.buttonOptions .acyicon-apply, .buttonOptions .acyicon-copy, .buttonOptions .acyicon-saveastmpl{
 	font-size: 14px;
 	margin: 0px 5px;
 	padding-right: 8px;
@@ -1943,7 +1951,7 @@ ul.buttonOptions{
 	padding-right: 5px;
 }
 
-.acytoolbarmenu .buttonOptions .acytoolbar_apply, .acytoolbarmenu .buttonOptions .acytoolbar_new, .acytoolbarmenu .buttonOptions .acytoolbar_copy{
+.acytoolbarmenu .buttonOptions .acytoolbar_apply, .acytoolbarmenu .buttonOptions .acytoolbar_new, .acytoolbarmenu .buttonOptions .acytoolbar_saveastmpl, .acytoolbarmenu .buttonOptions .acytoolbar_copy{
 	background-color: transparent;
 	text-transform: none;
 	color: #a5c6e8;
@@ -2372,7 +2380,7 @@ div.acytagpopup table.acymailing_table tr.selectedrow td, div.acytagpopup table.
 	position: fixed;
 }
 
-#filters_block, #actions_block, #filterinfo, #filteredUsers, #selectedUsers{
+#filters_block, #actions_block, #filterinfo, #filteredUsers, #selectedUsers, #existing_filters{
 	float: none;
 	display: block;
 }
@@ -2394,6 +2402,15 @@ div.acyfilterarea{
 	margin-left: 10px;
 	padding: 10px 5px 0px 10px;
 	clear: both;
+}
+
+#executed_actions_block div.acyfilterarea{
+	margin: 10px 0px 10px 10px;
+	padding: 10px 5px 10px 10px;
+}
+
+#actionlisting td{
+	text-align: center;
 }
 
 
@@ -2465,9 +2482,6 @@ div#wysija{
 		display: none;
 	}
 
-	.acyaffix .acymenu_slide, .acyaffix-top .acymenu_slide{
-		display: none;
-	}
 }
 
 
@@ -2663,4 +2677,34 @@ div.onload{
 
 .customfields_pane.active, .customfields_pane:hover{
 	background-color: #7F99C3 !important;
+}
+
+#acy_content .acy_onefield input[type="radio"], #acy_content .acy_onefield input[type="checkbox"]{
+	float: none;
+	display: inline-block;
+	margin: 0 5px
+}
+
+#acy_content .acy_onefield label{
+	display: inline-block !important
+}
+
+span.acy_stat_date{
+	margin-top: 5px;
+	display: block;
+}
+
+.searchtext{
+	background-color: rgb(255, 255, 102);
+	color: black;
+	font-weight: bold;
+}
+
+
+.acymaincontent_action #actionsarea{
+	margin-top: 10px;
+}
+
+.acymaincontent_action #actionsarea select {
+    margin-top: 5px;
 }

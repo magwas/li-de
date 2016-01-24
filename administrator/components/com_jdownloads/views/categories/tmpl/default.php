@@ -15,7 +15,7 @@ defined('_JEXEC') or die;
 
 global $jlistConfig;
 
-//JHtml::_('behavior.tooltip');
+JHtml::_('behavior.tooltip');
 JHtml::_('bootstrap.tooltip');
 JHtml::_('behavior.multiselect');
 JHtml::_('formbehavior.chosen', 'select');
@@ -33,6 +33,16 @@ $saveOrder    = ($listOrder == 'a.lft' && $listDirn == 'asc');
 
 ?>
 <form action="<?php echo JRoute::_('index.php?option=com_jdownloads&view=categories');?>" method="POST" name="adminForm" id="adminForm">
+    
+    <?php if (!empty( $this->sidebar)) : ?>
+        <div id="j-sidebar-container" class="span2">
+            <?php echo $this->sidebar; ?>
+        </div>
+        <div id="j-main-container" class="span10">
+    <?php else : ?>
+        <div id="j-main-container">
+    <?php endif;?>    
+    
     <fieldset id="jdfilter-bar">
         <div class="filter-search jdfltlft">
             <!--<label class="filter-search-lbl jdfltlft" for="filter_search"><?php echo JText::_('COM_JDOWNLOADS_FILTER_LABEL'); ?></label>-->

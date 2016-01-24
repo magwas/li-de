@@ -1,7 +1,7 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.0.1
+ * @version	4.9.3
  * @author	acyba.com
  * @copyright	(C) 2009-2015 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
@@ -36,16 +36,6 @@ class UserController extends acymailingController{
 		if(empty($user)) return false;
 
 		$redirectUrl = $config->get('confirm_redirect');
-		$listRedirection = '';
-		$subscription = $userClass->getSubscriptionStatus($user->subid);
-		foreach($subscription as $i => $onelist){
-			if(!in_array($onelist->status, array(1,2)) || JText::_('REDIRECTION_CONFIRMATION_'.$i) == 'REDIRECTION_CONFIRMATION_'.$i) continue;
-			$listRedirection = JText::_('REDIRECTION_CONFIRMATION_'.$i);
-			break;
-		}
-
-		if(!empty($listRedirection)) $redirectUrl = $listRedirection;
-
 		if(!empty($redirectUrl)){
 			$replace = array();
 			foreach($user as $key => $val){
@@ -291,13 +281,8 @@ class UserController extends acymailingController{
 
 		if($incrementUnsub){
 			$db= JFactory::getDBO();
-			$db->setQuery('SELECT subid FROM #__acymailing_history WHERE `action` = "unsubscribed" AND `subid` = '.intval($subscriber->subid).' AND `mailid` = '.intval($mailid).' LIMIT 1,1');
-			$alreadythere = $db->loadResult();
-
-			if(empty($alreadythere)){
-				$db->setQuery('UPDATE '.acymailing_table('stats').' SET `unsub` = `unsub` +1 WHERE `mailid` = '.(int)$mailid);
-				$db->query();
-			}
+			$db->setQuery('UPDATE '.acymailing_table('stats').' SET `unsub` = `unsub` +1 WHERE `mailid` = '.(int)$mailid);
+			$db->query();
 		}
 
 		$classGeoloc = acymailing_get('class.geolocation');
@@ -326,13 +311,8 @@ class UserController extends acymailingController{
 
 
 		$redirectUnsub = $config->get('unsub_redirect');
+
 		if(!empty($redirectUnsub)){
-			$replace = array();
-			foreach($oldUser as $key => $val){
-				$replace['{'.$key.'}'] = $val;
-				$replace['{user:'.$key.'}'] = $val;
-			}
-			$redirectUnsub = str_replace(array_keys($replace),$replace,$redirectUnsub);
 			$this->setRedirect($redirectUnsub);
 			return;
 		}
@@ -351,6 +331,13 @@ class UserController extends acymailingController{
 		$subscriberClass->geolocRight = true;
 		$subscriberClass->extendedEmailVerif = true;
 
+		if($config->get('captcha_enabled') AND !$subscriberClass->identify(true)){
+			$captchaClass = acymailing_get('class.acycaptcha');
+			$captchaClass->state = 'acycaptchacomponent';
+			if(!$captchaClass->check(JRequest::getString('acycaptcha'))){
+				$captchaClass->returnError();
+			}
+		}
 
 		$status = $subscriberClass->saveForm();
 		$subscriberClass->sendNotification();

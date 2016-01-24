@@ -1,7 +1,7 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.0.1
+ * @version	4.9.3
  * @author	acyba.com
  * @copyright	(C) 2009-2015 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
@@ -52,7 +52,8 @@ class StatsController extends acymailingController{
 		$class = acymailing_get('class.stats');
 		$num = $class->delete($cids);
 
-		acymailing_enqueueMessage(JText::sprintf('SUCC_DELETE_ELEMENTS',$num), 'message');
+		$app = JFactory::getApplication();
+		$app->enqueueMessage(JText::sprintf('SUCC_DELETE_ELEMENTS',$num), 'message');
 
 		return $this->listing();
 	}
@@ -62,8 +63,6 @@ class StatsController extends acymailingController{
 		$selectedStatus = JRequest::getString('filter_status','');
 		$selectedBounce = JRequest::getString('filter_bounce','');
 
-		$db = JFactory::getDBO();
-
 		$filters = array();
 		if(!empty($selectedMail)) $filters[] = 'userstats.mailid = '.$selectedMail;
 		if(!empty($selectedStatus)){
@@ -72,7 +71,7 @@ class StatsController extends acymailingController{
 			elseif($selectedStatus == 'notopen') $filters[] = 'userstats.open < 1';
 			elseif($selectedStatus == 'failed') $filters[] = 'userstats.fail > 0';
 		}
-		if(!empty($selectedStatus) && $selectedStatus == 'bounce' && !empty($selectedBounce)) $filters[] = "userstats.bouncerule = ".$db->Quote($selectedBounce);
+		if(!empty($selectedStatus) && $selectedStatus == 'bounce' && !empty($selectedBounce)) $filters[] = "userstats.bouncerule = '".$selectedBounce."'";
 
 		$query = 'FROM `#__acymailing_userstats` as userstats JOIN `#__acymailing_subscriber` as s ON s.subid = userstats.subid';
 		if(!empty($filters)) $query .= ' WHERE ('.implode(') AND (',$filters).')';
@@ -99,7 +98,7 @@ class StatsController extends acymailingController{
 		$filters = array();
 		$db = JFactory::getDBO();
 		$filters[] = "hist.action = ".$db->Quote($action);
-		if(!empty($selectedMail)) $filters[] = 'hist.mailid = '.intval($selectedMail);
+		if(!empty($selectedMail)) $filters[] = 'hist.mailid = '.$selectedMail;
 
 		$query = 'FROM #__acymailing_history as hist JOIN #__acymailing_mail as b on hist.mailid = b.mailid JOIN #__acymailing_subscriber as s on hist.subid = s.subid';
 		if(!empty($filters)) $query .= ' WHERE ('.implode(') AND (',$filters).')';

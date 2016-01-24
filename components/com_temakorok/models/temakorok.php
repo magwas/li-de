@@ -15,6 +15,7 @@ require_once JPATH_ADMINISTRATOR.'/components/com_content/models/article.php';
 require_once JPATH_ADMINISTRATOR.'/components/com_categories/models/category.php';
 require_once JPATH_ADMINISTRATOR.'/components/com_jdownloads/tables/category.php';
 require_once JPATH_ADMINISTRATOR.'/components/com_jdownloads/models/category.php';
+require_once JPATH_ADMINISTRATOR . '/components/com_categories/models/category.php';
 
 require_once JPATH_BASE.'/libraries/kunena/database/object.php';
 require_once JPATH_BASE.'/libraries/kunena/forum/category/category.php';
@@ -238,8 +239,11 @@ class TemakorokModelTemakorok  extends JModelItem {
          // kunena fórum kategória létrehozása vagy módosítása
          //2015.05.17 nem generálunk kunena kategoriákat $this->storeKunenaCategory($table->id, $item);
 
-         // jevents kategória létrehozása vagy módosítása
-         $this->storeJeventsCategory($table->id, $item);
+         // content kategória létrehozása vagy módosítása
+         $this->storeContentCategory($table->id, $item);
+
+         // acymailing kategória létrehozása vagy módosítása
+         $this->storeAcymailingCategory($table->id, $item);
          
        }
      } else {
@@ -372,6 +376,7 @@ class TemakorokModelTemakorok  extends JModelItem {
      if ($szulo == false) {
        $szulo = new stdClass();
        $szulo->id = 1;
+	   $szulo->level = 1;
        $szulo->cat_dir_parent = '';
        $szulo->cat_dir = '';
      }
@@ -397,23 +402,15 @@ class TemakorokModelTemakorok  extends JModelItem {
      $data['title'] = $item->megnevezes;
      $data['description'] = $item->leiras;
      $data['alias'] = 't'.$newId;
-     $data['cat_dir'] = 'T'.$newId;
+     $data['cat_dir'] = $item->megnevezes;
      $data['access'] = 1;
-     if ($szulo->cat_dir_parent == '')
-       $data['cat_dir_parent'] = $szulo->cat_dir;
-     else
-       $data['cat_dir_parent'] = $szulo->cat_dir_parent.'/'.$szulo->cat_dir;
+     $data['cat_dir_parent'] = '';
      $data['language'] = '*';
      $data['pic'] = 'folder.png';
+	 $data['level'] = $szulo->level + 1;
      
      // rekord store
      $result = $model->save($data, true); // false paraméternél hibát jelez
-     
-     // könyvtár ellenörzés ha kell létrehozás
-     $path = './jdownloads/'.$data['cat_dir_parent'].$data['cat_dir'];
-     if (is_dir($path) == false) {
-       mkdir($path,0777);
-     }
 
      // usergroup el�r�se
      $db->setQuery('SELECT id FROM #__usergroups WHERE title like "['.$newId.']%"');
@@ -599,25 +596,29 @@ class TemakorokModelTemakorok  extends JModelItem {
      return $result;
    }
    /**
-    * Jenents kategória létrehozása az $item -ben lévő témakörhöz
+    * Content kategória létrehozása az $item -ben lévő témakörhöz
     * @param integer $newId
     * @param mysqlrecord $item
     * @return void
     */
-    protected function storeJeventsCategory($newId, $item) {
+    protected function storeContentCategory($newId, $item) {
       $db = JFactory::getDBO();
       $user = JFactory::getUser();
-      // szülő Jevents kategoria elérése
+      $basePath = JPATH_ADMINISTRATOR . '/components/com_categories';
+      $config = array( 'table_path' => $basePath . '/tables');
+	  
+	  // szülő kategoria elérése
       $db->setQuery('SELECT * FROM #__categories WHERE alias="t'.$item->szulo.'"');
       $szulo = $db->loadObject();
       if (!$szulo) {
         $szulo = new stdClass();
-        $szulo->id = 0;
+        $szulo->id = 82;
       }
       // megvan már a rekord?
       $db->setQuery('SELECT * FROM #__categories WHERE alias="t'.$newId.'"');
       $old = $db->loadObject();
       
+	  
       if ($old == false) {
         $category_data = array();
         $category_data['id'] = 0;
@@ -625,12 +626,11 @@ class TemakorokModelTemakorok  extends JModelItem {
         $category_data['title'] = $item->megnevezes;
         $category_data['description'] = $item->leiras;
         $category_data['alias'] = 't'.$newId;
-        $category_data['extension'] = 'com_jevents';
+        $category_data['extension'] = 'com_content';
         $category_data['published'] = 1;
         $category_data['language'] = '*';
         $category_data['access'] = 1;
-        $category_data['params'] = array("category_layout" =>"", "image"=>"","catcolour"=>"","overlaps"=>"0","admin"=>$user->id);
-        $config = array( 'table_path' => JPATH_ADMINISTRATOR.'/components/com_categories/tables');
+        $category_data['params'] = array();
         $new_category = new CategoriesModelCategory($config);
         $result = $new_category->save($category_data);
       } else {
@@ -641,62 +641,81 @@ class TemakorokModelTemakorok  extends JModelItem {
         $db->query();
         if ($db->getErrorNum() > 0) $db->stderr();
       }
-      
-      
-     // JEvents category jogosultságok beállítása
-     // $item->lathatosag: 0-mindenki, 1-regisztraltak, 2-téma tagok
-     // usergoups 1:public, 2:Registered, 3:Author, 4:Editor, 6:Manager, 8:superuser, más: usergroup_id 
      
-     // kategoriához tartozó usergroup_id meghatározása
-     $db->setQuery('SELECT id FROM #__usergroups WHERE title like "['.$newId.']%"');
-     $res = $db->loadObject();
-     if ($db->getErrorNum() > 0) $db->stderr();
-     if ($res)
-        $gr = $res->id;
-     else
-        $gr = 0;
+	}
 
-
-     if ($item->lathatosag == 0) {
-        // mindenki
-        $rules = '';
-      }  
-     if ($item->lathatosag == 1) {
-        // regisztráltak
-        $rules = '{"core.create":{"1":0,"2":1,"'.$gr.'":1},
-"core.delete":{"1":0,"2":1,"'.$gr.'":1},
-"core.edit":{"1":0,"2":1,"'.$gr.'":1},
-"core.edit.state":{"1":0,"2":1,"'.$gr.'":1},
-"core.edit.own":{"1":0,"2":1,"'.$gr.'":1},
-"download":{"1":0,"2":1,"'.$gr.'":1}
-}';
-     }   
-     if ($item->lathatosag == 2) {
-        // téma tagok
-        if ($gr > 0) {    
-          $rules = '{"core.create":{"1":0,"2":0,"'.$gr.'":1},
-"core.delete":{"1":0,"2":0,"'.$gr.'":1},
-"core.edit":{"1":0,"2":0,"'.$gr.'":1},
-"core.edit.state":{"1":0,"2":0,"'.$gr.'":1},
-"core.edit.own":{"1":0,"2":0,"'.$gr.'":1},
-"download":{"1":0,"2":0,"'.$gr.'":1}
-}';
-        } else {
-          $rules = '{"core.create":{"1":0,"2":1,"'.$gr.'":1},
-"core.delete":{"1":0,"2":1,"'.$gr.'":1},
-"core.edit":{"1":0,"2":1,"'.$gr.'":1},
-"core.edit.state":{"1":0,"2":1,"'.$gr.'":1},
-"core.edit.own":{"1":0,"2":1,"'.$gr.'":1},
-"download":{"1":0,"2":1}
-}';
-        }          
-     }
-     $db->setQuery('UPDATE #__assets
-     SET rules="'.mysql_escape_string($rules).'"
-     WHERE name="com_jevents.category.'.$newId.'"');
-     $result = $db->query();   
-     if ($db->getErrorNum() > 0) $db->stderr();
-}                    
+   /**
+    * Acymailing kategória létrehozása az $item -ben lévő témakörhöz
+    * @param integer $newId
+    * @param mysqlrecord $item
+    * @return void
+    */
+    protected function storeAcymailingCategory($newId, $item) {
+      $db = JFactory::getDBO();
+      $user = JFactory::getUser();
+	  
+	  // szülő kategoria elérése
+      $db->setQuery('SELECT * FROM #__acymailing_list WHERE alias="t'.$item->szulo.'"');
+      $szulo = $db->loadObject();
+      if (!$szulo) {
+        $szulo = new stdClass();
+        $szulo->listid = 0;
+      }
+      // megvan már a rekord?
+      $db->setQuery('SELECT * FROM #__acymailing_list WHERE alias="t'.$newId.'"');
+      $old = $db->loadObject();
+	  
+      if ($old == false) {
+		  $db->setQuery('INSERT INTO #__acymailing_list 
+			(`name`, 
+			`description`, 
+			`ordering`, 
+			`listid`, 
+			`published`, 
+			`userid`, 
+			`alias`, 
+			`color`, 
+			`visible`, 
+			`welmailid`, 
+			`unsubmailid`, 
+			`type`, 
+			`access_sub`, 
+			`access_manage`, 
+			`languages`, 
+			`startrule`, 
+			`category`
+			)
+			VALUES
+			('.$db->quote($item->megnevezes).', 
+			'.$db->quote($item->leiras).', 
+			0, 
+			0, 
+			1, 
+			"'.$user->id.'", 
+			"t'.$newId.'", 
+			"#303030", 
+			1, 
+			0, 
+			0, 
+			"list", 
+			"all", 
+			"none", 
+			"all", 
+			0, 
+			"");
+		  ');
+		  $db->query();
+      } else {
+        $db->setQuery('UPDATE #__acymailing_list
+        SET name="'.mysql_escape_string($item->megnevezes).'",
+            description = "'.mysql_escape_string($item->leiras).'"
+        WHERE alias="t'.$newId.'"');
+        $db->query();
+        if ($db->getErrorNum() > 0) $db->stderr();
+      }
+     
+	}
+	
          	
 }
 ?>

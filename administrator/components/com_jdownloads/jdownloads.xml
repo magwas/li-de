@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension type="component" version="3.1" method="upgrade">
 	<name>com_jDownloads</name>
-	<creationDate>2015-06-28</creationDate>
+	<creationDate>2015-12-19</creationDate>
 	<author>Arno Betz</author>
 	<authorEmail>info@jdownloads.com</authorEmail>
 	<authorUrl>http://www.jdownloads.com</authorUrl>
 	<copyright>(C) 2007-2015 www.jdownloads.com</copyright>
 	<license>GNU/GPL - http://www.gnu.org/copyleft/gpl.html</license>
-	<version>3.2.34</version>
+	<version>3.2.41</version>
 	<targetjoomla>3.2</targetjoomla>
     <description></description>
 	

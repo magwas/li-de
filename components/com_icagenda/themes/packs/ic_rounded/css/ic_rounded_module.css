@@ -6,7 +6,7 @@
  *
  * @name		ic_rounded
  * @author		Lyr!C (JoomliC)
- * @version 	3.5.7 2015-07-14
+ * @version 	3.5.9 2015-07-31
  * @since		1.0
  */
 
@@ -41,23 +41,26 @@
 }
 
 /* General Table */
-.ic_rounded.iccalendar table {
+.ic_rounded.iccalendar .ic-table table {
 	padding: 1%;
-	margin: 0px;
-	border: 0px;
+	margin: 0;
+	border: 0;
+	border-collapse: collapse;
 }
-.ic_rounded.iccalendar table th {
+.ic_rounded.iccalendar .ic-table thead {
 	font-size: 10px;
 	font-weight: 500;
-	padding: 0px;
-	margin: 0px;
-	text-align: center;
-	border: 0px;
 }
-.ic_rounded.iccalendar table tr {
-	padding: 0px;
-	margin: 0px;
-	border: 0px;
+.ic_rounded.iccalendar .ic-table th {
+	padding: 0;
+	margin: 0;
+	text-align: center;
+	border: 0;
+}
+.ic_rounded.iccalendar .ic-table tr {
+	padding: 0;
+	margin: 0;
+	border: 0;
 }
 
 
@@ -66,22 +69,22 @@
  */
 
 /* General */
-.ic_rounded.iccalendar table td {
+.ic_rounded.iccalendar .ic-table td {
 	padding: 3px;
-	margin: 0px;
-	border: 0px;
+	margin: 0;
+	border: 0;
 }
-.ic_rounded.iccalendar table td div {
+.ic_rounded.iccalendar .ic-table td div {
 	text-align: center;
 	font-size: 10px;
 	border-radius: 3px;
 	line-height: 20px;
-	border: 0px solid #DDDDDD;
+	border: none;
 	width: auto;
 }
 
 /* Styles for days (today or else) */
-.ic_rounded.iccalendar table td div.style_Today {
+.ic_rounded.iccalendar div.style_Today {
 	border: 1px;
 	border-color: #777;
 	line-height: 18px;
@@ -91,7 +94,7 @@
 	text-shadow: 0px 0px 10px #777;
 	box-shadow: 0px 0px 5px #999;
 }
-.ic_rounded.iccalendar table td div.style_Day {
+.ic_rounded.iccalendar div.style_Day {
 	border: none;
 }
 
@@ -116,7 +119,7 @@
 .ic-bright {
 	color: #111 !important;
 }
-.ic_rounded.iccalendar table td .icevent a .ic-bright {
+.ic_rounded.iccalendar .icevent a .ic-bright {
 	display: block;
 	text-align: center;
 	height: 100%;
@@ -125,7 +128,7 @@
 }
 
 /* In case of multi-event day */
-.ic_rounded.iccalendar table td .icmulti a {
+.ic_rounded.iccalendar .icmulti a {
 	background: url(../images/plus.png) top right no-repeat;
 	display: block;
 	text-align: center;
@@ -136,7 +139,7 @@
 }
 
 /* In case of multi-event day (bright background) */
-.ic_rounded.iccalendar table td .icmulti a .bright {
+.ic_rounded.iccalendar .icmulti a .bright {
 	background: url(../images/plus.png) top right no-repeat;
 	display: block;
 	text-align: center;
@@ -171,13 +174,13 @@
 /* Text (Don't modify it!) */
 .ic_rounded .icevent .spanEv,
 .ic_rounded .icmulti .spanEv {
-	display: none;
+	display: none !important; /* !important to prevent issue with stupid site templates... */
 }
 
 /* Date (Don't modify it!) */
 .ic_rounded .icevent .date,
 .ic_rounded .icmulti .date {
-	display: none;
+	display: none !important; /* !important to prevent issue with stupid site templates... */
 }
 
 /* Link */

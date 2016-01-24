@@ -2,7 +2,7 @@
 /**
  * Social Login
  *
- * @version 	1.7
+ * @version 	1.9.0
  * @author		SmokerMan, Arkadiy, Joomline
  * @copyright	© 2012. All rights reserved.
  * @license 	GNU/GPL v.3 or later.
@@ -33,7 +33,15 @@ $return	= modLoginHelper::getReturnURL($params, $type);
 
 $allow = modSLoginHelper::getalw($params);
 
-JFactory::getApplication()->setUserState('com_slogin.return', $return);
+$input = JFactory::getApplication()->input;
+$task = $input->getCmd('task', '');
+$option = $input->getCmd('option', '');
+
+if(!($option == 'com_slogin' && ($task == 'auth' || $task == 'check')))
+{
+    JFactory::getApplication()->setUserState('com_slogin.return_url', $return);
+}
+
 
 if($loadAfter == 1 && $type != 'logout'){
     ?>
@@ -41,7 +49,6 @@ if($loadAfter == 1 && $type != 'logout'){
         <img src="/modules/mod_slogin/media/ajax-loader.gif" alt="Loader"/>
     </div>
     <script type="text/javascript">
-        var sloginReturnUri = '<?php echo base64_encode($return);?>';
         SLogin.addListener(window, 'load', function () {
             SLogin.loadModuleAjax();
         });
@@ -61,8 +68,14 @@ else{
     JPluginHelper::importPlugin('slogin_auth');
 
     $plugins = array();
-
+    $config = JComponentHelper::getParams('com_slogin');
+    if($config->get('service_auth', 0)){
+        modSLoginHelper::loadLinks($plugins, $callbackUrl, $params);
+    }
+    else{
     $dispatcher->trigger('onCreateSloginLink', array(&$plugins, $callbackUrl));
+    }
+
     $jll = (!modSLoginHelper::getalw($params))
         ? '<div style="text-align: right;">'.JText::_('MOD_SLOGIN_LINK').'</div>'
         : '';

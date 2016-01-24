@@ -10,7 +10,7 @@
  * @author      Cyril Rezé (Lyr!C)
  * @link        http://www.joomlic.com
  *
- * @version     3.5.7 2015-07-08
+ * @version     3.5.13 2015-11-21
  * @since       3.2.0
  *------------------------------------------------------------------------------
 */
@@ -29,6 +29,7 @@ jimport('joomla.filesystem.folder');
 class iCagendaModelSubmit extends JModelItem
 {
 	protected $data;
+
 	protected $msg;
 
 	function getForm()
@@ -54,11 +55,14 @@ class iCagendaModelSubmit extends JModelItem
 	public function getData()
 	{
 		$app		= JFactory::getApplication();
+		$user		= JFactory::getUser();
+		$lang		= JFactory::getLanguage();
+		$session	= JFactory::getSession();
+
+		jimport( 'joomla.filter.output' );
 
 		$eventTimeZone = null;
 		$error_messages = array();
-
-		jimport( 'joomla.filter.output' );
 
 		// Get Params
 		$params = $app->getParams();
@@ -66,26 +70,60 @@ class iCagendaModelSubmit extends JModelItem
 		$submitAccess = $params->get('submitAccess', '');
 		$approvalGroups = $params->get('approvalGroups', array("8"));
 
-		// Get User
-		$user = JFactory::getUser();
-
-		// Get User Groups
-		// Joomla 3.x/2.5 SWITCH
-		if (version_compare(JVERSION, '3.0', 'ge'))
-		{
-			$userGroups = $user->groups;
-		}
-		else
-		{
-			$userGroups = $user->getAuthorisedGroups();
-		}
-
 		$user_id		= $user->get('id');
 
 		// logged-in Users: Name/User Name Option
 		$nameJoomlaUser	= $params->get('nameJoomlaUser', 1);
 		$u_name			= ($nameJoomlaUser == 1) ? $user->get('name') : $user->get('username');
 
+		// Redirection settings
+		$baseURL		= JURI::base();
+		$subpathURL		= JURI::base(true);
+
+		$baseURL		= str_replace('/administrator', '', $baseURL);
+		$subpathURL		= str_replace('/administrator', '', $subpathURL);
+
+		$urlsend		= str_replace('&amp;','&', JRoute::_('index.php?option=com_icagenda&view=submit&layout=send'));
+
+		// Sub Path filtering
+		$subpathURL		= ltrim($subpathURL, '/');
+
+		// URL List filtering
+		$urlsend		= ltrim($urlsend, '/');
+
+		if (substr($urlsend, 0, strlen($subpathURL)+1) == "$subpathURL/")
+		{
+			$urlsend = substr($urlsend, strlen($subpathURL)+1);
+		}
+
+		$urlsend		= rtrim($baseURL, '/') . '/' . ltrim($urlsend, '/');
+
+		// Get return params
+		$submit_return			= $params->get('submitReturn', '');
+		$submit_return_article	= $params->get('submitReturn_Article', $urlsend);
+		$submit_return_url		= $params->get('submitReturn_Url', $urlsend);
+
+		if (($submit_return == 1) && is_numeric($submit_return_article))
+		{
+			$url_return = JURI::root().'index.php?option=com_content&view=article&id=' . $submit_return_article;
+		}
+		elseif ($submit_return == 2)
+		{
+			$url_return = $submit_return_url;
+		}
+		else
+		{
+			$url_return = $urlsend;
+		}
+
+		// Set alert messages
+		$alert_title			= $params->get('alert_title', '');
+		$alert_body				= $params->get('alert_body', '');
+		$url_redirect			= isset($urlsend_custom) ? $urlsend_custom : $urlsend; // Url custom not yet available.
+		$alert_title_redirect	= $alert_title ? $alert_title : JText::_( 'COM_ICAGENDA_EVENT_SUBMISSION' );
+		$alert_body_redirect	= $alert_body ? $alert_body : JText::_( 'COM_ICAGENDA_EVENT_SUBMISSION_CONFIRMATION' );
+
+		// Set post data
 		$this->data						= new stdClass();
 		$this->data->id					= null;
 		$this->data->asset_id			= JRequest::getVar('asset_id', '', 'post');
@@ -167,7 +205,39 @@ class iCagendaModelSubmit extends JModelItem
 		// Get Single Dates
 		$single_dates 					= JRequest::getVar('dates', '', 'post');
 
-		$dates = iCString::isSerialized($single_dates) ? unserialize($single_dates) : $this->getDates($single_dates);
+//		$dates = iCString::isSerialized($single_dates) ? unserialize($single_dates) : $this->getDates($single_dates);
+        if (iCString::isSerialized($single_dates))
+		{
+			$dates = unserialize($single_dates);
+		}
+		else
+		{
+			$dates = $this->getDates($single_dates);
+
+			if ($lang->getTag() == 'fa-IR'
+				&& $dates != array('0000-00-00 00:00')
+				&& $dates != array('')
+				)
+			{
+				$dates_to_sql = array();
+
+				foreach ($dates AS $date)
+				{
+					if (iCDate::isDate($date))
+					{
+						$year		= date('Y', strtotime($date));
+						$month		= date('m', strtotime($date));
+						$day		= date('d', strtotime($date));
+						$time		= date('H:i', strtotime($date));
+
+						$converted_date = iCGlobalizeConvert::jalaliToGregorian($year, $month, $day, true) . ' ' . $time;
+						$dates_to_sql[] = date('Y-m-d H:i', strtotime($converted_date));
+					}
+				}
+
+				$dates = $dates_to_sql;
+			}
+		}
 
 //		$dates = !empty($dates[0]) ? $dates : array($noDateTime);
 		rsort($dates);
@@ -264,7 +334,29 @@ class iCagendaModelSubmit extends JModelItem
 						$period = $this->getPeriod($this->data->period);
 					}
 
+					if ($lang->getTag() == 'fa-IR')
+					{
+						$period_to_sql = array();
+
+						foreach ($period AS $date)
+						{
+							if (iCDate::isDate($date))
+							{
+								$year		= date('Y', strtotime($date));
+								$month		= date('m', strtotime($date));
+								$day		= date('d', strtotime($date));
+								$time		= date('H:i', strtotime($date));
+
+								$converted_date = iCGlobalizeConvert::jalaliToGregorian($year, $month, $day, true) . ' ' . $time;
+								$period_to_sql[] = date('Y-m-d H:i', strtotime($converted_date));
+							}
+						}
+
+						$period = $period_to_sql;
+					}
+
 					rsort($period);
+
 					$this->data->period = serialize($period);
 				}
 				else
@@ -402,7 +494,7 @@ class iCagendaModelSubmit extends JModelItem
 		$custom_fields		= JRequest::getVar('custom_fields', '', 'post');
 
 		// Check if Custom Fields required not empty
-		$customfields_list = icagendaCustomfields::getListCustomFields($this->data->id, 2, 1);
+		$customfields_list = icagendaCustomfields::getListCustomFields(2, 1);
 
 		if ($customfields_list)
 		{
@@ -429,7 +521,6 @@ class iCagendaModelSubmit extends JModelItem
 		$submit_tos			= JRequest::getVar('submit_tos', '', 'post');
 
 		// Set Form Data to Session
-		$session = JFactory::getSession();
 		$session->set('ic_submit', $this->data);
 		$session->set('custom_fields', $custom_fields);
 
@@ -521,22 +612,6 @@ class iCagendaModelSubmit extends JModelItem
 			icagendaCustomfields::saveToData($custom_fields, $this->data->id, 2);
 		}
 
-		// Get the "event" URL
-		$baseURL = JURI::base();
-		$subpathURL = JURI::base(true);
-
-		$baseURL = str_replace('/administrator', '', $baseURL);
-		$subpathURL = str_replace('/administrator', '', $subpathURL);
-
-		$urlsend = str_replace('&amp;','&', JRoute::_('index.php?option=com_icagenda&view=submit&layout=send'));
-
-		// Sub Path filtering
-		$subpathURL = ltrim($subpathURL, '/');
-
-		// URL List filtering
-		$urlsend = ltrim($urlsend, '/');
-		if(substr($urlsend,0,strlen($subpathURL)+1) == "$subpathURL/") $urlsend = substr($urlsend,strlen($subpathURL)+1);
-		$urlsend = rtrim($baseURL,'/').'/'.ltrim($urlsend,'/');
 
 		if ((isset($this->data->id)) AND ($this->data->id != '0') AND ($this->data->username != NULL) AND ($this->data->title != NULL))
 		{
@@ -554,30 +629,7 @@ class iCagendaModelSubmit extends JModelItem
 			return false;
 		}
 
-		// redirect after successful submission
-		$submit_return			= $params->get('submitReturn', '');
-		$submit_return_article	= $params->get('submitReturn_Article', $urlsend);
-		$submit_return_url		= $params->get('submitReturn_Url', $urlsend);
-
-		if (($submit_return == 1) && is_numeric($submit_return_article))
-		{
-			$url_return = JURI::root().'index.php?option=com_content&view=article&id='.$submit_return_article;
-		}
-		elseif ($submit_return == 2)
-		{
-			$url_return = $submit_return_url;
-		}
-		else
-		{
-			$url_return = $urlsend;
-		}
-
-		$alert_title			= $params->get('alert_title', '');
-		$alert_body				= $params->get('alert_body', '');
-		$url_redirect			= $urlsend_custom ? $urlsend_custom : $urlsend;
-		$alert_title_redirect	= $alert_title ? $alert_title : JText::_( 'COM_ICAGENDA_EVENT_SUBMISSION' );
-		$alert_body_redirect	= $alert_body ? $alert_body : JText::_( 'COM_ICAGENDA_EVENT_SUBMISSION_CONFIRMATION' );
-
+		// Redirect after successful submission
 		if ($submit_return != 2)
 		{
 			$app->enqueueMessage($alert_body_redirect, $alert_title_redirect);

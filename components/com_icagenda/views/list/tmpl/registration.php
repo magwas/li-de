@@ -10,7 +10,7 @@
  * @author      Cyril Rezé (Lyr!C)
  * @link        http://www.joomlic.com
  *
- * @version 	3.5.7 2015-07-15
+ * @version 	3.5.10 2015-08-27
  * @since       1.0
  *------------------------------------------------------------------------------
 */
@@ -30,6 +30,7 @@ $this_approval	= $item->approval;
 $today			= time();
 $this_today		= strtotime(date('Y-m-d', $today));
 $this_next		= strtotime(date('Y-m-d', strtotime($item->next)));
+$today_datetime	= JHtml::date('now', 'Y-m-d H:i:s');
 
 // Access Control
 $this_access_reg	= $item->accessReg;
@@ -38,7 +39,7 @@ $userLevels			= $user->getAuthorisedViewLevels();
 
 $app = JFactory::getApplication();
 
-$regUntilEnd		= JComponentHelper::getParams('com_icagenda')->get('reg_end_period', 0);
+$regUntilEnd = JComponentHelper::getParams('com_icagenda')->get('reg_end_period', 0);
 
 // Error 404 if event doesn't exist OR date past
 if (($item == NULL)
@@ -52,9 +53,16 @@ if (($item == NULL)
 	return false;
 }
 //elseif ($tickets_left <= 0)
-elseif ($item->ticketsCouldBeBooked !== true
-//	&& ! $regUntilEnd
-	&& $regUntilEnd != 1
+elseif ( (
+		$item->ticketsCouldBeBooked !== true
+//		&& $regUntilEnd != 1
+		)
+//	|| (
+//		$regUntilEnd == 1
+//		&& $item->ticketsCouldBeBooked !== true
+//		&& iCDate::isDate($item->enddatetime)
+//		&& (strtotime($item->enddatetime) <= strtotime($today_datetime))
+//		)
 	)
 {
 	$app->enqueueMessage(JTEXT::_('JERROR_LAYOUT_PAGE_NOT_FOUND'), 'warning');
@@ -65,7 +73,7 @@ elseif (!in_array($this_access_reg, $userLevels))
 {
 	// Redirect to login page if no access to registration form
 	$return	= base64_encode($item->iCagendaRegForm);
-	$rlink	= JRoute::_('index.php?option=com_users&view=login&return='.$return, false);
+	$rlink	= JRoute::_('index.php?option=com_users&view=login&return=' . $return, false);
 
 	$msg = '<div>';
 	$msg.= '<h2>';
@@ -252,7 +260,7 @@ else
 		</div>
 
 		<?php // START FORM ?>
-		<form name="registration" action="<?php echo JRoute::_('index.php?option=com_icagenda'); ?>" class="icagenda_form<?php echo $form_validate; ?>" method="post" enctype="multipart/form-data"<?php echo $iCheckForm . $novalidate; ?>>
+		<form id="registration" name="registration" action="<?php echo JRoute::_('index.php?option=com_icagenda'); ?>" class="icagenda_form<?php echo $form_validate; ?>" method="post" enctype="multipart/form-data"<?php echo $iCheckForm . $novalidate; ?>>
 			<fieldset>
 			<div class="fieldset">
 				<?php if (($u_id) && ($autofilluser == 1)) : ?>
@@ -412,21 +420,7 @@ else
 				<?php else : ?>
 					<input type="hidden" name="people" value="1" />
 				<?php endif; ?>
-				<!--div id="add_info"></div>
 
-				<script>
-				jQuery(document).ready(function($){
-					$('#people').change(function() {
-						var people = $(this).val();
- 	 	 				addFields = [];
- 	 	 				for (i = 2; i <= people; i++) {
- 	 	 					var input = '<div class="ic-control-group ic-clearfix"><div class="ic-control-label"><label>Name ' + i +'</label></div><div class="ic-controls"><input type="text" class="input-large" name="name_' + i +'" placeholder="Please, Enter Full Name" /></div></div>';
- 	 	 					addFields.push(input);
-						}
-						$('#add_info').html(addFields);
-					});
-				})
-				</script-->
 
 				<?php // CUSTOM FIELDS ?>
 					<?php
@@ -548,18 +542,19 @@ else
 					<br />
 					<?php endif; ?>
 
-					<span>
-						<!--input id="submit" type="submit" value="<?php echo JText::_( 'ICAGENDA_REGISTRATION_FORM_SUBMIT' ); ?>" class="button validate" name="Submit"/-->
-						<button type="submit" class="button validate"><?php echo JText::_('JREGISTER');?></button>
-						<input type="hidden" name="task" value="" />
-						<input type="hidden" name="return" value="index.php" />
-						<?php if (false) echo JHtml::_( 'form.token' ); ?>
-					</span>
-					<span class="buttonx">
-						<a href="<?php echo $item->Event_Link; ?>" title="<?php echo JTEXT::_('COM_ICAGENDA_CANCEL'); ?>">
-							<?php echo JTEXT::_('COM_ICAGENDA_CANCEL'); ?>
-						</a>
-					</span>
+					<div id="submit">
+						<span>
+							<button type="submit" class="button validate"><?php echo JText::_('JREGISTER');?></button>
+							<input type="hidden" name="task" value="" />
+							<input type="hidden" name="return" value="index.php" />
+							<?php if (false) echo JHtml::_( 'form.token' ); ?>
+						</span>
+						<span class="buttonx">
+							<a href="<?php echo $item->Event_Link; ?>" title="<?php echo JTEXT::_('COM_ICAGENDA_CANCEL'); ?>">
+								<?php echo JTEXT::_('COM_ICAGENDA_CANCEL'); ?>
+							</a>
+						</span>
+					</div>
 				</div><?php // End Div bgButton ?>
 			</div><?php // End Form Fields ?>
 			<div style="clear:both"></div>
@@ -610,4 +605,20 @@ else
 			return (email.value === email2.value);
 		});
 	});');
+
+	// Disable submit button after first click
+	JFactory::getDocument()->addScriptDeclaration('
+		jQuery(function($) {
+			$("#registration").one("submit", function() {
+				$(this).find(\'button[type="submit"]\')
+					.attr("disabled","disabled")
+					.css({
+						"background-color": "transparent",
+						"color": "grey"
+					});
+				$("#submit").addClass("ic-loader");
+				$(".buttonx").css("display", "none");
+			});
+		});
+	');
 }

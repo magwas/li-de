@@ -45,7 +45,7 @@ class jdownloadsViewfiles extends JViewLegacy
         $this->pagination   = $this->get('Pagination');
         $this->state = $this->get('state');
         $this->addToolbar();
-        
+        $this->sidebar = JHtmlSidebar::render();        
         parent::display($tpl);
     }    
     
@@ -69,8 +69,8 @@ class jdownloadsViewfiles extends JViewLegacy
         
         JToolBarHelper::title(JText::_('COM_JDOWNLOADS').': '.JText::_('COM_JDOWNLOADS_FILES'), 'jdfiles');
 
-        JToolBarHelper::custom( 'files.uploads', 'upload32.png', 'upload32.png', JText::_('COM_JDOWNLOADS_FILESLIST_TITLE_FILES_UPLOAD'), false, true );
-        JToolBarHelper::custom( 'files.downloads', 'downloads32.png', 'downloads32.png', JText::_('COM_JDOWNLOADS_DOWNLOADS'), false, false );
+        JToolBarHelper::custom( 'files.uploads', 'upload.png', 'upload.png', JText::_('COM_JDOWNLOADS_FILESLIST_TITLE_FILES_UPLOAD'), false );
+        JToolBarHelper::custom( 'files.downloads', 'folder.png', 'folder.png', JText::_('COM_JDOWNLOADS_DOWNLOADS'), false );
                     
         if ($canDo->get('core.delete')) {
             JToolBarHelper::deleteList(JText::_('COM_JDOWNLOADS_DELETE_LIST_ITEM_CONFIRMATION'), 'files.delete', 'COM_JDOWNLOADS_TOOLBAR_REMOVE');

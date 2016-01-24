@@ -10,7 +10,7 @@
  * @author      Cyril Rezé (Lyr!C)
  * @link        http://www.joomlic.com
  *
- * @version 	3.5.6 2015-06-18
+ * @version 	3.5.11 2015-09-02
  * @since       3.2.8
  *------------------------------------------------------------------------------
 */
@@ -324,11 +324,11 @@ class iCModeliChelper extends JModelItem
 	{
 		// Date Format Option (Global Component Option)
 		$date_format_global	= JComponentHelper::getParams('com_icagenda')->get('date_format_global', 'Y - m - d');
-		$date_format_global	= ($date_format_global != 0) ? $date_format_global : 'Y - m - d'; // Previous 3.5.6 setting
+		$date_format_global	= ($date_format_global !== '0') ? $date_format_global : 'Y - m - d'; // Previous 3.5.6 setting
 
 		// Date Format Option (Menu Option)
 		$date_format_menu	= JFactory::getApplication()->getParams()->get('format', '');
-		$date_format_menu	= ($date_format_menu != 0) ? $date_format_menu : ''; // Previous 3.5.6 setting
+		$date_format_menu	= ($date_format_menu !== '0') ? $date_format_menu : ''; // Previous 3.5.6 setting
 
 		// Set Date Format option to be used
 		$format				= $date_format_menu ? $date_format_menu : $date_format_global;

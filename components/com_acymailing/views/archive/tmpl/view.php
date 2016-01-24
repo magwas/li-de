@@ -1,7 +1,7 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.0.1
+ * @version	4.9.3
  * @author	acyba.com
  * @copyright	(C) 2009-2015 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
@@ -93,12 +93,6 @@ defined('_JEXEC') or die('Restricted access');
 			<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
 <?php
 		}
-	}elseif($this->config->get('comments_feature') == 'rscomments'){
-		echo '{rscomments option="com_acymailing" id="'.$this->mail->mailid.'"}';
-	}elseif($this->config->get('comments_feature') == 'komento'){
-		require_once(JPATH_ROOT.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_komento'.DIRECTORY_SEPARATOR.'bootstrap.php' );
-		echo Komento::commentify('com_acymailing', $this->mail,array());
 	}
-
 ?>
 </div>

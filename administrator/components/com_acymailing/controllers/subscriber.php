@@ -1,7 +1,7 @@
 <?php
 /**
  * @package	AcyMailing for Joomla!
- * @version	5.0.1
+ * @version	4.9.3
  * @author	acyba.com
  * @copyright	(C) 2009-2015 ACYBA S.A.R.L. All rights reserved.
  * @license	GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
@@ -26,23 +26,19 @@ class SubscriberController extends acymailingController{
 		$cids = JRequest::getVar('cid');
 		$selectedList = JRequest::getInt('filter_lists');
 		$_SESSION['acymailing'] = array();
-		$redirection = ($app->isAdmin() ? '' : 'front').'data&task=export';
 		if(!empty($cids) || !empty($selectedList)){
 			if(!empty($cids)) $_SESSION['acymailing']['exportusers'] = $cids;
-			else{
-				$_SESSION['acymailing']['exportlist'] = $selectedList;
-				$_SESSION['acymailing']['exportliststatus'] = JRequest::getInt('filter_statuslist');
-			}
-			$redirection .= '&sessionvalues=1';
+			else $_SESSION['acymailing']['exportlist'] = $selectedList;
+			$this->setRedirect(acymailing_completeLink(($app->isAdmin() ? '' : 'front').'data&task=export&sessionvalues=1',false,true));
+		}else{
+			$this->setRedirect(acymailing_completeLink(($app->isAdmin() ? '' : 'front').'data&task=export',false,true));
 		}
-
-
-		$this->setRedirect(acymailing_completeLink($redirection,false,true));
 	}
 
 	function store(){
 		if(!$this->isAllowed('subscriber','manage')) return;
 		JRequest::checkToken() or die( 'Invalid Token' );
+		$app = JFactory::getApplication();
 
 		$subscriberClass = acymailing_get('class.subscriber');
 		$subscriberClass->sendConf = false;
@@ -55,12 +51,12 @@ class SubscriberController extends acymailingController{
 
 		$status = $subscriberClass->saveForm();
 		if($status){
-			acymailing_enqueueMessage(JText::_( 'JOOMEXT_SUCC_SAVED' ), 'message');
+			$app->enqueueMessage(JText::_( 'JOOMEXT_SUCC_SAVED' ), 'message');
 		}else{
-			acymailing_enqueueMessage(JText::_( 'ERROR_SAVING' ), 'error');
+			$app->enqueueMessage(JText::_( 'ERROR_SAVING' ), 'error');
 			if(!empty($subscriberClass->errors)){
 				foreach($subscriberClass->errors as $oneError){
-					acymailing_enqueueMessage($oneError, 'error');
+					$app->enqueueMessage($oneError, 'error');
 				}
 			}
 		}
@@ -78,12 +74,12 @@ class SubscriberController extends acymailingController{
 			$subscriberObject = acymailing_get('class.subscriber');
 			$num = $subscriberObject->delete($subscriberIds);
 
-			acymailing_enqueueMessage(JText::sprintf('SUCC_DELETE_ELEMENTS',$num), 'message');
+			$app->enqueueMessage(JText::sprintf('SUCC_DELETE_ELEMENTS',$num), 'message');
 		}else{
 			if(!$this->isAllowed('subscriber','manage')) return;
 
 			$listId = JRequest::getInt('filter_lists', 0);
-			if(empty($listId)) acymailing_enqueueMessage('List not found', 'error');
+			if(empty($listId)) $app->enqueueMessage('List not found', 'error');
 			else{
 				$listsubClass = acymailing_get('class.listsub');
 				foreach($subscriberIds as $subid){
@@ -93,7 +89,7 @@ class SubscriberController extends acymailingController{
 				$listClass = acymailing_get('class.list');
 				$list = $listClass->get($listId);
 
-				acymailing_enqueueMessage(JText::sprintf('IMPORT_REMOVE',count($subscriberIds), $list->name), 'message');
+				$app->enqueueMessage(JText::sprintf('IMPORT_REMOVE',count($subscriberIds), $list->name), 'message');
 			}
 		}
 

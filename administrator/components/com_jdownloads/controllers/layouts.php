@@ -32,6 +32,12 @@ class jdownloadsControllerlayouts extends jdownloadsController
 		parent::__construct();
 
 	}
+    
+    public function install() 
+    {
+         // set redirect
+         $this->setRedirect( 'index.php?option=com_jdownloads&view=layoutinstall');        
+    }
 
 }
 ?>

@@ -53,25 +53,28 @@ $JLIST_BACKEND_SETTINGS_TEMPLATES_CAT_DEFAULT = '{cat_title_begin}<div style="ba
 {form_hidden}
 <div style="text-align:right">{form_button}</div>';
 
+// files layout with mini icons - no checkboxes (Standard Files Layout v2.5)
 $JLIST_BACKEND_SETTINGS_TEMPLATES_FILES_DEFAULT = '{files_title_begin}<div style="background-color:#EFEFEF; padding:6px;">
 {files_title_text}</div>{files_title_end}
 
-<table width="100%" border="0" cellpadding="5" cellspacing="5" style="background:#F8F8F8;border-bottom:1px solid #cccccc;">
+<table class = "{featured_class}" width="100%" border="0" cellpadding="5" cellspacing="5" style="background:#F8F8F8;border-bottom:1px solid #cccccc;">
      <tr valign="top">
-        <td width="90%" valign="top">{file_pic} <b>{file_title}</b>
+        <td width="80%" valign="top">{file_pic} <b>{file_title}</b>
           {release} {pic_is_new} {pic_is_hot} {pic_is_updated}
         </td>
         <td>{rating}</td>
+       <td>{featured_pic}</td>
      </tr>
      <tr valign="top">
         <td valign="top" class="jd_body">{description}</td>        
         <td valign="top" class="jd_body" width="90%">{screenshot_begin}<a href="{screenshot}" rel="lightbox"> <img src="{thumbnail}" align="right" alt="" /></a>{screenshot_end}</td>
      </tr>
      <tr>
-        <td valign="top" width="10%" align="center"></td>
+        <td valign="top" width="10%" align="center">{preview_player}</td>
      </tr>
      <tr>
-        <td style="background:#F8F8F8; padding:5px;" valign="top" width="90%"><small>{license_text} {author_text} {author_url_text} {created_date_value} {language_text} {system_text} {filesize_value} {hits_value}</small></td>
+        <td class = "{featured_detail_class}" style="background:#F8F8F8; padding:5px;" valign="top" width="90%"><small>{license_text} {author_text} {author_url_text} {created_date_value} {language_text} {system_text} {filesize_value} {hits_value}</small></td>
+<td> {sum_jcomments}</td>
         <td valign="top" width="10%" align="center">
             {url_download}
         </td>
@@ -93,11 +96,12 @@ $JLIST_BACKEND_SETTINGS_TEMPLATES_SUMMARY_DEFAULT = '<div class="jd_cat_title" s
 <div style="text-align:center;">{user_limitations}</div>
 <div>{google_adsense}</div>';
 
+// Details Layout (Standard Details Layout v2.5 - Full Info)
 $JLIST_BACKEND_SETTINGS_TEMPLATES_DETAILS_DEFAULT = '<table class="jdtable" border="0" cellpadding="10" cellspacing="5" width="100%">
     <tbody>
     <tr>
         <td colspan="1" height="38" valign="top"><span style="font-size: 13pt;">{file_pic} {file_title} {pic_is_new} {pic_is_hot} {pic_is_updated}</span></td>
-        <td> </td>
+        <td>{featured_pic} </td>
         <td style="text-align: center;">{rating}</td>
     </tr>
     <tr>
@@ -116,7 +120,7 @@ $JLIST_BACKEND_SETTINGS_TEMPLATES_DETAILS_DEFAULT = '<table class="jdtable" bord
                     <li>{screenshot_begin9}<a href="{screenshot9}" rel="lightbox"> <img src="{thumbnail9}" alt="" align="right" border="0" hspace="10" vspace="0" /></a>{screenshot_end9}</li>
                     <li>{screenshot_begin10}<a href="{screenshot10}" rel="lightbox"> <img src="{thumbnail10}" alt="" align="right" border="0" hspace="10" vspace="0" /></a>{screenshot_end10}</li>
                 </ul>
-            <div style="clear: both;"> </div>
+            <div style="clear: both;">{preview_player} </div>
             </div>
         </td>
 
@@ -429,22 +433,26 @@ $JLIST_BACKEND_SETTINGS_TEMPLATES_DETAILS_DEFAULT_NEW_25 = '<div style="padding-
     <tr><td style="padding-top:5px;padding-bottom:5px; font-size:11px;" colspan="4" align="center" valign="middle">{report_link}</td></tr>
 </table>
 </div>';
-    
+
+// files layout WITH checkboxes - no mini icons (Standard Files Layout with Checkboxes v2.5)  
 $JLIST_BACKEND_SETTINGS_TEMPLATES_FILES_DEFAULT_NEW_SIMPLE_1 = '{files_title_begin}<div style="background-color:#EFEFEF; padding:6px;">{files_title_text}</div>{files_title_end}
 
-<table width="100%" style="padding:3px; background-color:#F5F5F5;">
+<table class="{featured_class}" width="100%" style="padding:3px; background-color:#F5F5F5;">
    <tr valign="middle">
       <td width="55%">{file_pic} {file_title} {release} {pic_is_new} {pic_is_hot} {pic_is_updated}</td>
-      <td width="20%">
+      <td width="15%">
           <p align="center">{rating}</p>
       </td>
-      <td width="25%">
-          <p align="center">{checkbox_list}</p>
+       <td width="15%">
+          <p align="center">{featured_pic}</p>
+      </td>
+      <td width="15%">
+          <p style="text-align: right;">Select {checkbox_list}</p>
       </td>
    </tr>
    <tr><td>{tags}</td></tr>
 </table>
-<table width="100%" style="padding:3px;">    
+<table class="{featured_detail_class}" width="100%" style="padding:3px;">    
    <tr>
       <td width="75%" align="left" valign="top">{description}<br />{mp3_player}<br />{mp3_id3_tag}</td>
       <td valign="top">{screenshot_begin}<a href="{screenshot}" rel="lightbox"> <img src="{thumbnail}" align="right" /></a>{screenshot_end}
@@ -454,21 +462,25 @@ $JLIST_BACKEND_SETTINGS_TEMPLATES_FILES_DEFAULT_NEW_SIMPLE_1 = '{files_title_beg
    </tr>
 </table>';
 
+// files layout WITHOUT checkboxes - no mini icons (Standard Files Layout without Checkboxes v2.5)
 $JLIST_BACKEND_SETTINGS_TEMPLATES_FILES_DEFAULT_NEW_SIMPLE_2 = '{files_title_begin}<div style="background-color:#EFEFEF; padding:6px;">{files_title_text}</div>{files_title_end}
 
-<table width="100%" style="padding:3px; background-color:#F5F5F5;">
+<table class="{featured_class}" width="100%" style="padding:3px; background-color:#F5F5F5;">
    <tr valign="middle">
       <td width="55%">{file_pic} {file_title} {release} {pic_is_new} {pic_is_hot} {pic_is_updated}</td>
       <td width="20%">
           <p align="center">{rating}</p>
       </td>
-      <td width="25%">
+      <td width="10%">
+          <p align="center">{featured_pic}</p>
+      </td>
+      <td width="15%">
           <p align="center">{url_download}</p>
       </td>
    </tr>
    <tr><td>{tags}</td></tr>
 </table>
-<table width="100%" style="padding:3px;">    
+<table class="{featured_detail_class}" width="100%" style="padding:3px;">    
    <tr>
       <td width="75%" align="left" valign="top">{description}<br />{mp3_player}<br />{mp3_id3_tag}</td>
       <td valign="top">{screenshot_begin}<a href="{screenshot}" rel="lightbox"> <img src="{thumbnail}" align="right" /></a>{screenshot_end}
@@ -493,7 +505,7 @@ $JLIST_BACKEND_SETTINGS_TEMPLATES_UPLOAD_DEFAULT='';
 $JLIST_BACKEND_SETTINGS_TEMPLATES_SEARCH_DEFAULT='';
 
 #Standard Layout for MP3 ID3 Tags
-$JLIST_BACKEND_SETTINGS_TEMPLATES_ID3TAG = '<table width="300px" style="padding:5px; background-color:#FFFFDD;">
+$JLIST_BACKEND_SETTINGS_TEMPLATES_ID3TAG = '<table max-width="300px" style="padding:5px; background-color:#FFFFDD;">
 <tr>
   <td width="80px">{album_title}</td>
   <td width="220px">{album}</td>

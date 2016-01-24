@@ -37,6 +37,16 @@ $listbox_type = JHtml::_('select.genericlist', $options, 'filter_type', 'class="
 
 ?>
 <form action="<?php echo JRoute::_('index.php?option=com_jdownloads&view=logs');?>" method="POST" name="adminForm" id="adminForm">
+    
+    <?php if (!empty( $this->sidebar)) : ?>
+        <div id="j-sidebar-container" class="span2">
+            <?php echo $this->sidebar; ?>
+        </div>
+        <div id="j-main-container" class="span10">
+    <?php else : ?>
+        <div id="j-main-container">
+    <?php endif;?>    
+    
     <fieldset id="jdfilter-bar">
         <div class="filter-search jdfltlft">
             <!--<label class="filter-search-lbl jdfltlft" for="filter_search"><?php echo JText::_('COM_JDOWNLOADS_FILTER_LABEL'); ?></label>-->

@@ -14,7 +14,7 @@
  * @author      Cyril Rezé (Lyr!C)
  * @link        http://www.joomlic.com
  *
- * @version     3.5.6 2015-05-06
+ * @version     3.5.10 2015-08-14
  * @since       1.0
  *------------------------------------------------------------------------------
 */
@@ -109,8 +109,9 @@ jQuery(function($){
 
 jQuery(function($){
 
-	var startDateTextBox = $('#startdate');
-	var endDateTextBox = $('#enddate');
+	var startDateTextBox = $('#startdate'),
+		endDateTextBox = $('#enddate'),
+		$add_counter = $('#dTable_jalali input').length;
 
 	startDateTextBox.datetimepicker({
 		dateFormat: "yy-mm-dd",
@@ -169,23 +170,60 @@ jQuery(function($){
 
 	$('#add').live('click', function(e){
 		e.preventDefault();
-		$delete=Joomla.JText._('COM_ICAGENDA_DELETE_DATE', 'Delete');
-		$('#dTable').append('<tr><td><input class="ic-date-input" type="text" name="d"/></td><td><a class="del btn btn-danger btn-mini" href="#">'+$delete+'</a></td></tr>');
+		$delete = Joomla.JText._('COM_ICAGENDA_DELETE_DATE', 'Delete');
+
+		if ($("#dTable_jalali").length) {
+			$add_counter = $add_counter+1;
+			$('#dTable_jalali').append('<tr><td><div class="input-append"><input id="date_jalali'+$add_counter+'" class="ic-date-input_jalali" type="text" name="d" title=""></input><button id="date_jalali'+$add_counter+'_img" class="btn" type="button"><span class="icon-calendar"></span></button></div></td><td><a class="del btn btn-danger btn-mini" href="#">'+$delete+'</a></td></tr>');
+//			jQuery(document).ready(function($) {
+				Calendar.setup({
+					// Id of the input field
+					inputField: 'date_jalali'+$add_counter,
+					// Format of the input field
+					ifFormat: "%Y-%m-%d %H:%M",
+					// Trigger for the calendar (button ID)
+					button: 'date_jalali'+$add_counter+'_img',
+					// Alignment (defaults to "Bl")
+					align: "Tl",
+					singleClick: true,
+					firstDay: 6
+				});
+//			});
+		} else {
+			$('#dTable').append('<tr><td><input class="ic-date-input" type="text" name="d"/></td><td><a class="del btn btn-danger btn-mini" href="#">'+$delete+'</a></td></tr>');
+		}
 	});
 
 //	$( ".ui-state-default" ).live('click', function(){
-	$( ".ui-state-default" ).live('mouseout', function(){
-		$array=$('#dTable input').serialize();
-		$('input.date').attr('value', $array);
-		document.getElementById("startdate").removeClass("ic-date-invalid");
-		document.getElementById("enddate").removeClass("ic-date-invalid");
-		document.getElementById("dTable").removeClass("ic-date-invalid");
-	});
+	if ($("#dTable_jalali").length) {
+		$( "#dates" ).on('mouseleave', function() {
+			$array = $('#dTable_jalali input').serialize();
+			$suffix = '_jalali';
+			$('input.date').attr('value', $array);
+			document.getElementById('startdate'+$suffix).removeClass("ic-date-invalid");
+			document.getElementById('enddate'+$suffix).removeClass("ic-date-invalid");
+			document.getElementById('dTable'+$suffix).removeClass("ic-date-invalid");
+		});
+	} else {
+		$( ".ui-state-default" ).live('mouseout', function() {
+			$array = $('#dTable input').serialize();
+			$('input.date').attr('value', $array);
+			document.getElementById('startdate').removeClass("ic-date-invalid");
+			document.getElementById('enddate').removeClass("ic-date-invalid");
+			document.getElementById('dTable').removeClass("ic-date-invalid");
+		});
+	}
 
-	$('.del').live('click', function(e){
+	$('.del').live('click', function(e) {
 		e.preventDefault();
 		$(this).parent().parent('tr').remove();
-		$array=$('#dTable input').serialize();
+
+		if ($("#dTable_jalali").length) {
+			$add_counter = $add_counter-1;
+			$array = $('#dTable_jalali input').serialize();
+		} else {
+			$array = $('#dTable input').serialize();
+		}
 		$('input.date').attr('value', $array);
 	});
 

@@ -25,7 +25,6 @@ jimport('joomla.application.component.controllerform');
  */
 class iCagendaControllerEvent extends JControllerForm
 {
-
     function __construct()
     {
         $this->view_list = 'events';

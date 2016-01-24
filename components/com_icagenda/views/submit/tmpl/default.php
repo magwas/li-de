@@ -10,7 +10,7 @@
  * @author      Cyril Rezé (Lyr!C)
  * @link        http://www.joomlic.com
  *
- * @version 	3.5.7 2015-07-14
+ * @version 	3.5.12 2015-10-05
  * @since       3.2.0
  *------------------------------------------------------------------------------
 */
@@ -21,13 +21,15 @@ defined('_JEXEC') or die();
 JHtml::_('behavior.keepalive');
 JHtml::_('behavior.formvalidation');
 
-// Global Options
-$iCparams = JComponentHelper::getParams('com_icagenda');
-
 // JFactory
 $app		= JFactory::getApplication();
 $document	= JFactory::getDocument();
+$lang		= JFactory::getLanguage();
 $user		= JFactory::getUser();
+
+// Global Options
+//$iCparams = JComponentHelper::getParams('com_icagenda');
+$iCparams = $app->getParams();
 
 // Get User Info (Access Levels, id, email)
 $userLevels	= $user->getAuthorisedViewLevels();
@@ -123,28 +125,31 @@ else
 	JText::script('COM_ICAGENDA_TERMS_OF_SERVICE_NOT_CHECKED_SUBMIT_EVENT');
 	JText::script('COM_ICAGENDA_FORM_NO_DATES_ALERT');
 
-	$period_display = $this->submit_periodDisplay;
-	$weekdays_display = $this->submit_weekdaysDisplay;
-	$dates_display = $this->submit_datesDisplay;
+	$period_display			= $this->submit_periodDisplay;
+	$weekdays_display		= $this->submit_weekdaysDisplay;
+	$dates_display			= $this->submit_datesDisplay;
+	$displaytime_display	= $this->submit_displaytimeDisplay;
+	$displaytime_default	= $iCparams->get('displaytime', '1');
 
 	$tos = $iCparams->get('tos', 1);
 
 	// Set Tooltips
-	$icTip_name		= htmlspecialchars('<strong>' . JText::_( 'COM_ICAGENDA_SUBMIT_FORM_USER_NAME' ) . '</strong><br />' . JText::_( 'COM_ICAGENDA_SUBMIT_FORM_USER_NAME_DESC' ) . '');
-	$icTip_Uemail	= htmlspecialchars('<strong>' . JText::_( 'COM_ICAGENDA_SUBMIT_FORM_USER_EMAIL' ) . '</strong><br />' . JText::_( 'COM_ICAGENDA_SUBMIT_FORM_USER_EMAIL_DESC' ) . '');
-	$icTip_title	= htmlspecialchars('<strong>' . JText::_( 'COM_ICAGENDA_FORM_LBL_EVENT_TITLE' ) . '</strong><br />' . JText::_( 'COM_ICAGENDA_FORM_DESC_EVENT_TITLE' ) . '');
-	$icTip_category	= htmlspecialchars('<strong>' . JText::_( 'COM_ICAGENDA_FORM_LBL_EVENT_CATID' ) . '</strong><br />' . JText::_( 'COM_ICAGENDA_FORM_DESC_EVENT_CATID' ) . '');
-	$icTip_image	= htmlspecialchars('<strong>' . JText::_( 'COM_ICAGENDA_FORM_LBL_EVENT_IMAGE' ) . '</strong><br />' . JText::_( 'COM_ICAGENDA_FORM_DESC_EVENT_IMAGE' ) . '');
-	$icTip_startD	= htmlspecialchars('<strong>' . JText::_( 'COM_ICAGENDA_FORM_LBL_EVENTPERIOD_START' ) . '</strong><br />' . JText::_( 'COM_ICAGENDA_FORM_DESC_EVENTPERIOD_START' ) . '');
-	$icTip_endD		= htmlspecialchars('<strong>' . JText::_( 'COM_ICAGENDA_FORM_LBL_EVENTPERIOD_END' ) . '</strong><br />' . JText::_( 'COM_ICAGENDA_FORM_DESC_EVENTPERIOD_END' ) . '');
-	$icTip_weekDays	= htmlspecialchars('<strong>' . JText::_( 'COM_ICAGENDA_FORM_WEEK_DAYS_INFO_TITLE' ) . '</strong><br />' . JText::_( 'COM_ICAGENDA_FORM_WEEK_DAYS_INFO_DESC' ) . '');
-	$icTip_venue	= htmlspecialchars('<strong>' . JText::_( 'COM_ICAGENDA_FORM_LBL_EVENT_VENUE' ) . '</strong><br />' . JText::_( 'COM_ICAGENDA_FORM_DESC_EVENT_VENUE' ) . '');
-	$icTip_email	= htmlspecialchars('<strong>' . JText::_( 'COM_ICAGENDA_FORM_LBL_EVENT_EMAIL' ) . '</strong><br />' . JText::_( 'COM_ICAGENDA_FORM_DESC_EVENT_EMAIL' ) . '');
-	$icTip_phone	= htmlspecialchars('<strong>' . JText::_( 'COM_ICAGENDA_FORM_LBL_EVENT_PHONE' ) . '</strong><br />' . JText::_( 'COM_ICAGENDA_FORM_DESC_EVENT_PHONE' ) . '');
-	$icTip_website	= htmlspecialchars('<strong>' . JText::_( 'COM_ICAGENDA_FORM_LBL_EVENT_WEBSITE' ) . '</strong><br />' . JText::_( 'COM_ICAGENDA_FORM_DESC_EVENT_WEBSITE' ) . '');
-	$icTip_file		= htmlspecialchars('<strong>' . JText::_( 'COM_ICAGENDA_FORM_LBL_EVENT_FILE' ) . '</strong><br />' . JText::_( 'COM_ICAGENDA_FORM_DESC_EVENT_FILE' ) . '');
-	$icTip_reg		= htmlspecialchars('<strong>' . JText::_( 'COM_ICAGENDA_REGISTRATION_LABEL' ) . '</strong><br />' . JText::_( 'COM_ICAGENDA_REGISTRATION_DESC' ) . '');
-	$icTip_tickets	= htmlspecialchars('<strong>' . JText::_( 'COM_ICAGENDA_MAX_REGISTRATIONS_LABEL' ) . '</strong><br />' . JText::_( 'COM_ICAGENDA_MAX_REGISTRATIONS_DESC' ) . '');
+	$icTip_name			= htmlspecialchars('<strong>' . JText::_( 'COM_ICAGENDA_SUBMIT_FORM_USER_NAME' ) . '</strong><br />' . JText::_( 'COM_ICAGENDA_SUBMIT_FORM_USER_NAME_DESC' ) . '');
+	$icTip_Uemail		= htmlspecialchars('<strong>' . JText::_( 'COM_ICAGENDA_SUBMIT_FORM_USER_EMAIL' ) . '</strong><br />' . JText::_( 'COM_ICAGENDA_SUBMIT_FORM_USER_EMAIL_DESC' ) . '');
+	$icTip_title		= htmlspecialchars('<strong>' . JText::_( 'COM_ICAGENDA_FORM_LBL_EVENT_TITLE' ) . '</strong><br />' . JText::_( 'COM_ICAGENDA_FORM_DESC_EVENT_TITLE' ) . '');
+	$icTip_category		= htmlspecialchars('<strong>' . JText::_( 'COM_ICAGENDA_FORM_LBL_EVENT_CATID' ) . '</strong><br />' . JText::_( 'COM_ICAGENDA_FORM_DESC_EVENT_CATID' ) . '');
+	$icTip_image		= htmlspecialchars('<strong>' . JText::_( 'COM_ICAGENDA_FORM_LBL_EVENT_IMAGE' ) . '</strong><br />' . JText::_( 'COM_ICAGENDA_FORM_DESC_EVENT_IMAGE' ) . '');
+	$icTip_startD		= htmlspecialchars('<strong>' . JText::_( 'COM_ICAGENDA_FORM_LBL_EVENTPERIOD_START' ) . '</strong><br />' . JText::_( 'COM_ICAGENDA_FORM_DESC_EVENTPERIOD_START' ) . '');
+	$icTip_endD			= htmlspecialchars('<strong>' . JText::_( 'COM_ICAGENDA_FORM_LBL_EVENTPERIOD_END' ) . '</strong><br />' . JText::_( 'COM_ICAGENDA_FORM_DESC_EVENTPERIOD_END' ) . '');
+	$icTip_weekDays		= htmlspecialchars('<strong>' . JText::_( 'COM_ICAGENDA_FORM_WEEK_DAYS_INFO_TITLE' ) . '</strong><br />' . JText::_( 'COM_ICAGENDA_FORM_WEEK_DAYS_INFO_DESC' ) . '');
+	$icTip_displayTime	= htmlspecialchars('<strong>' . JText::_( 'COM_ICAGENDA_DISPLAY_TIME_LABEL' ) . '</strong><br />' . JText::_( 'COM_ICAGENDA_DISPLAY_TIME_DESC' ) . '');
+	$icTip_venue		= htmlspecialchars('<strong>' . JText::_( 'COM_ICAGENDA_FORM_LBL_EVENT_VENUE' ) . '</strong><br />' . JText::_( 'COM_ICAGENDA_FORM_DESC_EVENT_VENUE' ) . '');
+	$icTip_email		= htmlspecialchars('<strong>' . JText::_( 'COM_ICAGENDA_FORM_LBL_EVENT_EMAIL' ) . '</strong><br />' . JText::_( 'COM_ICAGENDA_FORM_DESC_EVENT_EMAIL' ) . '');
+	$icTip_phone		= htmlspecialchars('<strong>' . JText::_( 'COM_ICAGENDA_FORM_LBL_EVENT_PHONE' ) . '</strong><br />' . JText::_( 'COM_ICAGENDA_FORM_DESC_EVENT_PHONE' ) . '');
+	$icTip_website		= htmlspecialchars('<strong>' . JText::_( 'COM_ICAGENDA_FORM_LBL_EVENT_WEBSITE' ) . '</strong><br />' . JText::_( 'COM_ICAGENDA_FORM_DESC_EVENT_WEBSITE' ) . '');
+	$icTip_file			= htmlspecialchars('<strong>' . JText::_( 'COM_ICAGENDA_FORM_LBL_EVENT_FILE' ) . '</strong><br />' . JText::_( 'COM_ICAGENDA_FORM_DESC_EVENT_FILE' ) . '');
+	$icTip_reg			= htmlspecialchars('<strong>' . JText::_( 'COM_ICAGENDA_REGISTRATION_LABEL' ) . '</strong><br />' . JText::_( 'COM_ICAGENDA_REGISTRATION_DESC' ) . '');
+	$icTip_tickets		= htmlspecialchars('<strong>' . JText::_( 'COM_ICAGENDA_MAX_REGISTRATIONS_LABEL' ) . '</strong><br />' . JText::_( 'COM_ICAGENDA_MAX_REGISTRATIONS_DESC' ) . '');
 
 	$session			= JFactory::getSession();
 	$address_session	= $session->get('ic_submit_address', '');
@@ -158,6 +163,7 @@ else
 	$post_startdate			= $post ? $post->startdate : '0000-00-00 00:00:00';
 	$post_enddate			= $post ? $post->enddate : '0000-00-00 00:00:00';
 	$post_weekdays			= $post ? explode(',', $post->weekdays) : array();
+	$post_displaytime		= $post ? $post->displaytime : '1';
 	$post_desc				= $post ? $post->desc : '';
 	$post_venue				= $post ? $post->place : '';
 	$post_email				= $post ? $post->email : '';
@@ -312,7 +318,11 @@ else
 						<label><?php echo JText::_( 'COM_ICAGENDA_FORM_LBL_EVENTPERIOD_START' ); ?></label>
 					</div>
 					<div class="ic-controls">
-						<input type="text" name="startdate" id="startdate" class="ic-date-input" value="<?php echo $post_startdate; ?>">
+						<?php if ($lang->getTag() == 'fa-IR') : ?>
+							<?php echo JHtml::_('calendar', $post_startdate, 'startdate', 'startdate_jalali', '%Y-%m-%d %H:%M:%S', ''); ?>
+						<?php else : ?>
+							<input type="text" name="startdate" id="startdate" class="ic-date-input" value="<?php echo $post_startdate; ?>">
+						<?php endif; ?>
 						<?php echo '<span class="iCFormTip iCicon iCicon-info-circle" title="' . $icTip_startD . '"></span>'; ?>
 					</div>
 				</div>
@@ -321,7 +331,11 @@ else
 						<label><?php echo JText::_( 'COM_ICAGENDA_FORM_LBL_EVENTPERIOD_END' ); ?></label>
 					</div>
 					<div class="ic-controls">
-						<input type="text" name="enddate" id="enddate" class="ic-date-input" value="<?php echo $post_enddate; ?>">
+						<?php if ($lang->getTag() == 'fa-IR') : ?>
+							<?php echo JHtml::_('calendar', $post_enddate, 'enddate', 'enddate_jalali', '%Y-%m-%d %H:%M:%S', ''); ?>
+						<?php else : ?>
+							<input type="text" name="enddate" id="enddate" class="ic-date-input" value="<?php echo $post_enddate; ?>">
+						<?php endif; ?>
 						<?php echo '<span class="iCFormTip iCicon iCicon-info-circle" title="' . $icTip_endD . '"></span>'; ?>
 					</div>
 				</div>
@@ -366,11 +380,38 @@ else
 
 				<?php if ($dates_display == '1') : ?>
 				<h3><?php echo JText::_('COM_ICAGENDA_LEGEND_SINGLE_DATES'); ?></h3>
-
 				<div class="ic-control-group ic-clearfix">
 					<?php echo $this->form->getInput('dates'); ?>
 				</div>
 				<?php endif; ?>
+
+				<?php if ($displaytime_display == '1' && ($period_display == '1' || $dates_display == '1')) : ?>
+				<h3><?php echo JText::_('COM_ICAGENDA_DISPLAY_TIME_LABEL'); ?></h3>
+				<?php
+				if ($post)
+				{
+					$time_checked_0			= empty($post_displaytime) ? ' checked="checked"' : '';
+					$time_checked_1			= ! empty($post_displaytime) ? ' checked="checked"' : '';
+				}
+				else
+				{
+					$time_checked_0			= ($displaytime_default == '0') ? ' checked="checked"' : '';
+					$time_checked_1			= ($displaytime_default == '1') ? ' checked="checked"' : '';;
+				}
+				?>
+				<div class="ic-control-group ic-clearfix">
+					<fieldset id="displaytime" class="ic-radio ic-btn-group">
+						<?php echo '<input id="displaytime0" class="ic-btn" type="radio" value="0"' . $time_checked_0 . ' name="displaytime"></input>'; ?>
+						<?php echo '<label class="ic-btn" for="displaytime0">' . JText::_('JHIDE') . '</label>'; ?>
+						<?php echo '<input id="displaytime1" class="ic-btn" type="radio" value="1"' . $time_checked_1 . ' name="displaytime"></input>'; ?>
+						<?php echo '<label class="ic-btn" for="displaytime1">' . JText::_('JSHOW') . '</label>'; ?>
+					</fieldset>
+					<?php echo '<span class="iCFormTip iCicon iCicon-info-circle" title="' . $icTip_displayTime . '"></span>'; ?>
+				</div>
+				<?php else : ?>
+				<?php echo '<input type="hidden" value="' . $displaytime_default . '" name="displaytime" />'; ?>
+				<?php endif; ?>
+
 				<?php echo $this->form->getInput('next'); ?>
 			</div>
 			<div>&nbsp;</div>
@@ -851,13 +892,15 @@ else
 						<br />
 						<?php endif; ?>
 
-						<span>
+						<div id="submit">
 							<!--input id="submit" type="submit" value="<?php echo JText::_( 'COM_ICAGENDA_EVENT_FORM_SUBMIT' ); ?>" class="button" name="Submit" /--><!--  onclick="javascript:Recaptcha.reload()" -->
-							<button type="submit" class="button validate"><?php echo JText::_('COM_ICAGENDA_EVENT_FORM_SUBMIT');?></button>
+							<button type="submit" class="button validate">
+								<?php echo JText::_('COM_ICAGENDA_EVENT_FORM_SUBMIT');?>
+							</button>
 							<input type="hidden" name="task" value="" />
 							<input type="hidden" name="return" value="index.php" />
 							<?php if (false) echo JHtml::_( 'form.token' ); ?>
-						</span>
+						</div>
 						<!--span class="buttonx">
 							<a href="javascript:history.go(-1)" title="<?php echo JTEXT::_('COM_ICAGENDA_CANCEL'); ?>">
 								<?php echo JTEXT::_('COM_ICAGENDA_CANCEL'); ?>
@@ -924,10 +967,26 @@ else
 	$script.= '</script>';
 
 	echo $script;
+
+	// Disable submit button after first click
+	JFactory::getDocument()->addScriptDeclaration('
+		jQuery(function($) {
+			$("#submitevent").one("submit", function() {
+				$(this).find(\'button[type="submit"]\')
+					.attr("disabled","disabled")
+					.css({
+						"background-color": "transparent",
+						"color": "grey"
+					});
+				$("#submit").addClass("ic-loader");
+			});
+		});
+	');
 	?>
 
 	<script type="text/javascript">
 	jQuery(function($) {
+
 		// var url = window.URL || window.webkitURL; // alternate use
 
 		function readImage(file, accept, mimetype, limitSize) {
@@ -955,8 +1014,9 @@ else
 						}
 						else
 						{
+							var uploadInvalidSize_string = "<?php echo JText::sprintf('IC_LIBRARY_UPLOAD_INVALID_SIZE', '<strong>"+ n +"</strong>', '"+ size +"', '"+ limitSize +"'); ?>";
 							$('#ic-upload-preview').empty();
-							$('#ic-upload-preview').append('<div class="alert alert-error"><?php echo JText::sprintf("IC_LIBRARY_UPLOAD_INVALID_SIZE", "<strong>'+ n +'</strong>", "'+ size +'", "'+ limitSize +'"); ?></div>');
+							$('#ic-upload-preview').append('<div class="alert alert-error">'+uploadInvalidSize_string+'</div>');
 							$('input[name=image]').val('');
 						}
 					}
@@ -987,7 +1047,6 @@ else
 	<script type="text/javascript">
 		//<![CDATA[
 		jQuery(function($) {
-
 			var address_session = '<?php echo $address_session; ?>';
 
 			if (address_session)

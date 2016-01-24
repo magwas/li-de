@@ -10,7 +10,7 @@
  * @author      Cyril Rezé (Lyr!C)
  * @link        http://www.joomlic.com
  *
- * @version     3.5.0 2015-02-05
+ * @version     3.5.13 2015-12-02
  * @since       3.5.0
  *------------------------------------------------------------------------------
 */
@@ -77,8 +77,14 @@ class icagendaControllerRegistrations extends JControllerLegacy
 			// Load the filter state.
 			$app = JFactory::getApplication();
 
+			$search = $app->getUserState($this->context . '.filter.search');
+			$model->setState('filter.search', $search);
+
 			$published = $app->getUserState($this->context . '.filter.state');
 			$model->setState('filter.state', $published);
+
+			$categoryId = $app->getUserState($this->context . '.filter.categories');
+			$model->setState('filter.categories', $categoryId);
 
 			$eventId = $app->getUserState($this->context . '.filter.events');
 			$model->setState('filter.events', $eventId);
@@ -92,7 +98,19 @@ class icagendaControllerRegistrations extends JControllerLegacy
 			$input = JFactory::getApplication()->input;
 			$form  = $input->get('jform', array(), 'array');
 
+			$model->setState('event_title', $form['event_title']);
+			$model->setState('date', $form['date']);
+			$model->setState('tickets', $form['tickets']);
+			$model->setState('name', $form['name']);
+			$model->setState('email', $form['email']);
+			$model->setState('phone', $form['phone']);
+			$model->setState('customfields', $form['customfields']);
+			$model->setState('notes', $form['notes']);
+			$model->setState('status', $form['status']);
+			$model->setState('created', $form['created']);
+
 			$model->setState('basename', $form['basename']);
+			$model->setState('separator', $form['separator']);
 			$model->setState('compressed', $form['compressed']);
 
 			$config = JFactory::getConfig();
@@ -102,13 +120,26 @@ class icagendaControllerRegistrations extends JControllerLegacy
 			// Joomla 3
 			if (version_compare(JVERSION, '3.0', 'ge'))
 			{
+				setcookie(JApplicationHelper::getHash($this->context . '.event_title'), $form['event_title'], time() + 365 * 86400, $cookie_path, $cookie_domain);
+				setcookie(JApplicationHelper::getHash($this->context . '.date'), $form['date'], time() + 365 * 86400, $cookie_path, $cookie_domain);
+				setcookie(JApplicationHelper::getHash($this->context . '.tickets'), $form['tickets'], time() + 365 * 86400, $cookie_path, $cookie_domain);
+				setcookie(JApplicationHelper::getHash($this->context . '.name'), $form['name'], time() + 365 * 86400, $cookie_path, $cookie_domain);
+				setcookie(JApplicationHelper::getHash($this->context . '.email'), $form['email'], time() + 365 * 86400, $cookie_path, $cookie_domain);
+				setcookie(JApplicationHelper::getHash($this->context . '.phone'), $form['phone'], time() + 365 * 86400, $cookie_path, $cookie_domain);
+				setcookie(JApplicationHelper::getHash($this->context . '.customfields'), $form['customfields'], time() + 365 * 86400, $cookie_path, $cookie_domain);
+				setcookie(JApplicationHelper::getHash($this->context . '.notes'), $form['notes'], time() + 365 * 86400, $cookie_path, $cookie_domain);
+				setcookie(JApplicationHelper::getHash($this->context . '.status'), $form['status'], time() + 365 * 86400, $cookie_path, $cookie_domain);
+				setcookie(JApplicationHelper::getHash($this->context . '.created'), $form['created'], time() + 365 * 86400, $cookie_path, $cookie_domain);
+
 				setcookie(JApplicationHelper::getHash($this->context . '.basename'), $form['basename'], time() + 365 * 86400, $cookie_path, $cookie_domain);
+				setcookie(JApplicationHelper::getHash($this->context . '.separator'), $form['separator'], time() + 365 * 86400, $cookie_path, $cookie_domain);
 				setcookie(JApplicationHelper::getHash($this->context . '.compressed'), $form['compressed'], time() + 365 * 86400, $cookie_path, $cookie_domain);
 			}
 			// Joomla 2.5
 			else
 			{
 				setcookie(JApplication::getHash($this->context.'.basename'), $form['basename'], time() + 365 * 86400, $cookie_path, $cookie_domain);
+				setcookie(JApplication::getHash($this->context.'.separator'), $form['separator'], time() + 365 * 86400, $cookie_path, $cookie_domain);
 				setcookie(JApplication::getHash($this->context.'.compressed'), $form['compressed'], time() + 365 * 86400, $cookie_path, $cookie_domain);
 			}
 

@@ -44,7 +44,7 @@
 			class="inputbox"
 			label="COM_ICAGENDA_TIME_LBL"
 			description="COM_ICAGENDA_TIME_DESC"
-			default="1">
+			default="0">
 			<option value="2">COM_ICAGENDA_OPTION_PAST_EVENTS</option>
 			<option value="4">COM_ICAGENDA_OPTION_CURRENT_EVENTS_TODAY_EVENTS</option>
 			<option value="1">COM_ICAGENDA_OPTION_CURRENT_EVENTS_TODAY_AND_UPCOMING_EVENTS</option>
@@ -1034,6 +1034,17 @@
 			<option value="1">JSHOW</option>
 		</field>
 		<field
+			name="submit_displaytimeDisplay"
+			type="radio"
+			class="btn-group"
+			default="0"
+			label="COM_ICAGENDA_SUBMIT_DISPLAYTIME_DISPLAY_LABEL"
+			description="COM_ICAGENDA_SUBMIT_DISPLAYTIME_DISPLAY_DESC"
+			>
+			<option value="0">JHIDE</option>
+			<option value="1">JSHOW</option>
+		</field>
+		<field
 			name="submit_shortdescDisplay"
 			type="radio"
 			label="COM_ICAGENDA_SUBMIT_SHORTDESC_DISPLAY_LABEL"
@@ -1591,6 +1602,27 @@
 			class="inputbox"
 			default=""
 			/>
+		<field
+			name="date_separator"
+			type="text"
+			label="COM_ICAGENDA_LBL_DATE_SEPARATOR"
+			description="COM_ICAGENDA_DESC_DATE_COMPONENTS_SEPARATOR"
+			size="5"
+			class="inputbox"
+			default=""
+			/>
+		<field
+			name="displaytime"
+			type="radio"
+			label="COM_ICAGENDA_TIMEDISPLAY_DEFAULT_LABEL"
+			description="COM_ICAGENDA_TIMEDISPLAY_DEFAULT_DESC"
+			class="btn-group"
+			labelclass="control-label"
+			default="1"
+			>
+			<option value="0">JHIDE</option>
+			<option value="1">JSHOW</option>
+		</field>
 		<field
 			name="timeformat"
 			type="radio"

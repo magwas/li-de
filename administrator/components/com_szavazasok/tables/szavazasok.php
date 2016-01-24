@@ -49,6 +49,9 @@ class TableSzavazasok extends JTable
    /** @var date szavazas_vege  **/
    public $szavazas_vege = null;
 
+   /** @var int elbiralas_alatt  **/
+   public $elbiralas_alatt = null;
+
    /** @var int vita1  **/
    public $vita1 = null;
 
@@ -67,7 +70,8 @@ class TableSzavazasok extends JTable
    /** @var date letrehozva  **/
    public $letrehozva = null;
 
-
+   /** @var text elutasitva  **/
+   public $elutasitva = null;
 
 
 	/**

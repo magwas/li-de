@@ -304,7 +304,7 @@ class plgAcymailingManagetext extends JPlugin
 	 	$type['removequeue'] = JText::_('REMOVE_QUEUE');
 
 	 	$db = JFactory::getDBO();
-		$db->setQuery("SELECT `mailid`,`subject`, `type` FROM `#__acymailing_mail` WHERE `type` NOT IN ('notification','autonews') OR `alias` = 'confirmation' ORDER BY `type`,`subject` ASC ");
+		$db->setQuery("SELECT `mailid`,`subject`, `type` FROM `#__acymailing_mail` WHERE `type` NOT IN ('notification','autonews','joomlanotification') OR `alias` = 'confirmation' ORDER BY `type`,`senddate` DESC LIMIT 5000");
 		$allEmails = $db->loadObjectList();
 
 		$emailsToDisplay = array();
@@ -313,9 +313,7 @@ class plgAcymailingManagetext extends JPlugin
 			if($oneMail->type != $typeNews){
 				if(!empty($typeNews)) $emailsToDisplay[] = JHTML::_('select.option',  '</OPTGROUP>');
 				$typeNews = $oneMail->type;
-				if($oneMail->type == 'notification'){
-					$label = JText::_('NOTIFICATIONS');
-				}elseif($oneMail->type == 'news'){
+				if($oneMail->type == 'news'){
 					$label = JText::_('NEWSLETTERS');
 				}elseif($oneMail->type == 'followup'){
 					$label = JText::_('FOLLOWUP');

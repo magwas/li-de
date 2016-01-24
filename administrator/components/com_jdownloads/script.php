@@ -46,19 +46,6 @@ class com_jdownloadsInstallerScript
            define('DS',DIRECTORY_SEPARATOR);
         }        
         
-        // get jD language admin file
-        $language = JFactory::getLanguage();
-        if (($test = JText::_('COM_JDOWNLOADS_DESCRIPTION_JD')) == 'COM_JDOWNLOADS_DESCRIPTION_JD'){
-            $language->load('com_jdownloads');
-        }    
-        if (($test = JText::_('COM_JDOWNLOADS_INSTALL_0')) == 'COM_JDOWNLOADS_INSTALL_0'){ 
-            $language->load('com_jdownloads.sys'); 
-        } 
-        
-        // load english language file for 'com_jdownloads' component then override with current language file
-        //$language->load('com_jdownloads', JPATH_ADMINISTRATOR, 'en-GB', true);
-        //$language->load('com_jdownloads', JPATH_ADMINISTRATOR, null, true);   
-        
 		// insert the new default header, subheader and footer layouts in every layout.
 		require_once(JPATH_SITE."/administrator/components/com_jdownloads/helpers/jd_layouts.php");
         
@@ -122,17 +109,13 @@ class com_jdownloadsInstallerScript
         $result = $installer->install($src_plugins.DS.'jdownloads_search');
         $status->plugins[] = array('name'=>'jDownloads Search Plugin','group'=>'search', 'result'=>$result);        
 
-        /*$installer = new JInstaller;
-        $result = $installer->install($src_plugins.DS.'editor_button_plugin_jdownloads_downloadlink');
-        $status->plugins[] = array('name'=>'jDownloads Download Link Button Plugin','group'=>'editors-xtd', 'result'=>$result);
-        */
         $installer = new JInstaller;
         $result = $installer->install($src_plugins.DS.'editor_button_plugin_jdownloads_downloads');
         $status->plugins[] = array('name'=>'jDownloads Download Content Button Plugin','group'=>'editors-xtd', 'result'=>$result);        
         
         $installer = new JInstaller;
         $result = $installer->install($src_plugins.DS.'plg_content_jdownloads');
-        $status->plugins[] = array('name'=>'plg_content_jdownloads','group'=>'content', 'result'=>$result);        
+        $status->plugins[] = array('name'=>'jDownloads Content Plugin','group'=>'content', 'result'=>$result);        
 
         // modules
         $installer = new JInstaller;
@@ -158,6 +141,10 @@ class com_jdownloadsInstallerScript
         $installer = new JInstaller;
         $result = $installer->install($src_modules.DS.'mod_jdownloads_tree');
         $status->modules[] = array('name'=>'mod_jdownloads_tree','client'=>'site', 'result'=>$result);
+        
+        $installer = new JInstaller;
+        $result = $installer->install($src_modules.DS.'mod_jdownloads_related');
+        $status->modules[] = array('name'=>'mod_jdownloads_related','client'=>'site', 'result'=>$result);        
 
 /*        
         $installer = new JInstaller;
@@ -172,10 +159,11 @@ class com_jdownloadsInstallerScript
 
        
       ?>
-      <table class="adminlist" width="100%">
-       <tr>   
-          <td style="border:1px solid #999; font-size:120%;">
-            <code><b><?php echo JText::_('COM_JDOWNLOADS_INSTALL_0'); ?></b><br />
+      <hr>
+      <div class="adminlist" style="">
+        <h4 style="color:#555;"><?php echo JText::_('COM_JDOWNLOADS_INSTALL_0'); ?></h4>
+        
+        <ul>
 
        <?php
         
@@ -191,476 +179,524 @@ class com_jdownloadsInstallerScript
        
               $jd_version = $this->new_version_short;
               
-              // view messages when old version exist 
-              if ($this->old_version_found){
-                  foreach ($this->old_update_message as $upd_msg){
-                     echo "<font color='green'>--> ".$upd_msg."</font><br />"; 
-                  }
-              }
               
+               switch ($this->old_version_found){
+                   
+                   case '1.9':
+                        // view messages when data from old 1.9 version is found 
+                        foreach ($this->old_update_message as $upd_msg){
+                            echo '<li><font color="green">'.$upd_msg.'</font></li>';
+                        }
+                        
+                        $monitoring = '0';
+                        $old_version_found = '1';  // old 1.9 exist
+                        
+                        // build upload root path
+                        $db->setQuery('SELECT `setting_value` FROM #__jdownloads_config_backup WHERE `setting_name` = "files.uploaddir"');
+                        $old_upload_dir_name = $db->loadResult();
+                        if ($old_upload_dir_name){
+                            $jd_upload_root = JPATH_ROOT.DS.$old_upload_dir_name;
+                        } else {
+                            // we have not found an old folder?
+                            $jd_upload_root = JPATH_ROOT.DS.'jdownloads';
+                        }                        
+                        break;
+                   
+                   
+                   case '3.2':
+                        // view messages when data from prior 3.2.x version exist 
+                        foreach ($this->old_update_message as $upd_msg){
+                            echo $upd_msg;
+                        }                        
+                        
+                        $monitoring = '0';
+                        $old_version_found = '0';
+                        
+                        // build upload root path
+                        $db->setQuery('SELECT `setting_value` FROM #__jdownloads_config WHERE `setting_name` = "files.uploaddir"');
+                        $old_upload_dir_name = $db->loadResult();
+                        if ($old_upload_dir_name){
+                            $jd_upload_root = $old_upload_dir_name;
+                        } else {
+                            // we have not found an old folder?
+                            $jd_upload_root = JPATH_ROOT.DS.'jdownloads';
+                        }                        
+                        break;
+                   
+                   default:
+                        // fresh installation
+                        // build upload root path
+                        $jd_upload_root = JPATH_ROOT.DS.'jdownloads';
+                        $monitoring = '1';
+                        $old_version_found = '0';
+                        
+               } 
               
-              /*
-              / install config default data
-              */
-              $sum = 0;
-              $query = array();
-              
-              // build upload root path
-              if (!$this->old_version_found){
-                  $jd_upload_root = JPATH_ROOT.DS.'jdownloads';
-                  $monitoring = '1';
-                  $old_version_found = '0';
-              } else {
-                  $monitoring = '0';
-                  $old_version_found = '1';
-                  $db->setQuery('SELECT `setting_value` FROM #__jdownloads_config_backup WHERE `setting_name` = "files.uploaddir"');
-                  $old_upload_dir_name = $db->loadResult();
-                  if ($old_upload_dir_name){
-                      $jd_upload_root = JPATH_ROOT.DS.$old_upload_dir_name;
-                  } else {
-                      // we have not found an old folder?
-                      $jd_upload_root = JPATH_ROOT.DS.'jdownloads';
-                  }
-              } 
+              if ($this->old_version_found == '1.9' || $this->old_version_found == 0){
+                  /*
+                  / install config default data - but only when we have really a 'fresh' installation and we have not found any older DB tables
+                  */
+                  $sum = 0;
+                  $query = array();
+                     
+                  // Replacing backslashes with slashes
+                  $jd_upload_root = str_replace('\\', '/', $jd_upload_root);
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('files.uploaddir', '".$jd_upload_root."');"."\n";  
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('global.datetime', '".$db->escape(JText::_('COM_JDOWNLOADS_INSTALL_DEFAULT_DATE_FORMAT'))."');"."\n";  
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('files.autodetect', '".$monitoring."');"."\n";  
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('send.mailto', '".$db->escape(JText::_('COM_JDOWNLOADS_SETTINGS_INSTALL_5'))."');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('send.mailto.option', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('send.mailto.betreff', '".$db->escape(JText::_('COM_JDOWNLOADS_SETTINGS_INSTALL_3'))."');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('send.mailto.from', '".$db->escape(JText::_('COM_JDOWNLOADS_SETTINGS_INSTALL_4'))."');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('send.mailto.fromname', 'jDownloads');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('send.mailto.html', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('zipfile.prefix', 'downloads_');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('files.order', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('checkbox.top.text', '".$db->escape(JText::_('COM_JDOWNLOADS_SETTINGS_INSTALL_1'))."');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('downloads.titletext', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('layouts.editor', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('licenses.editor', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('files.editor', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('categories.editor', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('info.icons.size', '20');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('cat.pic.size', '48');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('file.pic.size', '32');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('offline', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('offline.text', '".$db->escape(JText::_('COM_JDOWNLOADS_BACKEND_OFFLINE_MESSAGE_DEFAULT'))."');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('system.list', '".$db->escape(JText::_('COM_JDOWNLOADS_BACKEND_FILESEDIT_SYSTEM_DEFAULT_LIST'))."');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('language.list', '".$db->escape(JText::_('COM_JDOWNLOADS_BACKEND_FILESEDIT_LANGUAGE_DEFAULT_LIST'))."');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('file.types.view', 'html,htm,txt,pdf,doc,jpg,jpeg,png,gif');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('directories.autodetect', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('mail.cloaking', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('tempfile.delete.time', '20');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('frontend.upload.active', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('allowed.upload.file.types', 'zip,rar');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('allowed.upload.file.size', '2048');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('upload.access', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('files.per.side', '10');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('upload.form.text', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('jd.header.title', 'Downloads');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('files.per.side.be', '15');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('last.log.message', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('last.restore.log', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('show.header.catlist', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('anti.leech', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('direct.download', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('days.is.file.new', '15');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('picname.is.file.new', 'blue.png');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('loads.is.file.hot', '100');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('picname.is.file.hot', 'red.png');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('download.pic.details', 'download_blue.png');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('upload.auto.publish', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('cats.order', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('autopublish.founded.files', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('all.files.autodetect', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('file.types.autodetect', 'zip,rar,exe,pdf,doc,gif,jpg,png');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('jcomments.active', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fileplugin.defaultlayout','".$db->escape(JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_TEMPLATES_FILES_DEFAULT_NAME'))."');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fileplugin.show_hot', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fileplugin.show_new', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fileplugin.enable_plugin', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fileplugin.show_jdfiledisabled', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fileplugin.layout_disabled','".$db->escape(JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_TEMPLATES_FILES_DEFAULT_NAME'))."');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fileplugin.show_downloadtitle', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fileplugin.offline_title','".$db->escape(JText::_('COM_JDOWNLOADS_FRONTEND_SETTINGS_FILEPLUGIN_OFFLINE_FILETITLE'))."');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fileplugin.offline_descr','".$db->escape(JText::_('COM_JDOWNLOADS_FRONTEND_SETTINGS_FILEPLUGIN_DESCRIPTION'))."');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('cat.pic.default.filename','folder.png');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('file.pic.default.filename','zip.png');"."\n";
                   
-              // Replacing backslashes with slashes
-              $jd_upload_root = str_replace('\\', '/', $jd_upload_root);
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('files.uploaddir', '".$jd_upload_root."');"."\n";  
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('global.datetime', '".$db->escape(JText::_('COM_JDOWNLOADS_INSTALL_DEFAULT_DATE_FORMAT'))."');"."\n";  
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('files.autodetect', '".$monitoring."');"."\n";  
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('send.mailto', '".$db->escape(JText::_('COM_JDOWNLOADS_SETTINGS_INSTALL_5'))."');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('send.mailto.option', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('send.mailto.betreff', '".$db->escape(JText::_('COM_JDOWNLOADS_SETTINGS_INSTALL_3'))."');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('send.mailto.from', '".$db->escape(JText::_('COM_JDOWNLOADS_SETTINGS_INSTALL_4'))."');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('send.mailto.fromname', 'jDownloads');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('send.mailto.html', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('zipfile.prefix', 'downloads_');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('files.order', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('checkbox.top.text', '".$db->escape(JText::_('COM_JDOWNLOADS_SETTINGS_INSTALL_1'))."');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('downloads.titletext', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('layouts.editor', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('licenses.editor', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('files.editor', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('categories.editor', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('info.icons.size', '20');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('cat.pic.size', '48');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('file.pic.size', '32');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('offline', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('offline.text', '".$db->escape(JText::_('COM_JDOWNLOADS_BACKEND_OFFLINE_MESSAGE_DEFAULT'))."');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('system.list', '".$db->escape(JText::_('COM_JDOWNLOADS_BACKEND_FILESEDIT_SYSTEM_DEFAULT_LIST'))."');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('language.list', '".$db->escape(JText::_('COM_JDOWNLOADS_BACKEND_FILESEDIT_LANGUAGE_DEFAULT_LIST'))."');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('file.types.view', 'html,htm,txt,pdf,doc,jpg,jpeg,png,gif');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('directories.autodetect', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('mail.cloaking', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('tempfile.delete.time', '20');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('frontend.upload.active', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('allowed.upload.file.types', 'zip,rar');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('allowed.upload.file.size', '2048');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('upload.access', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('files.per.side', '10');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('upload.form.text', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('jd.header.title', 'Downloads');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('files.per.side.be', '15');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('last.log.message', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('last.restore.log', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('show.header.catlist', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('anti.leech', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('direct.download', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('days.is.file.new', '15');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('picname.is.file.new', 'blue.png');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('loads.is.file.hot', '100');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('picname.is.file.hot', 'red.png');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('download.pic.details', 'download_blue.png');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('upload.auto.publish', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('cats.order', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('autopublish.founded.files', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('all.files.autodetect', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('file.types.autodetect', 'zip,rar,exe,pdf,doc,gif,jpg,png');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('jcomments.active', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fileplugin.defaultlayout','".$db->escape(JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_TEMPLATES_FILES_DEFAULT_NAME'))."');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fileplugin.show_hot', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fileplugin.show_new', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fileplugin.enable_plugin', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fileplugin.show_jdfiledisabled', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fileplugin.layout_disabled','".$db->escape(JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_TEMPLATES_FILES_DEFAULT_NAME'))."');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fileplugin.show_downloadtitle', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fileplugin.offline_title','".$db->escape(JText::_('COM_JDOWNLOADS_FRONTEND_SETTINGS_FILEPLUGIN_OFFLINE_FILETITLE'))."');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fileplugin.offline_descr','".$db->escape(JText::_('COM_JDOWNLOADS_FRONTEND_SETTINGS_FILEPLUGIN_DESCRIPTION'))."');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('cat.pic.default.filename','folder.png');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('file.pic.default.filename','zip.png');"."\n";
-              
-              foreach ($query as $data){
-                    $db->SetQuery($data);
-                    $db->execute();
-              }      
-              unset($query);
-              
-              $query[]  = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('jd.version','$jd_version');"."\n";
-              //$sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('jd.version.state','$jd_version_state');"."\n";
-              //$sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('jd.version.svn','$jd_version_svn');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('send.mailto.upload', '".$db->escape(JText::_('COM_JDOWNLOADS_SETTINGS_INSTALL_5'))."');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('send.mailto.option.upload', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('send.mailto.betreff.upload', '".$db->escape(JText::_('COM_JDOWNLOADS_SETTINGS_INSTALL_6'))."');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('send.mailto.from.upload', '".$db->escape(JText::_('COM_JDOWNLOADS_SETTINGS_INSTALL_4'))."');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('send.mailto.fromname.upload', 'jDownloads');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('send.mailto.html.upload', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('send.mailto.template.upload', '".$db->escape(JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_GLOBAL_MAIL_UPLOAD_TEMPLATE'))."');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('send.mailto.template.download', '".$db->escape(JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_TEMPLATES_MAIL_DEFAULT'))."');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('download.pic.mirror_1', 'mirror_blue1.png');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('download.pic.mirror_2', 'mirror_blue2.png');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('picname.is.file.updated', 'green.png');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('days.is.file.updated', '15');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('thumbnail.size.width', '125');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('thumbnail.size.height', '125');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('thumbnail.view.placeholder', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('thumbnail.view.placeholder.in.lists', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('option.navigate.bottom', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('option.navigate.top', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('view.category.info', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('save.monitoring.log', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('view.subheader', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('view.detailsite', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('check.leeching', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('allowed.leeching.sites', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('block.referer.is.empty', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fe.upload.view.author', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fe.upload.view.author.url', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fe.upload.view.release', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fe.upload.view.price', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fe.upload.view.license', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fe.upload.view.language', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fe.upload.view.system', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fe.upload.view.pic.upload', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fe.upload.view.desc.long', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('mp3.player.config', 'loop=0;showvolume=1;showstop=1;bgcolor1=006699;bgcolor2=66CCFF');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('mp3.view.id3.info', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('use.php.script.for.download', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('mp3.info.layout', '".$JLIST_BACKEND_SETTINGS_TEMPLATES_ID3TAG."');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('google.adsense.active', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('google.adsense.code', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('countdown.active', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('countdown.start.value', '15');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('countdown.text', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fe.upload.view.extern.file', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fe.upload.view.select.file', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fe.upload.view.desc.short', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fix.upload.filename.blanks', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fix.upload.filename.uppercase', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fix.upload.filename.specials', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('use.report.download.link', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('send.mailto.report', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('download.pic.files', 'download2.png');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('view.sum.jcomments', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('be.new.files.order.first', '1');"."\n";
-              
-              foreach ($query as $data){
-                    $db->SetQuery($data);
-                    $db->execute();
-              }      
-              unset($query);
+                  foreach ($query as $data){
+                        $db->SetQuery($data);
+                        $db->execute();
+                  }      
+                  unset($query);
+                  
+                  $query[]  = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('jd.version','$jd_version');"."\n";
+                  //$sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('jd.version.state','$jd_version_state');"."\n";
+                  //$sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('jd.version.svn','$jd_version_svn');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('send.mailto.upload', '".$db->escape(JText::_('COM_JDOWNLOADS_SETTINGS_INSTALL_5'))."');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('send.mailto.option.upload', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('send.mailto.betreff.upload', '".$db->escape(JText::_('COM_JDOWNLOADS_SETTINGS_INSTALL_6'))."');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('send.mailto.from.upload', '".$db->escape(JText::_('COM_JDOWNLOADS_SETTINGS_INSTALL_4'))."');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('send.mailto.fromname.upload', 'jDownloads');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('send.mailto.html.upload', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('send.mailto.template.upload', '".$db->escape(JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_GLOBAL_MAIL_UPLOAD_TEMPLATE'))."');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('send.mailto.template.download', '".$db->escape(JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_TEMPLATES_MAIL_DEFAULT'))."');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('download.pic.mirror_1', 'mirror_blue1.png');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('download.pic.mirror_2', 'mirror_blue2.png');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('picname.is.file.updated', 'green.png');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('days.is.file.updated', '15');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('thumbnail.size.width', '125');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('thumbnail.size.height', '125');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('thumbnail.view.placeholder', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('thumbnail.view.placeholder.in.lists', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('option.navigate.bottom', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('option.navigate.top', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('view.category.info', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('save.monitoring.log', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('view.subheader', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('view.detailsite', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('check.leeching', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('allowed.leeching.sites', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('block.referer.is.empty', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fe.upload.view.author', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fe.upload.view.author.url', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fe.upload.view.release', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fe.upload.view.price', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fe.upload.view.license', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fe.upload.view.language', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fe.upload.view.system', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fe.upload.view.pic.upload', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fe.upload.view.desc.long', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('mp3.player.config', 'loop=0;showvolume=1;showstop=1;bgcolor1=006699;bgcolor2=66CCFF');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('mp3.view.id3.info', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('use.php.script.for.download', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('mp3.info.layout', '".$JLIST_BACKEND_SETTINGS_TEMPLATES_ID3TAG."');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('google.adsense.active', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('google.adsense.code', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('countdown.active', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('countdown.start.value', '15');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('countdown.text', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fe.upload.view.extern.file', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fe.upload.view.select.file', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fe.upload.view.desc.short', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fix.upload.filename.blanks', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fix.upload.filename.uppercase', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fix.upload.filename.specials', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('use.report.download.link', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('send.mailto.report', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('download.pic.files', 'download2.png');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('view.sum.jcomments', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('be.new.files.order.first', '1');"."\n";
+                  
+                  foreach ($query as $data){
+                        $db->SetQuery($data);
+                        $db->execute();
+                  }      
+                  unset($query);
 
-              $query[]  = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('downloads.footer.text', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('view.back.button', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('create.auto.cat.dir', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('reset.counters', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('report.link.only.regged', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('view.ratings', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('rating.only.for.regged', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('view.also.download.link.text', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('auto.file.short.description', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('auto.file.short.description.value', '200');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('view.jom.comment', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('use.lightbox.function', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('use.alphauserpoints', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('use.alphauserpoints.with.price.field', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('user.can.download.file.when.zero.points', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('user.message.when.zero.points', '".$db->escape(JText::_('COM_JDOWNLOADS_BACKEND_SET_AUP_FE_MESSAGE_NO_DOWNLOAD'))."');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('limited.download.number.per.day', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('limited.download.reached.message', '".$db->escape(JText::_('COM_JDOWNLOADS_FE_MESSAGE_AMOUNT_FILES_LIMIT'))."');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('download.pic.plugin', 'download2.png');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('plugin.auto.file.short.description', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('plugin.auto.file.short.description.value', '200');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('view.sort.order', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('activate.general.plugin.support', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('activate.download.log', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('categories.per.side', '5');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('upload.access.group', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('redirect.after.download', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('use.tabs.type', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('additional.tab.title.1', '".$db->escape(JText::_('COM_JDOWNLOADS_FE_TAB_CUSTOM_TITLE'))."');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('additional.tab.title.2', '".$db->escape(JText::_('COM_JDOWNLOADS_FE_TAB_CUSTOM_TITLE'))."');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('additional.tab.title.3', '".$db->escape(JText::_('COM_JDOWNLOADS_FE_TAB_CUSTOM_TITLE'))."');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('remove.field.title.when.empty', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('use.download.title.as.download.link', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.1.title', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.2.title', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.3.title', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.4.title', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.5.title', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.6.title', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.7.title', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.8.title', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.9.title', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.10.title', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.11.title', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.12.title', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.13.title', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.14.title', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.1.values', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.2.values', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.3.values', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.4.values', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.5.values', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.6.values', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.7.values', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.8.values', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.9.values', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.10.values', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('group.can.edit.fe', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('uploader.can.edit.fe', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('use.sef.with.file.titles', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('use.general.plugin.support.only.for.descriptions', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('com', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('use.blocking.list', '0');"."\n";
+                  $query[]  = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('downloads.footer.text', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('view.back.button', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('create.auto.cat.dir', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('reset.counters', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('report.link.only.regged', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('view.ratings', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('rating.only.for.regged', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('view.also.download.link.text', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('auto.file.short.description', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('auto.file.short.description.value', '200');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('view.jom.comment', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('use.lightbox.function', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('use.alphauserpoints', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('use.alphauserpoints.with.price.field', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('user.can.download.file.when.zero.points', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('user.message.when.zero.points', '".$db->escape(JText::_('COM_JDOWNLOADS_BACKEND_SET_AUP_FE_MESSAGE_NO_DOWNLOAD'))."');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('limited.download.number.per.day', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('limited.download.reached.message', '".$db->escape(JText::_('COM_JDOWNLOADS_FE_MESSAGE_AMOUNT_FILES_LIMIT'))."');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('download.pic.plugin', 'download2.png');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('plugin.auto.file.short.description', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('plugin.auto.file.short.description.value', '200');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('view.sort.order', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('activate.general.plugin.support', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('activate.download.log', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('categories.per.side', '5');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('upload.access.group', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('redirect.after.download', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('use.tabs.type', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('additional.tab.title.1', '".$db->escape(JText::_('COM_JDOWNLOADS_FE_TAB_CUSTOM_TITLE'))."');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('additional.tab.title.2', '".$db->escape(JText::_('COM_JDOWNLOADS_FE_TAB_CUSTOM_TITLE'))."');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('additional.tab.title.3', '".$db->escape(JText::_('COM_JDOWNLOADS_FE_TAB_CUSTOM_TITLE'))."');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('remove.field.title.when.empty', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('use.download.title.as.download.link', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.1.title', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.2.title', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.3.title', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.4.title', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.5.title', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.6.title', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.7.title', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.8.title', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.9.title', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.10.title', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.11.title', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.12.title', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.13.title', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.14.title', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.1.values', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.2.values', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.3.values', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.4.values', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.5.values', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.6.values', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.7.values', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.8.values', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.9.values', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('custom.field.10.values', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('group.can.edit.fe', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('uploader.can.edit.fe', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('use.sef.with.file.titles', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('use.general.plugin.support.only.for.descriptions', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('com', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('use.blocking.list', '0');"."\n";
+                  
+                  $blocking_list = file_get_contents ( JPATH_SITE.'/administrator/components/com_jdownloads/assets/blacklist.txt' );
+                  
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('blocking.list', '$blocking_list');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('remove.empty.tags', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('create.pdf.thumbs', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('create.pdf.thumbs.by.scan', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('pdf.thumb.height', '200');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('pdf.thumb.width', '200');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('pdf.thumb.pic.height', '400');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('pdf.thumb.pic.width', '400');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('pdf.thumb.image.type', 'GIF');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('create.auto.thumbs.from.pics', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('create.auto.thumbs.from.pics.image.height', '400');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('create.auto.thumbs.from.pics.image.width', '400');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('create.auto.thumbs.from.pics.by.scan', '0');"."\n";
+                  
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fe.upload.amount.of.pictures', '10');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('be.upload.amount.of.pictures', '10');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('imagemagick.path', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('uncategorised.files.folder.name', '_uncategorised_files');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('tempzipfiles.folder.name', '_tempzipfiles');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('categories.batch.in.progress', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('downloads.batch.in.progress', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('use.unicode.path.names', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('report.mail.subject', '".$db->escape(JText::_('COM_JDOWNLOADS_CONFIG_REPORT_FILE_MAIL_SUBJECT_DEFAULT'))."');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('report.mail.layout', '".$db->escape(JText::_('COM_JDOWNLOADS_CONFIG_REPORT_FILE_MAIL_LAYOUT_DEFAULT'))."');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('report.form.layout', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('report.form.layout.css', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('robots', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('use.real.user.name.in.frontend', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('global.datetime.short', '".JText::_('COM_JDOWNLOADS_INSTALL_DEFAULT_DATE_FORMAT_SHORT')."');"."\n";                                                                                                                                                                         
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('use.css.buttons.instead.icons', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('view.empty.categories', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('view.empty.sub.categories', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('cat.pic.size.height', '48');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('file.pic.size.height', '32');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('autopublish.default.description', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('view.no.file.message.in.empty.category', '0');"."\n";                           
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('plupload.runtime', 'full');"."\n"; 
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('plupload.max.file.size', '10');"."\n"; 
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('plupload.chunk.size', '0');"."\n"; 
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('plupload.chunk.unit', 'mb');"."\n"; 
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('plupload.rename', '0');"."\n"; 
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('plupload.image.file.extensions', 'gif,png,jpg,jpeg,GIF,PNG,JPG,JPEG');"."\n"; 
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('plupload.other.file.extensions', 'zip,rar,pdf,doc,txt,ZIP,RAR,PDF,DOC,TXT');"."\n"; 
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('plupload.unique.names', '0');"."\n"; 
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('plupload.enable.image.resizing', '0');"."\n"; 
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('plupload.resize.width', '640');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('plupload.resize.height', '480');"."\n";  
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('plupload.resize.quality', '90');"."\n";  
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('plupload.enable.uploader.log', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('private.area.folder.name', '_private_user_area');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('delete.also.images.from.downloads', '0');"."\n";                
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('preview.files.folder.name', '_preview_files');"."\n"; 
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('delete.also.preview.files.from.downloads', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('css.button.color.hot', 'jred');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('css.button.color.new', 'jorange');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('css.button.color.updated', 'jblue');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('css.button.color.download', 'jorange');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('css.button.color.mirror1', 'jgray');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('css.button.color.mirror2', 'jgray');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('css.button.size.download', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('css.button.size.download.mirror', 'jmedium');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('css.button.color.download.mirror', 'jorange');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('css.button.size.download.small', 'jsmall');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('flowplayer.use', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('flowplayer.playerwidth', '300');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('flowplayer.playerheight', '200');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('flowplayer.playerheight.audio', '30');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('flowplayer.control.settings', '');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('flowplayer.view.video.only.in.details', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('use.pagination.subcategories', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('amount.subcats.per.page.in.pagination', '5');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('shortened.filename.length', '15');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('old.jd.release.found', '".$old_version_found."');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('show.header.catlist.uncategorised', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('show.header.catlist.all', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('show.header.catlist.topfiles', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('show.header.catlist.newfiles', '0');"."\n";
+                  // added in 3.2.37
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('show.header.catlist.levels', '0');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('html5player.use', '1');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('html5player.width', '320');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('html5player.height', '240');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('html5player.audio.width', '250');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('html5player.view.video.only.in.details', '0');"."\n";
+                  // added in 3.2.41
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('featured.pic.size', '48');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('featured.pic.size.height', '48');"."\n";
+                  $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('featured.pic.filename', 'featured_orange_star.png');"."\n";                            
+                  foreach ($query as $data){
+                        $db->SetQuery($data);
+                        $db->execute();
+                  }      
+                  unset($query);           
               
-              $blocking_list = file_get_contents ( JPATH_SITE.'/administrator/components/com_jdownloads/assets/blacklist.txt' );
+                  echo '<li><font color="green">'.JText::sprintf('COM_JDOWNLOADS_INSTALL_2', $sum).'</font></li>';
+
+                  // write default layouts in database      
+                  $sum_layouts = 13;
+
+                  // categories
+                  $cats_layout       = stripslashes($JLIST_BACKEND_SETTINGS_TEMPLATES_CATS_DEFAULT);
+                  $cats_header       = stripslashes($cats_header);
+                  $cats_subheader    = stripslashes($cats_subheader);
+                  $cats_footer       = stripslashes($cats_footer);
+                  $db->setQuery("INSERT INTO #__jdownloads_templates (template_name, template_typ, template_text, template_header_text, template_subheader_text, template_footer_text, template_active, locked, language)  VALUES ('".JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_TEMPLATES_CATS_DEFAULT_NAME')."', 1, '".$cats_layout."', '".$cats_header."', '".$cats_subheader."', '".$cats_footer."', 1, 1, '*')");
+                  $db->execute();
+
+                  // category
+                  $cat_layout       = stripslashes($JLIST_BACKEND_SETTINGS_TEMPLATES_CAT_DEFAULT);
+                  $cat_header       = stripslashes($cat_header);
+                  $cat_subheader    = stripslashes($cat_subheader);
+                  $cat_footer       = stripslashes($cat_footer);
+                  $db->setQuery("INSERT INTO #__jdownloads_templates (template_name, template_typ, template_text, template_header_text, template_subheader_text, template_footer_text, template_active, locked, language)  VALUES ('".JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_TEMPLATES_CAT_DEFAULT_NAME')."', 4, '".$cat_layout."', '".$cat_header."', '".$cat_subheader."', '".$cat_footer."', 1, 1, '*')");
+                  $db->execute();              
+                  
+                  // files
+                  $file_layout        = stripslashes($JLIST_BACKEND_SETTINGS_TEMPLATES_FILES_DEFAULT);
+                  $files_header       = stripslashes($files_header);
+                  $files_subheader    = stripslashes($files_subheader);
+                  $files_footer       = stripslashes($files_footer);
+                  $db->setQuery("INSERT INTO #__jdownloads_templates (template_name, template_typ, template_text, template_header_text, template_subheader_text, template_footer_text, template_active, locked, language)  VALUES ('".JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_TEMPLATES_FILES_DEFAULT_NAME')."', 2, '".$file_layout."', '".$files_header."', '".$files_subheader."', '".$files_footer."', 0, 1, '*')");
+                  $db->execute();
+                   
+                  // summary
+                  $summary_layout       = stripslashes($JLIST_BACKEND_SETTINGS_TEMPLATES_SUMMARY_DEFAULT);
+                  $$summary_header      = stripslashes($summary_header);
+                  $summary_subheader    = stripslashes($summary_subheader);
+                  $summary_footer       = stripslashes($summary_footer);              
+                  $db->setQuery("INSERT INTO #__jdownloads_templates (template_name, template_typ, template_text, template_header_text, template_subheader_text, template_footer_text, template_active, locked, language)  VALUES ('".JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_TEMPLATES_SUMMARY_DEFAULT_NAME')."', 3, '".$summary_layout."', '".$summary_header."', '".$summary_subheader."', '".$summary_footer."', 1, 1, '*')");
+                  $db->execute();
+
+                  // download details 
+                  $detail_layout        = stripslashes($JLIST_BACKEND_SETTINGS_TEMPLATES_DETAILS_DEFAULT);
+                  $details_header       = stripslashes($details_header);
+                  $details_subheader    = stripslashes($details_subheader);
+                  $details_footer       = stripslashes($details_footer);               
+                  $db->setQuery("INSERT INTO #__jdownloads_templates (template_name, template_typ, template_text, template_header_text, template_subheader_text, template_footer_text, template_active, locked, language)  VALUES ('".JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_TEMPLATES_DETAILS_DEFAULT_NAME')."', 5, '$detail_layout', '".$details_header."', '".$details_subheader."', '".$details_footer."', 1, 1, '*')");
+                  $db->execute();
+                  
+                  // layout for download details with tabs
+                  $detail_layout = stripslashes($JLIST_BACKEND_SETTINGS_TEMPLATES_DETAILS_DEFAULT_WITH_TABS);
+                  $db->setQuery("INSERT INTO #__jdownloads_templates (template_name, template_typ, template_text, template_header_text, template_subheader_text, template_footer_text, template_active, locked, language)  VALUES ('".JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_TEMPLATES_DETAILS_WITH_TABS_TITLE')."', 5, '$detail_layout', '".$details_header."', '".$details_subheader."', '".$details_footer."', '0', 1, '*')");
+                  $db->execute();
+                  
+                  // layout for download details with all new data fields 2.5
+                  $detail_layout = stripslashes($JLIST_BACKEND_SETTINGS_TEMPLATES_DETAILS_DEFAULT_NEW_25);
+                  $db->setQuery("INSERT INTO #__jdownloads_templates (template_name, template_typ, template_text, template_header_text, template_subheader_text, template_footer_text, template_active, locked, language)  VALUES ('".JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_TEMPLATES_DETAILS_25_TITLE')."', 5, '$detail_layout', '".$details_header."', '".$details_subheader."', '".$details_footer."', '0', 1, '*')");
+                  $db->execute();              
+                        
+                  // Simple layout with Checkboxes for files
+                  $file_layout = stripslashes($JLIST_BACKEND_SETTINGS_TEMPLATES_FILES_DEFAULT_NEW_SIMPLE_1); 
+                  $db->setQuery("INSERT INTO #__jdownloads_templates (template_name, template_typ, template_text, template_header_text, template_subheader_text, template_footer_text, template_active, locked, note, checkbox_off, symbol_off, language)  VALUES ('".JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_TEMPLATES_FILES_DEFAULT_NEW_SIMPLE_1_NAME')."', 2, '".$file_layout."', '".$files_header."', '".$files_subheader."', '".$files_footer."', 0, 1, '', 0, 1, '*')");
+                  $db->execute();
+                        
+                  // Simple layout without Checkboxes for files
+                  $file_layout = stripslashes($JLIST_BACKEND_SETTINGS_TEMPLATES_FILES_DEFAULT_NEW_SIMPLE_2); 
+                  $db->setQuery("INSERT INTO #__jdownloads_templates (template_name, template_typ, template_text, template_header_text, template_subheader_text, template_footer_text, template_active, locked, note, checkbox_off, symbol_off, language)  VALUES ('".JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_TEMPLATES_FILES_DEFAULT_NEW_SIMPLE_2_NAME')."', 2, '".$file_layout."', '".$files_header."', '".$files_subheader."', '".$files_footer."', 1, 1, '', 1, 1, '*')");
+                  $db->execute();
+                        
+                  // categories layout with 4 columns
+                  $file_layout = stripslashes($JLIST_BACKEND_SETTINGS_TEMPLATES_CATS_COL_DEFAULT); 
+                  $db->setQuery("INSERT INTO #__jdownloads_templates (template_name, template_typ, template_text, template_header_text, template_subheader_text, template_footer_text, template_active, locked, note, cols, language)  VALUES ('".JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_TEMPLATES_CATS_COL_TITLE')."', 1, '".$file_layout."', '".$files_header."', '".$files_subheader."', '".$files_footer."', 0, 1, '".JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_TEMPLATES_CATS_COL_NOTE')."', 4, '*')");
+                  $db->execute();
+
+                        
+                  //This layout is used to view the subcategories from a category with pagination. 
+                  $cats_layout        = stripslashes($JLIST_BACKEND_SETTINGS_TEMPLATES_SUBCATS_PAGINATION_DEFAULT);
+                  $cats_layout_before = stripslashes($JLIST_BACKEND_SETTINGS_TEMPLATES_SUBCATS_PAGINATION_BEFORE);
+                  $cats_layout_after  = stripslashes($JLIST_BACKEND_SETTINGS_TEMPLATES_SUBCATS_PAGINATION_AFTER);
+                  $cats_header       = '';
+                  $cats_subheader    = '';
+                  $cats_footer       = '';
+                  $note              = stripslashes(JText::_('COM_JDOWNLOADS_BACKEND_TEMPEDIT_USE_SUBCATS_NOTE'));
+                  $db->setQuery("INSERT INTO #__jdownloads_templates (template_name, template_typ, template_text, template_header_text, template_subheader_text, template_footer_text, template_before_text, template_after_text, note, template_active, locked, language, use_to_view_subcats)  VALUES ('".JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_TEMPLATES_CATS_DEFAULT_PAGINATION_NAME')."', 1, '".$cats_layout."', '".$cats_header."', '".$cats_subheader."', '".$cats_footer."', '".$cats_layout_before."', '".$cats_layout_after."', '".$db->escape($note)."', 0, 1, '*', 1)");
+                  $db->execute();
+                  
+                  // New alternate layout (used CSS classes) 
+                  $file_layout        = stripslashes($JLIST_BACKEND_SETTINGS_TEMPLATES_FILES_NEW_ALTERNATE_1);
+                  $file_layout_before = stripslashes($JLIST_BACKEND_SETTINGS_TEMPLATES_FILES_NEW_ALTERNATE_1_BEFORE);
+                  $file_layout_after  = stripslashes($JLIST_BACKEND_SETTINGS_TEMPLATES_FILES_NEW_ALTERNATE_1_AFTER);
+                  $files_header       = stripslashes($files_header);
+                  $files_subheader    = stripslashes($files_subheader);
+                  $files_footer       = stripslashes($files_footer);
+                  $db->setQuery("INSERT INTO #__jdownloads_templates (template_name, template_typ, template_text, template_header_text, template_subheader_text, template_footer_text, template_before_text, template_after_text, note, checkbox_off, symbol_off, template_active, locked, language, use_to_view_subcats)  VALUES ('".JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_TEMPLATES_FILES_DEFAULT_NEW_ALTERNATE_1_NAME')."', 2, '".$file_layout."', '".$files_header."', '".$files_subheader."', '".$files_footer."', '".$file_layout_before."', '".$file_layout_after."', '', 1, 1, 0, 1, '*', 0)");
+                  $db->execute();                            
+                
+                  // default search results layout
+                  $search_result_layout = stripslashes($JLIST_BACKEND_SETTINGS_TEMPLATES_SEARCH_DEFAULT);
+                  $search_header       = stripslashes($search_header);
+                  $search_subheader    = stripslashes($search_subheader);
+                  $search_footer       = stripslashes($search_footer);  
+                  $db->setQuery("INSERT INTO #__jdownloads_templates (template_name, template_typ, template_text, template_header_text, template_subheader_text, template_footer_text, template_active, locked, note, cols, language)  VALUES ('".JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_TEMPLATES_SEARCH_DEFAULT_NAME')."', 7, '".$search_result_layout."', '".$search_header."', '".$search_subheader."', '".$search_footer."', 1, 1, '', 4, '*')");
+                  $db->execute();
+                  
+                  echo '<li><font color="green">'.JText::sprintf('COM_JDOWNLOADS_INSTALL_4', $sum_layouts).'</font></li>';
               
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('blocking.list', '$blocking_list');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('remove.empty.tags', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('create.pdf.thumbs', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('create.pdf.thumbs.by.scan', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('pdf.thumb.height', '200');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('pdf.thumb.width', '200');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('pdf.thumb.pic.height', '400');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('pdf.thumb.pic.width', '400');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('pdf.thumb.image.type', 'GIF');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('create.auto.thumbs.from.pics', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('create.auto.thumbs.from.pics.image.height', '400');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('create.auto.thumbs.from.pics.image.width', '400');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('create.auto.thumbs.from.pics.by.scan', '0');"."\n";
-              
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('fe.upload.amount.of.pictures', '10');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('be.upload.amount.of.pictures', '10');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('imagemagick.path', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('uncategorised.files.folder.name', '_uncategorised_files');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('tempzipfiles.folder.name', '_tempzipfiles');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('categories.batch.in.progress', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('downloads.batch.in.progress', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('use.unicode.path.names', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('report.mail.subject', '".$db->escape(JText::_('COM_JDOWNLOADS_CONFIG_REPORT_FILE_MAIL_SUBJECT_DEFAULT'))."');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('report.mail.layout', '".$db->escape(JText::_('COM_JDOWNLOADS_CONFIG_REPORT_FILE_MAIL_LAYOUT_DEFAULT'))."');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('report.form.layout', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('report.form.layout.css', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('robots', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('use.real.user.name.in.frontend', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('global.datetime.short', '".JText::_('COM_JDOWNLOADS_INSTALL_DEFAULT_DATE_FORMAT_SHORT')."');"."\n";                                                                                                                                                                         
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('use.css.buttons.instead.icons', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('view.empty.categories', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('view.empty.sub.categories', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('cat.pic.size.height', '48');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('file.pic.size.height', '32');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('autopublish.default.description', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('view.no.file.message.in.empty.category', '0');"."\n";                           
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('plupload.runtime', 'full');"."\n"; 
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('plupload.max.file.size', '10');"."\n"; 
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('plupload.chunk.size', '0');"."\n"; 
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('plupload.chunk.unit', 'mb');"."\n"; 
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('plupload.rename', '0');"."\n"; 
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('plupload.image.file.extensions', 'gif,png,jpg,jpeg,GIF,PNG,JPG,JPEG');"."\n"; 
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('plupload.other.file.extensions', 'zip,rar,pdf,doc,txt,ZIP,RAR,PDF,DOC,TXT');"."\n"; 
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('plupload.unique.names', '0');"."\n"; 
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('plupload.enable.image.resizing', '0');"."\n"; 
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('plupload.resize.width', '640');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('plupload.resize.height', '480');"."\n";  
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('plupload.resize.quality', '90');"."\n";  
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('plupload.enable.uploader.log', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('private.area.folder.name', '_private_user_area');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('delete.also.images.from.downloads', '0');"."\n";                
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('preview.files.folder.name', '_preview_files');"."\n"; 
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('delete.also.preview.files.from.downloads', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('css.button.color.hot', 'jred');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('css.button.color.new', 'jorange');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('css.button.color.updated', 'jblue');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('css.button.color.download', 'jorange');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('css.button.color.mirror1', 'jgray');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('css.button.color.mirror2', 'jgray');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('css.button.size.download', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('css.button.size.download.mirror', 'jmedium');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('css.button.color.download.mirror', 'jorange');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('css.button.size.download.small', 'jsmall');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('flowplayer.use', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('flowplayer.playerwidth', '300');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('flowplayer.playerheight', '200');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('flowplayer.playerheight.audio', '30');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('flowplayer.control.settings', '');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('flowplayer.view.video.only.in.details', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('use.pagination.subcategories', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('amount.subcats.per.page.in.pagination', '5');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('shortened.filename.length', '15');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('old.jd.release.found', '".$old_version_found."');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('show.header.catlist.uncategorised', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('show.header.catlist.all', '1');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('show.header.catlist.topfiles', '0');"."\n";
-              $sum++; $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('show.header.catlist.newfiles', '0');"."\n";
-              
-              foreach ($query as $data){
-                    $db->SetQuery($data);
-                    $db->execute();
-              }      
-              unset($query);           
+                  // Write default licenses in database      
           
-              echo "<font color='green'>--> ".JText::sprintf('COM_JDOWNLOADS_INSTALL_2', $sum)."</font><br />";
+                  $lic_total = (int)JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE_TOTAL');                                 
+                  $sum_licenses = 7;
 
-              // write default layouts in database      
-              $sum_layouts = 13;
+                  $db->setQuery("INSERT INTO #__jdownloads_licenses (title, alias, description, url, language, published, ordering)  VALUES ('".$db->escape(JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE1_TITLE'))."', '".JApplication::stringURLSafe(JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE1_TITLE'))."', '', '".JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE1_URL')."', '*', 1, 1)");
+                  $db->execute();
 
-              // categories
-              $cats_layout       = stripslashes($JLIST_BACKEND_SETTINGS_TEMPLATES_CATS_DEFAULT);
-              $cats_header       = stripslashes($cats_header);
-              $cats_subheader    = stripslashes($cats_subheader);
-              $cats_footer       = stripslashes($cats_footer);
-              $db->setQuery("INSERT INTO #__jdownloads_templates (template_name, template_typ, template_text, template_header_text, template_subheader_text, template_footer_text, template_active, locked, language)  VALUES ('".JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_TEMPLATES_CATS_DEFAULT_NAME')."', 1, '".$cats_layout."', '".$cats_header."', '".$cats_subheader."', '".$cats_footer."', 1, 1, '*')");
-              $db->execute();
-
-              // category
-              $cat_layout       = stripslashes($JLIST_BACKEND_SETTINGS_TEMPLATES_CAT_DEFAULT);
-              $cat_header       = stripslashes($cat_header);
-              $cat_subheader    = stripslashes($cat_subheader);
-              $cat_footer       = stripslashes($cat_footer);
-              $db->setQuery("INSERT INTO #__jdownloads_templates (template_name, template_typ, template_text, template_header_text, template_subheader_text, template_footer_text, template_active, locked, language)  VALUES ('".JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_TEMPLATES_CAT_DEFAULT_NAME')."', 4, '".$cat_layout."', '".$cat_header."', '".$cat_subheader."', '".$cat_footer."', 1, 1, '*')");
-              $db->execute();              
-              
-              // files
-              $file_layout        = stripslashes($JLIST_BACKEND_SETTINGS_TEMPLATES_FILES_DEFAULT);
-              $files_header       = stripslashes($files_header);
-              $files_subheader    = stripslashes($files_subheader);
-              $files_footer       = stripslashes($files_footer);
-              $db->setQuery("INSERT INTO #__jdownloads_templates (template_name, template_typ, template_text, template_header_text, template_subheader_text, template_footer_text, template_active, locked, language)  VALUES ('".JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_TEMPLATES_FILES_DEFAULT_NAME')."', 2, '".$file_layout."', '".$files_header."', '".$files_subheader."', '".$files_footer."', 0, 1, '*')");
-              $db->execute();
-               
-              // summary
-              $summary_layout       = stripslashes($JLIST_BACKEND_SETTINGS_TEMPLATES_SUMMARY_DEFAULT);
-              $$summary_header      = stripslashes($summary_header);
-              $summary_subheader    = stripslashes($summary_subheader);
-              $summary_footer       = stripslashes($summary_footer);              
-              $db->setQuery("INSERT INTO #__jdownloads_templates (template_name, template_typ, template_text, template_header_text, template_subheader_text, template_footer_text, template_active, locked, language)  VALUES ('".JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_TEMPLATES_SUMMARY_DEFAULT_NAME')."', 3, '".$summary_layout."', '".$summary_header."', '".$summary_subheader."', '".$summary_footer."', 1, 1, '*')");
-              $db->execute();
-
-              // download details 
-              $detail_layout        = stripslashes($JLIST_BACKEND_SETTINGS_TEMPLATES_DETAILS_DEFAULT);
-              $details_header       = stripslashes($details_header);
-              $details_subheader    = stripslashes($details_subheader);
-              $details_footer       = stripslashes($details_footer);               
-              $db->setQuery("INSERT INTO #__jdownloads_templates (template_name, template_typ, template_text, template_header_text, template_subheader_text, template_footer_text, template_active, locked, language)  VALUES ('".JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_TEMPLATES_DETAILS_DEFAULT_NAME')."', 5, '$detail_layout', '".$details_header."', '".$details_subheader."', '".$details_footer."', 1, 1, '*')");
-              $db->execute();
-              
-              // layout for download details with tabs
-              $detail_layout = stripslashes($JLIST_BACKEND_SETTINGS_TEMPLATES_DETAILS_DEFAULT_WITH_TABS);
-              $db->setQuery("INSERT INTO #__jdownloads_templates (template_name, template_typ, template_text, template_header_text, template_subheader_text, template_footer_text, template_active, locked, language)  VALUES ('".JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_TEMPLATES_DETAILS_WITH_TABS_TITLE')."', 5, '$detail_layout', '".$details_header."', '".$details_subheader."', '".$details_footer."', '0', 1, '*')");
-              $db->execute();
-              
-              // layout for download details with all new data fields 2.5
-              $detail_layout = stripslashes($JLIST_BACKEND_SETTINGS_TEMPLATES_DETAILS_DEFAULT_NEW_25);
-              $db->setQuery("INSERT INTO #__jdownloads_templates (template_name, template_typ, template_text, template_header_text, template_subheader_text, template_footer_text, template_active, locked, language)  VALUES ('".JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_TEMPLATES_DETAILS_25_TITLE')."', 5, '$detail_layout', '".$details_header."', '".$details_subheader."', '".$details_footer."', '0', 1, '*')");
-              $db->execute();              
-                    
-              // Simple layout with Checkboxes for files
-              $file_layout = stripslashes($JLIST_BACKEND_SETTINGS_TEMPLATES_FILES_DEFAULT_NEW_SIMPLE_1); 
-              $db->setQuery("INSERT INTO #__jdownloads_templates (template_name, template_typ, template_text, template_header_text, template_subheader_text, template_footer_text, template_active, locked, note, checkbox_off, symbol_off, language)  VALUES ('".JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_TEMPLATES_FILES_DEFAULT_NEW_SIMPLE_1_NAME')."', 2, '".$file_layout."', '".$files_header."', '".$files_subheader."', '".$files_footer."', 0, 1, '', 0, 1, '*')");
-              $db->execute();
-                    
-              // Simple layout without Checkboxes for files
-              $file_layout = stripslashes($JLIST_BACKEND_SETTINGS_TEMPLATES_FILES_DEFAULT_NEW_SIMPLE_2); 
-              $db->setQuery("INSERT INTO #__jdownloads_templates (template_name, template_typ, template_text, template_header_text, template_subheader_text, template_footer_text, template_active, locked, note, checkbox_off, symbol_off, language)  VALUES ('".JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_TEMPLATES_FILES_DEFAULT_NEW_SIMPLE_2_NAME')."', 2, '".$file_layout."', '".$files_header."', '".$files_subheader."', '".$files_footer."', 1, 1, '', 1, 1, '*')");
-              $db->execute();
-                    
-              // categories layout with 4 columns
-              $file_layout = stripslashes($JLIST_BACKEND_SETTINGS_TEMPLATES_CATS_COL_DEFAULT); 
-              $db->setQuery("INSERT INTO #__jdownloads_templates (template_name, template_typ, template_text, template_header_text, template_subheader_text, template_footer_text, template_active, locked, note, cols, language)  VALUES ('".JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_TEMPLATES_CATS_COL_TITLE')."', 1, '".$file_layout."', '".$files_header."', '".$files_subheader."', '".$files_footer."', 0, 1, '".JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_TEMPLATES_CATS_COL_NOTE')."', 4, '*')");
-              $db->execute();
-
-                    
-              //This layout is used to view the subcategories from a category with pagination. 
-              $cats_layout        = stripslashes($JLIST_BACKEND_SETTINGS_TEMPLATES_SUBCATS_PAGINATION_DEFAULT);
-              $cats_layout_before = stripslashes($JLIST_BACKEND_SETTINGS_TEMPLATES_SUBCATS_PAGINATION_BEFORE);
-              $cats_layout_after  = stripslashes($JLIST_BACKEND_SETTINGS_TEMPLATES_SUBCATS_PAGINATION_AFTER);
-              $cats_header       = '';
-              $cats_subheader    = '';
-              $cats_footer       = '';
-              $note              = stripslashes(JText::_('COM_JDOWNLOADS_BACKEND_TEMPEDIT_USE_SUBCATS_NOTE'));
-              $db->setQuery("INSERT INTO #__jdownloads_templates (template_name, template_typ, template_text, template_header_text, template_subheader_text, template_footer_text, template_before_text, template_after_text, note, template_active, locked, language, use_to_view_subcats)  VALUES ('".JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_TEMPLATES_CATS_DEFAULT_PAGINATION_NAME')."', 1, '".$cats_layout."', '".$cats_header."', '".$cats_subheader."', '".$cats_footer."', '".$cats_layout_before."', '".$cats_layout_after."', '".$db->escape($note)."', 0, 1, '*', 1)");
-              $db->execute();
-              
-              // New alternate layout (used CSS classes) 
-              $file_layout        = stripslashes($JLIST_BACKEND_SETTINGS_TEMPLATES_FILES_NEW_ALTERNATE_1);
-              $file_layout_before = stripslashes($JLIST_BACKEND_SETTINGS_TEMPLATES_FILES_NEW_ALTERNATE_1_BEFORE);
-              $file_layout_after  = stripslashes($JLIST_BACKEND_SETTINGS_TEMPLATES_FILES_NEW_ALTERNATE_1_AFTER);
-              $files_header       = stripslashes($files_header);
-              $files_subheader    = stripslashes($files_subheader);
-              $files_footer       = stripslashes($files_footer);
-              $db->setQuery("INSERT INTO #__jdownloads_templates (template_name, template_typ, template_text, template_header_text, template_subheader_text, template_footer_text, template_before_text, template_after_text, note, checkbox_off, symbol_off, template_active, locked, language, use_to_view_subcats)  VALUES ('".JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_TEMPLATES_FILES_DEFAULT_NEW_ALTERNATE_1_NAME')."', 2, '".$file_layout."', '".$files_header."', '".$files_subheader."', '".$files_footer."', '".$file_layout_before."', '".$file_layout_after."', '', 1, 1, 0, 1, '*', 0)");
-              $db->execute();                            
-            
-              // default search results layout
-              $search_result_layout = stripslashes($JLIST_BACKEND_SETTINGS_TEMPLATES_SEARCH_DEFAULT);
-              $search_header       = stripslashes($search_header);
-              $search_subheader    = stripslashes($search_subheader);
-              $search_footer       = stripslashes($search_footer);  
-              $db->setQuery("INSERT INTO #__jdownloads_templates (template_name, template_typ, template_text, template_header_text, template_subheader_text, template_footer_text, template_active, locked, note, cols, language)  VALUES ('".JText::_('COM_JDOWNLOADS_BACKEND_SETTINGS_TEMPLATES_SEARCH_DEFAULT_NAME')."', 7, '".$search_result_layout."', '".$search_header."', '".$search_subheader."', '".$search_footer."', 1, 1, '', 4, '*')");
-              $db->execute();
-              
-              echo "<font color='green'>--> ".JText::sprintf('COM_JDOWNLOADS_INSTALL_4', $sum_layouts)."</font><br />";
+                  $db->setQuery("INSERT INTO #__jdownloads_licenses (title, alias, description, url, language, published, ordering)  VALUES ('".$db->escape(JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE2_TITLE'))."', '".JApplication::stringURLSafe(JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE2_TITLE'))."', '', '".JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE2_URL')."', '*', 1, 1)");
+                  $db->execute();
+                  
+                  $db->setQuery("INSERT INTO #__jdownloads_licenses (title, alias, description, url, language, published, ordering)  VALUES ('".$db->escape(JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE3_TITLE'))."', '".JApplication::stringURLSafe(JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE3_TITLE'))."', '".JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE3_TEXT')."', '', '*', 1, 1)");
+                  $db->execute();
           
-              // Write default licenses in database      
-      
-              $lic_total = (int)JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE_TOTAL');                                 
-              $sum_licenses = 7;
+                  $db->setQuery("INSERT INTO #__jdownloads_licenses (title, alias, description, url, language, published, ordering)  VALUES ('".$db->escape(JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE4_TITLE'))."', '".JApplication::stringURLSafe(JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE4_TITLE'))."', '".JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE4_TEXT')."', '', '*', 1, 1)");
+                  $db->execute();
 
-              $db->setQuery("INSERT INTO #__jdownloads_licenses (title, alias, description, url, language, published, ordering)  VALUES ('".$db->escape(JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE1_TITLE'))."', '".JApplication::stringURLSafe(JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE1_TITLE'))."', '', '".JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE1_URL')."', '*', 1, 1)");
-              $db->execute();
+                  $db->setQuery("INSERT INTO #__jdownloads_licenses (title, alias, description, url, language, published, ordering)  VALUES ('".$db->escape(JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE5_TITLE'))."', '".JApplication::stringURLSafe(JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE5_TITLE'))."', '".JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE5_TEXT')."', '', '*', 1, 1)");
+                  $db->execute();
 
-              $db->setQuery("INSERT INTO #__jdownloads_licenses (title, alias, description, url, language, published, ordering)  VALUES ('".$db->escape(JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE2_TITLE'))."', '".JApplication::stringURLSafe(JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE2_TITLE'))."', '', '".JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE2_URL')."', '*', 1, 1)");
-              $db->execute();
+                  $db->setQuery("INSERT INTO #__jdownloads_licenses (title, alias, description, url, language, published, ordering)  VALUES ('".$db->escape(JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE6_TITLE'))."', '".JApplication::stringURLSafe(JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE6_TITLE'))."', '', '', '*', 1, 1)");
+                  $db->execute();
+
+                  $db->setQuery("INSERT INTO #__jdownloads_licenses (title, alias, description, url, language, published, ordering)  VALUES ('".$db->escape(JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE7_TITLE'))."', '".JApplication::stringURLSafe(JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE7_TITLE'))."', '', '".JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE7_URL')."', '*', 1, 1)");
+                  $db->execute();
+
+                  echo '<li><font color="green">'.JText::sprintf('COM_JDOWNLOADS_INSTALL_6', $sum_licenses).'</font></li>';
+              }              
               
-              $db->setQuery("INSERT INTO #__jdownloads_licenses (title, alias, description, url, language, published, ordering)  VALUES ('".$db->escape(JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE3_TITLE'))."', '".JApplication::stringURLSafe(JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE3_TITLE'))."', '".JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE3_TEXT')."', '', '*', 1, 1)");
-              $db->execute();
-      
-              $db->setQuery("INSERT INTO #__jdownloads_licenses (title, alias, description, url, language, published, ordering)  VALUES ('".$db->escape(JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE4_TITLE'))."', '".JApplication::stringURLSafe(JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE4_TITLE'))."', '".JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE4_TEXT')."', '', '*', 1, 1)");
-              $db->execute();
-
-              $db->setQuery("INSERT INTO #__jdownloads_licenses (title, alias, description, url, language, published, ordering)  VALUES ('".$db->escape(JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE5_TITLE'))."', '".JApplication::stringURLSafe(JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE5_TITLE'))."', '".JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE5_TEXT')."', '', '*', 1, 1)");
-              $db->execute();
-
-              $db->setQuery("INSERT INTO #__jdownloads_licenses (title, alias, description, url, language, published, ordering)  VALUES ('".$db->escape(JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE6_TITLE'))."', '".JApplication::stringURLSafe(JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE6_TITLE'))."', '', '', '*', 1, 1)");
-              $db->execute();
-
-              $db->setQuery("INSERT INTO #__jdownloads_licenses (title, alias, description, url, language, published, ordering)  VALUES ('".$db->escape(JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE7_TITLE'))."', '".JApplication::stringURLSafe(JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE7_TITLE'))."', '', '".JText::_('COM_JDOWNLOADS_SETTINGS_LICENSE7_URL')."', '*', 1, 1)");
-              $db->execute();
-
-              echo "<font color='green'>--> ".JText::sprintf('COM_JDOWNLOADS_INSTALL_6', $sum_licenses)."</font><br />";
+              // final checks
               
-      // final checks
-      
-      // Checked if exist joomfish - if yes, move the files
+              // Checked if exist Falang - if yes, move the files
 
-      /*  if (@is_dir(JPATH_SITE.'/administrator/components/com_joomfish/contentelements')){
-            $fishresult = 1;
-            @rename( JPATH_SITE."/administrator/components/com_jdownloads/assets/joomfish/jdownloads_cats.xml", JPATH_SITE."/administrator/components/com_joomfish/contentelements/jdownloads_cats.xml");
-            @rename( JPATH_SITE."/administrator/components/com_jdownloads/assets/joomfish/jdownloads_config.xml", JPATH_SITE."/administrator/components/com_joomfish/contentelements/jdownloads_config.xml");
-            @rename( JPATH_SITE."/administrator/components/com_jdownloads/assets/joomfish/jdownloads_files.xml", JPATH_SITE."/administrator/components/com_joomfish/contentelements/jdownloads_files.xml");
-            @rename( JPATH_SITE."/administrator/components/com_jdownloads/assets/joomfish/jdownloads_layouts.xml", JPATH_SITE."/administrator/components/com_joomfish/contentelements/jdownloads_layouts.xml");
-            @rmdir ( JPATH_SITE."/administrator/components/com_jdownloads/assets/joomfish"); 
-        } else { 
-            $fishresult = 0;
-        }  
+              if (JFolder::exists(JPATH_SITE.'/administrator/components/com_falang/contentelements') && !JFile::exists(JPATH_SITE.'/administrator/components/com_falang/contentelements/jdownloads_files.xml')){
+                  $fishresult = 1;
+                  JFile::copy( JPATH_SITE."/administrator/components/com_jdownloads/assets/falang/jdownloads_categories.xml", JPATH_SITE."/administrator/components/com_falang/contentelements/jdownloads_categories.xml");
+                  JFile::copy( JPATH_SITE."/administrator/components/com_jdownloads/assets/falang/jdownloads_config.xml", JPATH_SITE."/administrator/components/com_falang/contentelements/jdownloads_config.xml");
+                  JFile::copy( JPATH_SITE."/administrator/components/com_jdownloads/assets/falang/jdownloads_files.xml", JPATH_SITE."/administrator/components/com_falang/contentelements/jdownloads_files.xml");
+                  JFile::copy( JPATH_SITE."/administrator/components/com_jdownloads/assets/falang/jdownloads_templates.xml", JPATH_SITE."/administrator/components/com_falang/contentelements/jdownloads_templates.xml");
+                  JFile::copy( JPATH_SITE."/administrator/components/com_jdownloads/assets/falang/jdownloads_licenses.xml", JPATH_SITE."/administrator/components/com_falang/contentelements/jdownloads_licenses.xml");
+                  JFile::copy( JPATH_SITE."/administrator/components/com_jdownloads/assets/falang/jdownloads_usergroups_limits.xml", JPATH_SITE."/administrator/components/com_falang/contentelements/jdownloads_usergroups_limits.xml");
+                  JFolder::delete( JPATH_SITE."/administrator/components/com_jdownloads/assets/falang"); 
+              } else { 
+                  $fishresult = 0;
+              }               
+              
+              if ($fishresult) {
+                  echo '<li><font color="green">'.JText::_('COM_JDOWNLOADS_INSTALL_17')." ".JPATH_SITE.'/administrator/components/com_falang/contentelements'.'</font></li>';
+              } else {
+                  echo '<li><font color="green">'.JText::_('COM_JDOWNLOADS_INSTALL_18')." ".JPATH_SITE.'/administrator/components/com_jdownloads/assets/falang'.'<br />'.JText::_('COM_JDOWNLOADS_INSTALL_19').'</font></li>';
+              }        
+        
             
-        if ($fishresult) {
-            echo "<font color='green'>--> ".JText::_('COM_JDOWNLOADS_INSTALL_17')." ".JPATH_SITE.'/administrator/components/com_joomfish/contentelements'.'</font><br />';
-        } else {
-            echo "<font color='green'>--> ".JText::_('COM_JDOWNLOADS_INSTALL_18')." ".JPATH_SITE.'/administrator/components/com_jdownloads/joomfish'.'<br />'.JText::_('COM_JDOWNLOADS_INSTALL_19').'</font><br />';
-        }        
-        */
-
+            if ($this->old_version_found == '3.2'){
+                // update the stored version when we have db data from older 3.2 version 
+                $query  = "UPDATE #__jdownloads_config SET setting_value = '$jd_version' WHERE setting_name = 'jd.version'";
+                $db->SetQuery($query);
+                $db->execute();
+            }
+            
             // Check default upload directory 
             $dir_exist = JFolder::exists($jd_upload_root);
             
@@ -668,17 +704,18 @@ class com_jdownloadsInstallerScript
             
             if ($dir_exist) {
                 if (is_writable($jd_upload_root)) {
-                    echo "<font color='green'>--> ".JText::_('COM_JDOWNLOADS_INSTALL_7')."</font><br />";
+                    echo '<li><font color="green">'.JText::_('COM_JDOWNLOADS_INSTALL_7').'</font></li>';
                 } else {
-                    echo "<font color='red'><strong>--> ".JText::_('COM_JDOWNLOADS_INSTALL_8')."</strong></font><br />";
+                    echo '<li><font color="red"><strong>'.JText::_('COM_JDOWNLOADS_INSTALL_8').'</strong></font></li>';
+                    
                 }
             } else {
                 if ($makedir =  JFolder::create($jd_upload_root, 0755)) {
                     // copy the index.html to the new folder
                     JFile::copy($indexhtml_source, $jd_upload_root.DS.'index.html');
-                    echo "<font color='green'>--> ".JText::_('COM_JDOWNLOADS_INSTALL_9')."<br />";
+                    echo '<li><font color="green">'.JText::_('COM_JDOWNLOADS_INSTALL_9').'</font></li>';
                 } else {
-                     echo "<font color='red'><strong>--> ".JText::_('COM_JDOWNLOADS_INSTALL_10')."</strong></font><br />";
+                    echo '<li><font color="red"><strong>'.JText::_('COM_JDOWNLOADS_INSTALL_10').'</strong></font></li>'; 
                 }
             }
 
@@ -687,17 +724,17 @@ class com_jdownloadsInstallerScript
 
             if($dir_exist_uncat) {
                 if (is_writable($jd_upload_root.DS.'_uncategorised_files')) {
-                    echo "<font color='green'>--> ".JText::_('COM_JDOWNLOADS_INSTALL_22')."</font><br />";
+                    echo '<li><font color="green">'.JText::_('COM_JDOWNLOADS_INSTALL_22').'</font></li>';
                 } else {
-                    echo "<font color='red'><strong>--> ".JText::_('COM_JDOWNLOADS_INSTALL_23')."</strong></font><br />";
+                    echo '<li><font color="red"><strong>'.JText::_('COM_JDOWNLOADS_INSTALL_23').'</strong></font></li>';
                 }
             } else {
                 if ($makedir =  JFolder::create($jd_upload_root.DS.'_uncategorised_files', 0755)) {
                     // copy the index.html to the new folder
                     JFile::copy($indexhtml_source, $jd_upload_root.DS.'_uncategorised_files'.DS.'index.html');
-                    echo "<font color='green'>--> ".JText::_('COM_JDOWNLOADS_INSTALL_20')."<br />";
+                    echo '<li><font color="green">'.JText::_('COM_JDOWNLOADS_INSTALL_20').'</font></li>';
                 } else {
-                     echo "<font color='red'><strong>--> ".JText::_('COM_JDOWNLOADS_INSTALL_21')."</strong></font><br />";
+                    echo '<li><font color="red"><strong>'.JText::_('COM_JDOWNLOADS_INSTALL_21').'</strong></font></li>'; 
                 }
             }
             
@@ -706,17 +743,17 @@ class com_jdownloadsInstallerScript
 
             if($dir_exist_preview) {
                 if (is_writable($jd_upload_root.DS.'_preview_files')) {
-                    echo "<font color='green'>--> ".JText::_('COM_JDOWNLOADS_INSTALL_30')."</font><br />";
+                    echo '<li><font color="green">'.JText::_('COM_JDOWNLOADS_INSTALL_30').'</font></li>';
                 } else {
-                    echo "<font color='red'><strong>--> ".JText::_('COM_JDOWNLOADS_INSTALL_31')."</strong></font><br />";
+                    echo '<li><font color="red"><strong>'.JText::_('COM_JDOWNLOADS_INSTALL_31').'</strong></font></li>';
                 }
             } else {
                 if ($makedir =  JFolder::create($jd_upload_root.DS.'_preview_files', 0755)) {
                     // copy the index.html to the new folder
                     JFile::copy($indexhtml_source, $jd_upload_root.DS.'_preview_files'.DS.'index.html');
-                    echo "<font color='green'>--> ".JText::_('COM_JDOWNLOADS_INSTALL_28')."<br />";
+                    echo '<li><font color="green">'.JText::_('COM_JDOWNLOADS_INSTALL_28').'</font></li>';
                 } else {
-                     echo "<font color='red'><strong>--> ".JText::_('COM_JDOWNLOADS_INSTALL_29')."</strong></font><br />";
+                    echo '<li><font color="red"><strong>'.JText::_('COM_JDOWNLOADS_INSTALL_29').'</strong></font></li>';
                 }
             }            
             
@@ -725,17 +762,17 @@ class com_jdownloadsInstallerScript
 
             if($dir_exist_private) {
                 if (is_writable($jd_upload_root.DS.'_private_user_area')) {
-                    echo "<font color='green'>--> ".JText::_('COM_JDOWNLOADS_INSTALL_26')."</font><br />";
+                    echo '<li><font color="green">'.JText::_('COM_JDOWNLOADS_INSTALL_26').'</font></li>';
                 } else {
-                    echo "<font color='red'><strong>--> ".JText::_('COM_JDOWNLOADS_INSTALL_27')."</strong></font><br />";
+                    echo '<li><font color="red"><strong>'.JText::_('COM_JDOWNLOADS_INSTALL_27').'</strong></font></li>';
                 }
             } else {
                 if ($makedir =  JFolder::create($jd_upload_root.DS.'_private_user_area', 0755)) {
                     // copy the index.html to the new folder
                     JFile::copy($indexhtml_source, $jd_upload_root.DS.'_private_user_area'.DS.'index.html');
-                    echo "<font color='green'>--> ".JText::_('COM_JDOWNLOADS_INSTALL_24')."<br />";
+                    echo '<li><font color="green">'.JText::_('COM_JDOWNLOADS_INSTALL_24').'</font></li>';
                 } else {
-                     echo "<font color='red'><strong>--> ".JText::_('COM_JDOWNLOADS_INSTALL_25')."</strong></font><br />";
+                     echo '<li><font color="red"><strong>'.JText::_('COM_JDOWNLOADS_INSTALL_25').'</strong></font></li>';
                 }
             }                          
             
@@ -744,29 +781,24 @@ class com_jdownloadsInstallerScript
 
             if($dir_existzip) {
                if (is_writable($jd_upload_root.DS.'_tempzipfiles')) {
-                  echo "<font color='green'>--> ".JText::_('COM_JDOWNLOADS_INSTALL_11')."</font><br />";
+                   echo '<li><font color="green">'.JText::_('COM_JDOWNLOADS_INSTALL_11').'</font></li>';
                } else {
-                   echo "<font color='red'><strong>--> ".JText::_('COM_JDOWNLOADS_INSTALL_12')."</strong></font><br />";
+                   echo '<li><font color="red"><strong>'.JText::_('COM_JDOWNLOADS_INSTALL_12').'</strong></font></li>';
                }
             } else {
                 if ($makedir = JFolder::create($jd_upload_root.DS.'_tempzipfiles'.DS, 0755)) {
                     // copy the index.html to the new folder
                     JFile::copy($indexhtml_source, $jd_upload_root.DS.'_tempzipfiles'.DS.'index.html');
-                    echo "<font color='green'>--> ".JText::_('COM_JDOWNLOADS_INSTALL_13')."<br />";
+                    echo '<li><font color="green">'.JText::_('COM_JDOWNLOADS_INSTALL_13').'</font></li>';
                 } else {
-                 echo "<font color='red'><strong>--> ".JText::_('COM_JDOWNLOADS_INSTALL_14')."</strong></font><br />";
+                    echo '<li><font color="red"><strong>'.JText::_('COM_JDOWNLOADS_INSTALL_14').'</strong></font></li>';
                 }
              }
        
-            echo "<font color='333333'><strong>--> ".JText::_('COM_JDOWNLOADS_INSTALL_DB_TIP')."</strong></font>";
-            ?>
+       
+              echo '</ul>';
+              echo '<font color="555">'.JText::_('COM_JDOWNLOADS_INSTALL_DB_TIP').'</font>';
 
-              </code>
-            </td>
-            </tr>
-            </table>
-
-        <?php                 
         /*
         / Display the results from the extension installation
         /
@@ -776,40 +808,38 @@ class com_jdownloadsInstallerScript
         
         $rows = 0;
         ?>                           
+
         
-        <table class="adminlist" width="100%">
+        </div>
+        <hr>
+
+        <table class="adminlist" width="100%" style="margin:10px 10px 10px 10px;">
             <thead>
                 <tr>
-                    <th class="title" colspan="2"><?php echo JText::_('COM_JDOWNLOADS_INSTALL_EXTENSION'); ?></th>
-                    <th width="30%"><?php echo JText::_('COM_JDOWNLOADS_INSTALL_STATUS'); ?></th>
+                    <th class="title" style="text-align:left;"><?php echo JText::_('COM_JDOWNLOADS_INSTALL_EXTENSION'); ?></th>
+                    <th width="50%"><?php echo JText::_('COM_JDOWNLOADS_INSTALL_STATUS'); ?></th>
                 </tr>
             </thead>
             <tbody>
                 <?php if (count($status->modules)) : ?>
                 <tr>
-                    <th><?php echo JText::_('COM_JDOWNLOADS_INSTALL_MODULE'); ?></th>
-                    <th style="text-align:center;"><?php echo JText::_('COM_JDOWNLOADS_INSTALL_CLIENT'); ?></th>
-                    <th></th>
+                    <th style="text-align:left;"><?php echo JText::_('COM_JDOWNLOADS_INSTALL_MODULE'); ?></th>
                 </tr>
                 <?php foreach ($status->modules as $module) : ?>
                 <tr class="row<?php echo (++ $rows % 2); ?>">
                     <td class="key"><?php echo $module['name']; ?></td>
-                    <td style="text-align:center;" class="key"><?php echo ucfirst($module['client']); ?></td>
-                    <td style="text-align:center;"><strong><?php echo ($module['result'])?JText::_('COM_JDOWNLOADS_INSTALL_INSTALLED'):JText::_('COM_JDOWNLOADS_INSTALL_NOT_INSTALLED'); ?></strong></td>
+                    <td style="text-align:center;"><?php echo ($module['result'])?JText::_('COM_JDOWNLOADS_INSTALL_INSTALLED'):JText::_('COM_JDOWNLOADS_INSTALL_NOT_INSTALLED'); ?></td>
                 </tr>
                 <?php endforeach;?>
                 <?php endif;?>
                 <?php if (count($status->plugins)) : ?>
                 <tr>
-                    <th><?php echo JText::_('COM_JDOWNLOADS_INSTALL_PLUGIN'); ?></th>
-                    <th style="text-align:center;"><?php echo JText::_('COM_JDOWNLOADS_INSTALL_GROUP'); ?></th>
-                    <th></th>
+                    <th style="text-align:left;"><?php echo JText::_('COM_JDOWNLOADS_INSTALL_PLUGIN'); ?></th>
                 </tr>
                 <?php foreach ($status->plugins as $plugin) : ?>
                 <tr class="row<?php echo (++ $rows % 2); ?>">
                     <td class="key"><?php echo ucfirst($plugin['name']); ?></td>
-                    <td style="text-align:center;" class="key"><?php echo ucfirst($plugin['group']); ?></td>
-                    <td style="text-align:center;"><strong><?php echo ($plugin['result'])?JText::_('COM_JDOWNLOADS_INSTALL_INSTALLED'):JText::_('COM_JDOWNLOADS_INSTALL_NOT_INSTALLED'); ?></strong></td>
+                    <td style="text-align:center;"><?php echo ($plugin['result'])?JText::_('COM_JDOWNLOADS_INSTALL_INSTALLED'):JText::_('COM_JDOWNLOADS_INSTALL_NOT_INSTALLED'); ?></td>
                 </tr>
                 <?php endforeach; ?>
                 <?php endif; ?>
@@ -830,15 +860,6 @@ class com_jdownloadsInstallerScript
 	
         jimport('joomla.installer.installer');
         $db = JFactory::getDBO();
-        
-        // get jD language admin file
-        $language = JFactory::getLanguage();
-        if (($test = JText::_('COM_JDOWNLOADS_DESCRIPTION_JD')) == 'COM_JDOWNLOADS_DESCRIPTION_JD'){
-            $language->load('com_jdownloads');
-        }    
-        if (($test = JText::_('COM_JDOWNLOADS_INSTALL_0')) == 'COM_JDOWNLOADS_INSTALL_0'){ 
-            $language->load('com_jdownloads.sys'); 
-        }    
         
         $status = new JObject();
         $status->modules = array();
@@ -904,9 +925,19 @@ class com_jdownloadsInstallerScript
             $result = $installer->uninstall('module',$id,1);
             $status->modules[] = array('name'=>'jDownloads Tree Module','client'=>'site', 'result'=>$result);
         }        
+
+        // Tree Module
+        $db->setQuery('SELECT `extension_id` FROM #__extensions WHERE `element` = "mod_jdownloads_related" AND `type` = "module"');
+        $id = $db->loadResult();
+        if($id)
+        {
+            $installer = new JInstaller;
+            $result = $installer->uninstall('module',$id,1);
+            $status->modules[] = array('name'=>'jDownloads Tree Module','client'=>'site', 'result'=>$result);
+        } 
         
         // System Plugin
-        $db->setQuery('SELECT `extension_id` FROM #__extensions WHERE `type` = "plugin" AND `element` = "plg_system_jdownloads" AND `folder` = "system"');
+        $db->setQuery('SELECT `extension_id` FROM #__extensions WHERE `type` = "plugin" AND `name` = "plg_system_jdownloads" AND `folder` = "system"');
         $id = $db->loadResult();
         if($id)
         {
@@ -915,6 +946,16 @@ class com_jdownloadsInstallerScript
             $status->plugins[] = array('name'=>'jDownloads System Plugin','group'=>'system', 'result'=>$result);
         }
 
+        // Search Plugin
+        $db->setQuery('SELECT `extension_id` FROM #__extensions WHERE `type` = "plugin" AND `name` = "plg_search_jdownloads" AND `folder` = "search"');
+        $id = $db->loadResult();
+        if($id)
+        {
+            $installer = new JInstaller;
+            $result = $installer->uninstall('plugin',$id,1);
+            $status->plugins[] = array('name'=>'jDownloads Search Plugin','group'=>'search', 'result'=>$result);
+        }        
+        
         // Example Plugin
         $db->setQuery('SELECT `extension_id` FROM #__extensions WHERE `type` = "plugin" AND `element` = "example_plugin_jdownloads" AND `folder` = "jdownloads"');
         $id = $db->loadResult();
@@ -946,7 +987,7 @@ class com_jdownloadsInstallerScript
         } 
 		
         // Content Plugin
-        $db->setQuery('SELECT `extension_id` FROM #__extensions WHERE `type` = "plugin" AND `element` = "plg_content_jdownloads" AND `folder` = "content"');
+        $db->setQuery('SELECT `extension_id` FROM #__extensions WHERE `type` = "plugin" AND `name` = "Content - jDownloads" AND `folder` = "content"');
         $id = $db->loadResult();
         if($id)
         {
@@ -958,65 +999,56 @@ class com_jdownloadsInstallerScript
         $rows = 0;
         ?>
         
-        <h3><?php echo JText::_('COM_JDOWNLOADS_DEINSTALL_0'); ?></h3>
+        <h4><?php echo JText::_('COM_JDOWNLOADS_DEINSTALL_0'); ?></h4>
+        
+        <?php
+        $msg = '';
+        $msg = '<hr><p align="center"><b><span style="color:#00CC00">The download folder and all subfolders still exists!</b></p>' 
+               .'<p align="center"><b><span style="color:#00CC00">Folder images/jdownloads/ still exists! </b></p>'
+               .'<p align="center"><b><span style="color:#00CC00">All jDownloads database tables still exist!</b></p>'
+               .'<p align="center">Please delete it (them) manually, if you want.</p><hr>';
+        echo $msg;
+        ?>
+                
         <table class="adminlist" width="100%">
             <thead>
                 <tr>
-                    <th class="title" colspan="2"><?php echo JText::_('COM_JDOWNLOADS_INSTALL_EXTENSION'); ?></th>
-                    <th width="30%"><?php echo JText::_('COM_JDOWNLOADS_INSTALL_STATUS'); ?></th>
+                    <th class="title" style="text-align:left;"><?php echo JText::_('COM_JDOWNLOADS_INSTALL_EXTENSION'); ?></th>
+                    <th width="50%"><?php echo JText::_('COM_JDOWNLOADS_INSTALL_STATUS'); ?></th>
                 </tr>
             </thead>
-            <tfoot>
-                <tr>
-                    <td colspan="3"></td>
-                </tr>
-            </tfoot>
             <tbody>
                 <tr class="row0">
-                    <td class="key" colspan="2"><?php echo JText::_('COM_JDOWNLOADS_INSTALL_COMPONENT').' '.JText::_('COM_JDOWNLOADS_INSTALL_JDOWNLOADS'); ?></td>
-                    <td><?php echo JText::_('COM_JDOWNLOADS_DEINSTALL_REMOVED'); ?></td>
+                    <td class="key"><?php echo JText::_('COM_JDOWNLOADS_INSTALL_COMPONENT').' '.JText::_('COM_JDOWNLOADS_INSTALL_JDOWNLOADS'); ?></td>
+                    <td style="text-align:center;"><?php echo JText::_('COM_JDOWNLOADS_DEINSTALL_REMOVED'); ?></td>
                 </tr>
                 <?php if (count($status->modules)) : ?>
                 <tr>
-                    <th><?php echo JText::_('COM_JDOWNLOADS_INSTALL_MODULE'); ?></th>
-                    <th><?php echo JText::_('COM_JDOWNLOADS_INSTALL_CLIENT'); ?></th>
-                    <th></th>
+                    <th style="text-align:left;"><?php echo JText::_('COM_JDOWNLOADS_INSTALL_MODULE'); ?></th>
                 </tr>
                 <?php foreach ($status->modules as $module) : ?>
                 <tr class="row<?php echo (++ $rows % 2); ?>">
                     <td class="key"><?php echo $module['name']; ?></td>
-                    <td class="key"><?php echo ucfirst($module['client']); ?></td>
-                    <td><?php echo ($module['result'])?JText::_('COM_JDOWNLOADS_DEINSTALL_REMOVED'):JText::_('COM_JDOWNLOADS_DEINSTALL_NOT_REMOVED'); ?></td>
+                    <td style="text-align:center"><?php echo ($module['result'])?JText::_('COM_JDOWNLOADS_DEINSTALL_REMOVED'):JText::_('COM_JDOWNLOADS_DEINSTALL_NOT_REMOVED'); ?></td>
                 </tr>
                 <?php endforeach;?>
                 <?php endif;?>
                 <?php if (count($status->plugins)) : ?>
                 <tr>
-                    <th><?php echo JText::_('COM_JDOWNLOADS_INSTALL_PLUGIN'); ?></th>
-                    <th><?php echo JText::_('COM_JDOWNLOADS_INSTALL_GROUP'); ?></th>
-                    <th></th>
+                    <th style="text-align:left;"><?php echo JText::_('COM_JDOWNLOADS_INSTALL_PLUGIN'); ?></th>
                 </tr>
                 <?php foreach ($status->plugins as $plugin) : ?>
                 <tr class="row<?php echo (++ $rows % 2); ?>">
                     <td class="key"><?php echo ucfirst($plugin['name']); ?></td>
-                    <td class="key"><?php echo ucfirst($plugin['group']); ?></td>
-                    <td><?php echo ($plugin['result'])?JText::_('COM_JDOWNLOADS_DEINSTALL_REMOVED'):JText::_('COM_JDOWNLOADS_DEINSTALL_NOT_REMOVED'); ?></td>
+                    <td style="text-align:center;"><?php echo ($plugin['result'])?JText::_('COM_JDOWNLOADS_DEINSTALL_REMOVED'):JText::_('COM_JDOWNLOADS_DEINSTALL_NOT_REMOVED'); ?></td>
                 </tr>
                 <?php endforeach; ?>
                 <?php endif; ?>
             </tbody>
         </table>
-
+        <hr>
         <?php
 		
-        
-        // $parent is the class calling this method    
-        $msg = '';
-		$msg = '<p align="center"><b><span style="color:#00CC00">The download folder and all subfolders still exists!</b></p>' 
-			   .'<p align="center"><b><span style="color:#00CC00">Folder images/jdownloads/ still exists! </b></p>'
-			   .'<p align="center"><b><span style="color:#00CC00">All jDownloads database tables still exist!</b></p>'
-			   .'<p align="center">Please delete it (them) manually, if you want.</p>';
-		echo $msg;
 	}
  
 	/**
@@ -1036,16 +1068,9 @@ class com_jdownloadsInstallerScript
 
         $prefix = self::getCorrectDBPrefix();
         $tablelist = $db->getTableList();
-       
-        // get jD language admin file
-        $language = JFactory::getLanguage();
-        if (($test = JText::_('COM_JDOWNLOADS_DESCRIPTION_JD')) == 'COM_JDOWNLOADS_DESCRIPTION_JD'){
-            $language->load('com_jdownloads');
-        }    
-        if (($test = JText::_('COM_JDOWNLOADS_INSTALL_0')) == 'COM_JDOWNLOADS_INSTALL_0'){ 
-            $language->load('com_jdownloads.sys'); 
-        }    
         
+        $rows = 0;
+       
         jimport('joomla.filesystem.folder');
         jimport('joomla.filesystem.file');        
 
@@ -1106,6 +1131,10 @@ class com_jdownloadsInstallerScript
         $installer = new JInstaller;                                                                                     
         $result = $installer->install($src_modules.DS.'mod_jdownloads_tree');
         $status->modules[] = array('name'=>'mod_jdownloads_tree','client'=>'site', 'result'=>$result);         
+
+        $installer = new JInstaller;                                                                                     
+        $result = $installer->install($src_modules.DS.'mod_jdownloads_related');
+        $status->modules[] = array('name'=>'mod_jdownloads_related','client'=>'site', 'result'=>$result);
         
         $installer = new JInstaller;
         $result = $installer->install($src_plugins.DS.'plg_system_jdownloads');
@@ -1207,51 +1236,90 @@ class com_jdownloadsInstallerScript
            // create the missing field
            $db->SetQuery("ALTER TABLE `#__jdownloads_usergroups_limits` ADD `uploads_default_access_level` INT( 10 ) NOT NULL DEFAULT '0' AFTER `uploads_can_change_category`");
            $db->execute();
-        }        
+        }
+
+        // updated in 3.2.37
+        // add new options in config to use HTML5 elements for video and audio
+        $db->setQuery("SELECT setting_value FROM #__jdownloads_config WHERE setting_name = 'html5player.use'");
+        $is_option = $db->loadResult();
+        if (!isset($is_option)){
+            $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('show.header.catlist.levels', '0');"."\n";
+            $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('html5player.use', '0');"."\n";
+            $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('html5player.width', '320');"."\n";
+            $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('html5player.height', '240');"."\n";
+            $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('html5player.audio.width', '250');"."\n";
+            $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('html5player.view.video.only.in.details', '0');"."\n";                                   
+            
+            foreach ($query as $data){
+                $db->SetQuery($data);
+                $db->execute();            
+            }      
+            unset($query);
+        }
+
+        // updated in 3.2.41
+        // add new featured options in config
+        $db->setQuery("SELECT setting_value FROM #__jdownloads_config WHERE setting_name = 'featured.pic.filename'");
+        $is_option = $db->loadResult();
+        if (!isset($is_option)){
+            $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('featured.pic.size', '48');"."\n";
+            $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('featured.pic.size.height', '48');"."\n";
+            $query[] = "INSERT INTO ".$db->quoteName('#__jdownloads_config')." (setting_name, setting_value) VALUES ('featured.pic.filename', 'featured_orange_star.png');"."\n";                                    
+            foreach ($query as $data){
+                $db->SetQuery($data);
+                $db->execute();            
+            }      
+            unset($query);
+        }
+        
+        $target = JPATH_ROOT.DS.'images'.DS.'jdownloads'.DS.'featuredimages';
+        $source = dirname(__FILE__).DS.'site'.DS.'assets'.DS.'images'.DS.'jdownloads'.DS.'featuredimages';
+        
+        if (!JFolder::exists(JPATH_ROOT.DS.'images'.DS.'jdownloads'.DS.'featuredimages')){
+            JFolder::copy($source, $target);
+        }          
         
         // $parent is the class calling this method
-        echo '<p>' . JText::_('COM_JDOWNLOADS_UPDATE_TEXT') . '</p>';
-
+        echo '<h4 style="color:#555;">' . JText::_('COM_JDOWNLOADS_UPDATE_TEXT') . '</h4>';
+       
         if (count($status->modules) || count($status->plugins)){
         ?>    
-            <table class="adminlist" width="100%">
-                <thead>
-                    <tr>
-                        <th class="title" colspan="2"><?php echo JText::_('COM_JDOWNLOADS_INSTALL_EXTENSION'); ?></th>
-                        <th width="30%"><?php echo JText::_('COM_JDOWNLOADS_INSTALL_STATUS'); ?></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if (count($status->modules)) : ?>
-                    <tr>
-                        <th><?php echo JText::_('COM_JDOWNLOADS_INSTALL_MODULE'); ?></th>
-                        <th style="text-align:center;"><?php echo JText::_('COM_JDOWNLOADS_INSTALL_CLIENT'); ?></th>
-                        <th></th>
-                    </tr>
-                    <?php foreach ($status->modules as $module) : ?>
-                    <tr class="row<?php echo (++ $rows % 2); ?>">
-                        <td class="key"><?php echo $module['name']; ?></td>
-                        <td style="text-align:center;" class="key"><?php echo ucfirst($module['client']); ?></td>
-                        <td style="text-align:center;"><strong><?php echo ($module['result'])?JText::_('COM_JDOWNLOADS_INSTALL_INSTALLED'):JText::_('COM_JDOWNLOADS_INSTALL_NOT_INSTALLED'); ?></strong></td>
-                    </tr>
-                    <?php endforeach;?>
-                    <?php endif;?>
-                    <?php if (count($status->plugins)) : ?>
-                    <tr>
-                        <th><?php echo JText::_('COM_JDOWNLOADS_INSTALL_PLUGIN'); ?></th>
-                        <th style="text-align:center;"><?php echo JText::_('COM_JDOWNLOADS_INSTALL_GROUP'); ?></th>
-                        <th></th>
-                    </tr>
-                    <?php foreach ($status->plugins as $plugin) : ?>
-                    <tr class="row<?php echo (++ $rows % 2); ?>">
-                        <td class="key"><?php echo ucfirst($plugin['name']); ?></td>
-                        <td style="text-align:center;" class="key"><?php echo ucfirst($plugin['group']); ?></td>
-                        <td style="text-align:center;"><strong><?php echo ($plugin['result'])?JText::_('COM_JDOWNLOADS_INSTALL_INSTALLED'):JText::_('COM_JDOWNLOADS_INSTALL_NOT_INSTALLED'); ?></strong></td>
-                    </tr>
-                    <?php endforeach; ?>
-                    <?php endif; ?>
-                </tbody>
-            </table>
+
+        <hr>
+
+        <table class="adminlist" width="100%" style="margin:10px 10px 10px 10px;">
+            <thead>
+                <tr>
+                    <th class="title" style="text-align:left;"><?php echo JText::_('COM_JDOWNLOADS_INSTALL_EXTENSION'); ?></th>
+                    <th width="50%"><?php echo JText::_('COM_JDOWNLOADS_INSTALL_STATUS'); ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (count($status->modules)) : ?>
+                <tr>
+                    <th style="text-align:left;"><?php echo JText::_('COM_JDOWNLOADS_INSTALL_MODULE'); ?></th>
+                </tr>
+                <?php foreach ($status->modules as $module) : ?>
+                <tr class="row<?php echo (++ $rows % 2); ?>">
+                    <td class="key"><?php echo $module['name']; ?></td>
+                    <td style="text-align:center;"><?php echo ($module['result'])?JText::_('COM_JDOWNLOADS_INSTALL_INSTALLED'):JText::_('COM_JDOWNLOADS_INSTALL_NOT_INSTALLED'); ?></td>
+                </tr>
+                <?php endforeach;?>
+                <?php endif;?>
+                <?php if (count($status->plugins)) : ?>
+                <tr>
+                    <th style="text-align:left;"><?php echo JText::_('COM_JDOWNLOADS_INSTALL_PLUGIN'); ?></th>
+                </tr>
+                <?php foreach ($status->plugins as $plugin) : ?>
+                <tr class="row<?php echo (++ $rows % 2); ?>">
+                    <td class="key"><?php echo ucfirst($plugin['name']); ?></td>
+                    <td style="text-align:center;"><?php echo ($plugin['result'])?JText::_('COM_JDOWNLOADS_INSTALL_INSTALLED'):JText::_('COM_JDOWNLOADS_INSTALL_NOT_INSTALLED'); ?></td>
+                </tr>
+                <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
+        </table>            
+
         <?php            
             
         }
@@ -1265,15 +1333,6 @@ class com_jdownloadsInstallerScript
 	 */
 	function preflight($type, $parent) 
 	{
-        
-        // get jD language admin file
-        $language = JFactory::getLanguage();
-        if (($test = JText::_('COM_JDOWNLOADS_DESCRIPTION_JD')) == 'COM_JDOWNLOADS_DESCRIPTION_JD'){
-            $language->load('com_jdownloads');
-        }    
-        if (($test = JText::_('COM_JDOWNLOADS_INSTALL_0')) == 'COM_JDOWNLOADS_INSTALL_0'){ 
-            $language->load('com_jdownloads.sys'); 
-        }     
         
         $manifest = $parent->get("manifest");
         $parent   = $parent->getParent();
@@ -1295,15 +1354,19 @@ class com_jdownloadsInstallerScript
         $prefix = self::getCorrectDBPrefix();
         $tablelist = $db->getTableList();
         
-        $this->old_version_found = false;  
+        $this->old_version_found = 0;  
+        // when != 0 exists leftover data from a prior installed version. So only the component was deinstalled prior 
+        // is the value 1.9 we will migrate to the new 3.2 series.
+        // is the value 3.2 we have it exist data from the new 3.2 series.
        
         if (in_array ( $prefix.'jdownloads_config', $tablelist)) {
             $db->setQuery('SELECT `setting_value` FROM #__jdownloads_config WHERE `setting_name` = "jd.version"');
             $old_version = $db->loadResult();
+            // be careful when this result is 3.2.x - it is possible that this was not always correct updated! 
             if (isset($old_version) && $old_version != ''){
                 $compare_str = substr($old_version, 0, 5);
                 if ($compare_str == '1.9.1' || $compare_str == '1.9.2'){
-                    $this->old_version_found = true;
+                    $this->old_version_found = '1.9';
 
                     // make sure that the older version is really uninstalled 
                     $db->setQuery('SELECT `extension_id` FROM #__extensions WHERE `element` = "com_jdownloads" AND `type` = "component"');
@@ -1334,8 +1397,15 @@ class com_jdownloadsInstallerScript
                     $db->execute();
                     $db->setQuery('RENAME TABLE `'.$prefix.'jdownloads_templates` TO `'.$prefix.'jdownloads_templates_backup`');
                     $db->execute();
-                }        
-            }   
+                } else {
+                    // the DB data from any other older installation seems to exist 
+                    $this->old_version_found = '3.2'; 
+                    // add message
+                    $this->old_update_message[] = '<li><span style="background-color:yellow; color:red;">'.JText::_('COM_JDOWNLOADS_REINSTALL_WITH_PRIOR_DATA_INFO1').'</span></li>';
+                    $this->old_update_message[] = '<li><span style="background-color:yellow; color:red;">'.JText::_('COM_JDOWNLOADS_REINSTALL_WITH_PRIOR_DATA_INFO2').'</span></li>';
+                    $this->old_update_message[] = '<li><span style="background-color:yellow; color:red;">'.JText::_('COM_JDOWNLOADS_REINSTALL_WITH_PRIOR_DATA_INFO3').'</span></li>';
+                }       
+            }  
         }
         
         if ( $type == 'install' || $type == 'update' ) {
@@ -1348,7 +1418,7 @@ class com_jdownloadsInstallerScript
             }
          
             if ( $type == 'update' ) {
-                $component_header = JText::_('COM_JDOWNLOADS_DESCRIPTION_JD');
+                $component_header = JText::_('COM_JDOWNLOADS_DESCRIPTION');
                 $typetext = JText::_('COM_JDOWNLOADS_INSTALL_TYPE_UPDATE');
                 $db->setQuery('SELECT * FROM #__extensions WHERE `element` = "com_jdownloads" AND `type` = "component"');
                 $item = $db->loadObject();
@@ -1387,12 +1457,11 @@ class com_jdownloadsInstallerScript
         } else {
             
             if ($type == 'uninstall'){
-                // start uninstall                 
-                                
-                
+                       
             }
            
         }
+        // afterwards are copied the component files 
 	}
  
 	/**

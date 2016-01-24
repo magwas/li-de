@@ -56,7 +56,8 @@ class TemakorokModelTemakoroklist extends JModelList
                      sum(sz.vita1 + sz.vita2) vita,
                      sum(szavazas) szavazas,
                      sum(lezart) lezart,
-                     a.allapot
+                     a.allapot,
+					 a.leiras
     from #__temakorok a
     left outer join #__szavazasok sz ON sz.temakor_id = a.id
     WHERE '.$whereStr.'
@@ -77,7 +78,8 @@ class TemakorokModelTemakoroklist extends JModelList
                      sum(sz.vita1 + sz.vita2) vita,
                      sum(szavazas) szavazas,
                      sum(lezart) lezart,
-                     a.allapot
+                     a.allapot,
+					 a.leiras
      from #__temakorok a
      left outer join #__szavazasok sz ON sz.temakor_id = a.id
      WHERE a.id = "'.$temakor_id.'"

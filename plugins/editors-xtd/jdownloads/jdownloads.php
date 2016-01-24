@@ -18,6 +18,11 @@ jimport( 'joomla.plugin.plugin' );
 class plgButtonJdownloads extends JPlugin {
      
     protected $autoloadLanguage = true;
+    
+    function plgButtonJdownloads(& $subject, $config)
+    {
+        parent::__construct($subject, $config);
+    }    
 
 	public function onDisplay($name, $asset, $author){
 		$app = JFactory::getApplication();
@@ -43,7 +48,7 @@ class plgButtonJdownloads extends JPlugin {
         }";
         $document->addScriptDeclaration($js);
 
-        $link = 'index.php?option=com_jdownloads&amp;view=downloads&amp;layout=modallist&amp;tmpl=component&amp;e_name='.$name.'&amp;' . JSession::getFormToken() . '=1';
+        $link = 'index.php?option=com_jdownloads&amp;view=list&amp;layout=modallist&amp;tmpl=component&amp;e_name='.$name.'&amp;' . JSession::getFormToken() . '=1';
 
         JHtml::_('behavior.modal');
         $button = new JObject;

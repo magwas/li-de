@@ -213,9 +213,12 @@ class JDCategories
         // Record that has this $id has been checked
 		$this->_checkedCategories[$id] = true;
 
-		$query = $db->getQuery(true);
+        $db->setQuery('SET SESSION SQL_BIG_SELECTS = 1');
+        $db->execute();
 
-		// Right join with c for category
+        $query = $db->getQuery(true);
+        
+        // Right join with c for category
 		$query->select('c.*');
 		$case_when = ' CASE WHEN ';
 		$case_when .= $query->charLength('c.alias');
@@ -311,9 +314,12 @@ class JDCategories
         $query->join('LEFT', '#__users AS u2 on u2.id = files.modified_id');
                                                                                              
         // Join on menu table. We need the single category menu itemid when exist                                                                                                  
-        $query->select('menu.id AS menu_itemid');
-        $query->join('LEFT', '#__menu AS menu on menu.link LIKE CONCAT(\'index.php?option=com_jdownloads&view=category&catid=\',c.id,\'%\') AND menu.published = 1 AND menu.access IN (' . implode(',', $user->getAuthorisedViewLevels()) . ')') ;
+        //$query->select('menu.id AS menu_itemid');
+        //$query->join('LEFT', '#__menu AS menu on menu.link LIKE CONCAT(\'index.php?option=com_jdownloads&view=category&catid=\',c.id) AND menu.published = 1 AND menu.access IN (' . implode(',', $user->getAuthorisedViewLevels()) . ')') ;
 
+        $query->select('menu.id AS menu_itemid');
+        $query->join('LEFT', '(SELECT id, link, access, published from #__menu GROUP BY link) AS menu on menu.link LIKE CONCAT(\'index.php?option=com_jdownloads&view=category&catid=\',c.id) AND menu.published = 1 AND menu.access IN (' . implode(',', $user->getAuthorisedViewLevels()) . ')') ;
+        
 		// Group by
 		$query->group('c.id, c.cat_dir, c.cat_dir_parent, c.parent_id, c.lft, c.rgt, c.level, c.title, c.alias, c.description, c.pic, c.access, c.metakey, c.metadesc, c.robots,
                        c.created_user_id, c.created_time, c.modified_user_id, c.modified_time, c.language, c.notes, c.views, c.params, c.password, c.password_md5, c.ordering, c.published, c.checked_out, c.checked_out_time, c.asset_id');

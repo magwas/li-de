@@ -1,17 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension type="component" version="3.0" method="upgrade">
 	<name>AcyMailing</name>
-	<creationDate>novembre 2015</creationDate>
-	<version>5.0.1</version>
-	<level>starter</level>
+	<creationDate>mai 2015</creationDate>
+	<version>4.9.3</version>
 	<author>Acyba</author>
 	<authorEmail>dev@acyba.com</authorEmail>
 	<authorUrl>http://www.acyba.com</authorUrl>
-	<copyright>Copyright (C) 2009-2015 ACYBA SAS - All rights reserved.</copyright>
+	<copyright>Copyright (C) 2009-2015 ACYBA SARL - All rights reserved.</copyright>
 	<description>Manage your Mailing lists, Newsletters, e-mail marketing campaigns</description>
 	<license>GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html</license>
 	<languages folder="language">
+		<language tag="de-DE">de-DE.com_acymailing.ini</language>
 		<language tag="en-GB">en-GB.com_acymailing.ini</language>
+		<language tag="es-ES">es-ES.com_acymailing.ini</language>
+		<language tag="fr-FR">fr-FR.com_acymailing.ini</language>
+		<language tag="hu-HU">hu-HU.com_acymailing.ini</language>
+		<language tag="it-IT">it-IT.com_acymailing.ini</language>
+		<language tag="nl-NL">nl-NL.com_acymailing.ini</language>
+		<language tag="pl-PL">pl-PL.com_acymailing.ini</language>
+		<language tag="pt-BR">pt-BR.com_acymailing.ini</language>
+		<language tag="pt-PT">pt-PT.com_acymailing.ini</language>
+		<language tag="ru-RU">ru-RU.com_acymailing.ini</language>
+		<language tag="sv-SE">sv-SE.com_acymailing.ini</language>
 	</languages>
 	<install>
 		<sql>
@@ -41,6 +51,7 @@
 	</media>
 	<administration>
 		<files folder="back">
+			<folder>buttons</folder>
 			<folder>classes</folder>
 			<folder>controllers</folder>
 			<folder>compat</folder>
@@ -63,6 +74,7 @@
 			<menu link="option=com_acymailing&amp;ctrl=queue" img="../media/com_acymailing/images/icons/icon-16-process.png">Queue</menu>
 			<menu link="option=com_acymailing&amp;ctrl=stats" img="../media/com_acymailing/images/icons/icon-16-stats.png">Statistics</menu>
 			<menu link="option=com_acymailing&amp;ctrl=cpanel" img="../media/com_acymailing/images/icons/icon-16-acyconfig.png">Configuration</menu>
+			<menu link="option=com_acymailing&amp;ctrl=update" img="../media/com_acymailing/images/icons/icon-16-update.png">Update_About</menu>
 		</submenu>
 	</administration>
 </extension>

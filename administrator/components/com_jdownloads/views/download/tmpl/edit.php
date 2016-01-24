@@ -15,6 +15,8 @@ defined('_JEXEC') or die;
 
 global $jlistConfig;
 
+$ini_upload_max_filesize = JDownloadsHelper::return_bytes(ini_get('upload_max_filesize'));
+
 JHtml::addIncludePath(JPATH_COMPONENT.'/helpers/html');
 JHtml::_('behavior.tooltip');
 JHTML::_('behavior.formvalidation');
@@ -76,7 +78,7 @@ $admin_images_folder = JURI::root().'administrator/components/com_jdownloads/ass
 
 
 <form accept-charset="utf-8" action="<?php echo JRoute::_('index.php?option=com_jdownloads&layout=edit&file_id='.(int) $this->item->file_id); ?>" method="post" name="adminForm" id="download-form" enctype="multipart/form-data" class="form-validate">
-
+    <input type="hidden" name="MAX_FILE_SIZE" value="<?php echo ($ini_upload_max_filesize); ?>" />
     <?php if (isset($this->selected_filename) && $this->selected_filename != ''){ ?>
         <div class="jdlists-header-info"><?php echo '<img align="left" src="'.JURI::root().'administrator/components/com_jdownloads/assets/images/info22.png" width="22" height="22" border="0" alt="" />&nbsp;&nbsp;'.JText::_('COM_JDOWNLOADS_BACKEND_FILESEDIT_NOTE_FILE_SELECTED_IN_LIST'); ?> </div>
         <div class="clr"> </div> 
@@ -100,6 +102,9 @@ $admin_images_folder = JURI::root().'administrator/components/com_jdownloads/ass
 
                 <li><?php echo $this->form->getLabel('published'); ?>
                 <?php echo $this->form->getInput('published'); ?></li>
+
+                <li><?php echo $this->form->getLabel('featured'); ?>
+                <?php echo $this->form->getInput('featured'); ?></li>
                 
                 <li><?php echo $this->form->getLabel('access'); ?>
                 <?php echo $this->form->getInput('access'); ?></li>
@@ -267,6 +272,7 @@ $admin_images_folder = JURI::root().'administrator/components/com_jdownloads/ass
                         
                 <li><?php echo $this->form->getLabel('file_upload'); ?>
                 <?php echo $this->form->getInput('file_upload'); ?></li>
+                <li><?php echo '<small>'.JText::_('COM_JDOWNLOADS_UPLOAD_MAX_FILESIZE_INFO_TITLE').' '.($ini_upload_max_filesize / 1024).' KB</small>'; ?></li>
 
                 <li><?php echo $this->form->getLabel('other_file_id'); ?>
                 <?php echo $this->form->getInput('other_file_id'); ?>
@@ -326,7 +332,8 @@ $admin_images_folder = JURI::root().'administrator/components/com_jdownloads/ass
                 endif; ?>
                             
                 <li><?php echo $this->form->getLabel('preview_file_upload'); ?>
-                <?php echo $this->form->getInput('preview_file_upload'); ?></li>                
+                <?php echo $this->form->getInput('preview_file_upload'); ?></li>
+                <li><?php echo '<small>'.JText::_('COM_JDOWNLOADS_UPLOAD_MAX_FILESIZE_INFO_TITLE').' '.($ini_upload_max_filesize / 1024).' KB</small>'; ?></li>                
 
                 <li><?php echo $this->form->getLabel('spacer'); ?></li>
                 
@@ -597,6 +604,7 @@ $admin_images_folder = JURI::root().'administrator/components/com_jdownloads/ass
                     <td class=""><input type="file" name="file_upload_thumb[0]" id="file_upload_thumb[0]" size="40" accept="image/gif,image/jpeg,image/jpg,image/png" onchange="add_new_image_file(this)" />
                     </td>
                     </tr>
+                    <tr><td><?php echo '<small>'.JText::_('COM_JDOWNLOADS_UPLOAD_MAX_FILESIZE_INFO_TITLE').' '.($ini_upload_max_filesize / 1024).' KB</small>'; ?></td></tr>
                     </table> 
              <?php
              } else { 
@@ -645,7 +653,7 @@ $admin_images_folder = JURI::root().'administrator/components/com_jdownloads/ass
         <!-- end ACL definition--> 
     <div>
         
-        <input type="hidden" name="MAX_FILE_SIZE" value="<?php echo $jlistConfig['allowed.upload.file.size']; ?>" /> 
+        
         <input type="hidden" name="task" value="" />
         <input type="hidden" name="view" value="download" />
         <input type="hidden" name="image_file_count" id="image_file_count" value="0" />         

@@ -238,7 +238,16 @@ $limits = $this->get('user_limits');
                         <?php echo $this->form->getInput('published'); ?>
                     </div>
                 <?php endif; ?>            
-            <?php endif; ?>            
+            <?php endif; ?>
+            
+            <?php if ($this->item->params->get('access-change') || $this->item->params->get('access-create') || $this->item->params->get('access-edit')): ?>
+                <?php if ($rules->form_featured):?>
+                    <div class="formelm">
+                        <?php echo $this->form->getLabel('featured'); ?>
+                        <?php echo $this->form->getInput('featured'); ?>
+                    </div>
+                <?php endif; ?>            
+            <?php endif; ?>                         
             
             <?php if ($rules->form_creation_date):?>
                 <div class="formelm">
@@ -502,7 +511,7 @@ $limits = $this->get('user_limits');
 
 	    <fieldset class="jd_fieldset_outer">
 		    <legend><?php echo JText::_('COM_JDOWNLOADS_FORM_LABEL_ADDITIONAL'); ?></legend>
-            <?php if ($rules->form_downloaded):?> 
+            <?php if ($rules->form_password):?> 
                 <div class="formelm">
                     <?php echo $this->form->getLabel('password'); ?>
                     <?php echo $this->form->getInput('password'); ?>

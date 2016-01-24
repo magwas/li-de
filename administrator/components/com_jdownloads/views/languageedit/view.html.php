@@ -32,6 +32,7 @@ class jdownloadsViewlanguageedit extends JViewLegacy
 	{
         $this->setFile();
         $this->addToolbar();
+        $this->sidebar = JHtmlSidebar::render();        
         parent::display($tpl);
     }
     
@@ -91,7 +92,7 @@ class jdownloadsViewlanguageedit extends JViewLegacy
         $document = JFactory::getDocument();
         $document->addStyleSheet('components/com_jdownloads/assets/css/style.css');
         
-        JDownloadsHelper::addSubmenu('templates');  
+        //JDownloadsHelper::addSubmenu('templates');  
         
         JToolBarHelper::title(JText::_('COM_JDOWNLOADS').': '.JText::_('COM_JDOWNLOADS_BACKEND_EDIT_LANG_TITLE_EDIT'), 'jdlogo');
         

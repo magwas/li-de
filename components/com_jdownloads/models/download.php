@@ -89,7 +89,7 @@ class jdownloadsModelDownload extends JModelItem
 					'a.file_language, a.system, a.license, a.url_license, a.license_agree, a.size, a.url_download, a.preview_filename, a.other_file_id, a.md5_value, a.sha1_value, ' .
                     'a.extern_file, a.extern_site, a.mirror_1, a.mirror_2, a.extern_site_mirror_1, a.extern_site_mirror_2, a.url_home, a.author, a.url_author, a.created_mail, a.submitted_by, ' .
                     'a.changelog, a.password, a.password_md5, a.views, a.update_active, a.custom_field_1, a.custom_field_2, a.custom_field_3, a.custom_field_4, a.custom_field_5, a.custom_field_6, ' .
-                    'a.custom_field_7, a.custom_field_8, a.custom_field_9, a.custom_field_10, a.custom_field_11, a.custom_field_12, a.custom_field_13, a.custom_field_14, a.published, ' .
+                    'a.custom_field_7, a.custom_field_8, a.custom_field_9, a.custom_field_10, a.custom_field_11, a.custom_field_12, a.custom_field_13, a.custom_field_14, a.featured, a.published, ' .
                     // If badcats is not null, this means that the download is inside an unpublished category
 					// In this case, the state is set to 0 to indicate Unpublished (even if the download state is Published)
 					'CASE WHEN badcats.id is null THEN a.published ELSE 0 END AS state, ' .
@@ -137,7 +137,7 @@ class jdownloadsModelDownload extends JModelItem
 				$query->join('LEFT', '(' . $subQuery . ') AS contact ON contact.user_id = a.created_id');
 
                 // Join on license table.
-                $query->select('l.title AS license_title, l.url AS license_url, l.description AS license_text');
+                $query->select('l.title AS license_title, l.url AS license_url, l.description AS license_text, l.id as lid');
                 $query->join('LEFT', '#__jdownloads_licenses AS l on l.id = a.license');
                 
                 // Join on ratings table.

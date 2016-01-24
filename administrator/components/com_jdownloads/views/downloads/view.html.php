@@ -35,7 +35,7 @@ class jdownloadsViewdownloads extends JViewLegacy
 	 **/
 	function display($tpl = null)
 	{
-
+        
         // set a switch so we can build later a valid: db query
         $app = JFactory::getApplication();
         if ($this->getLayout() == 'modal' || $this->getLayout() == 'modallist'){
@@ -65,6 +65,14 @@ class jdownloadsViewdownloads extends JViewLegacy
         $filters[] = JHtml::_('select.option', '0', JText::_( 'NO' ) );
 		$filters[] = JHtml::_('select.option', '1', JText::_( 'YES' ) );
         $this->delete_file_option = $filters;
+
+        // create featured option
+        $featured = array();
+        $featured[] = JHtml::_('select.option', '', JText::_( 'COM_JDOWNLOADS_SELECT_FEATURED_STATUS' ) );
+        $featured[] = JHtml::_('select.option', '1', JText::_( 'COM_JDOWNLOADS_FEATURED' ) );
+        $featured[] = JHtml::_('select.option', '0', JText::_( 'COM_JDOWNLOADS_UNFEATURED' ) );
+        $featured[] = JHtml::_('select.option', 'all', JText::_( 'COM_JDOWNLOADS_ALL' ) );
+        $this->featured_option = $featured;
         
         // build categories list box 
         $lists = array();
@@ -78,6 +86,7 @@ class jdownloadsViewdownloads extends JViewLegacy
         // We don't need toolbar in the modal window.
         if ($this->getLayout() !== 'modal' && $this->getLayout() !== 'modallist') {        
             $this->addToolbar();
+            $this->sidebar = JHtmlSidebar::render();
         }    
         parent::display($tpl);
 	}
@@ -115,6 +124,8 @@ class jdownloadsViewdownloads extends JViewLegacy
             JToolBarHelper::divider();
             JToolBarHelper::publish('downloads.publish', 'COM_JDOWNLOADS_PUBLISH', true);
             JToolBarHelper::unpublish('downloads.unpublish', 'COM_JDOWNLOADS_UNPUBLISH', true);
+            JToolbarHelper::custom('downloads.featured', 'featured.png', 'featured_f2.png', 'COM_JDOWNLOADS_FEATURE', true);
+            JToolbarHelper::custom('downloads.unfeatured', 'unfeatured.png', 'unfeatured_f2.png', 'COM_JDOWNLOADS_UNFEATURE', true);            
             JToolBarHelper::divider();
             JToolBarHelper::checkin('downloads.checkin');            
         }

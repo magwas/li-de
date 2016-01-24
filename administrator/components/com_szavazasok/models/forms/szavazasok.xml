@@ -71,7 +71,10 @@
       <option value="1">REGISZTRALTAK</option>
       <option value="2">TAGOK</option>
       <option value="3">TAGOK_OROKOLT</option>
-    </field>  						
+      <option value="4">SSO HITELES REGISZTRÁLTAK</option>
+      <option value="5">SSO HITELES TAGOK</option>
+
+	  </field>  						
       						
 								
 														
@@ -86,6 +89,8 @@
 			size="1">
       <option value="10">SZAVAZOK</option>
       <option value="11">ADMINOK</option>
+      <option value="14">SSO HITELES REGISZTRÁLTAK</option>
+      <option value="15">SSO HITELES TAGOK</option>
     </field>  						
       						
 								
@@ -133,6 +138,19 @@
 			required="false"
 			label="VITA1"
 			description="VITA1_DESC"
+			class="inputbox"
+			size="1">
+      <option value="0">NEM</option>
+      <option value="1">IGEN</option>
+    </field>  						
+
+	<field
+			id="ebiralas_alatt"
+			name="elbiralas_alatt"
+			type="list"
+			required="false"
+			label="ELBIRALAS_ALATT"
+			description=""
 			class="inputbox"
 			size="1">
       <option value="0">NEM</option>
@@ -204,6 +222,14 @@
 			size="10"
 			format="%Y-%m-%d"/>			
 							
+		<field
+			id="elutasitva"
+			name="elutasitva"
+			type="editor"
+			label="ELUTASITVA"
+			description="ELUTASIZVA_DESC"
+			class="inputbox"
+			buttons=""/>
 									
 	</fields>	
 		

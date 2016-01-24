@@ -74,6 +74,8 @@ class icagendaViewRegistrations extends JViewLegacy
 
 //		fclose($fp);
 
+//$content = mb_convert_encoding($content, 'UTF-16LE', 'UTF-8');
+
 		echo $content;
 	}
 }

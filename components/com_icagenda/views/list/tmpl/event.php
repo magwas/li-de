@@ -10,7 +10,7 @@
  * @author      Cyril Rezé (Lyr!C)
  * @link        http://www.joomlic.com
  *
- * @version 	3.5.6 2015-06-11
+ * @version 	3.5.13 2015-11-21
  * @since       1.0
  *------------------------------------------------------------------------------
 */
@@ -26,7 +26,7 @@ $user = JFactory::getUser();
 $userLevels = $user->getAuthorisedViewLevels();
 
 // User Groups
-$userGroups = $user->groups;
+$userGroups = $user->getAuthorisedGroups();
 
 // Set Item Object
 $this_item	= (array) $this->data->items;

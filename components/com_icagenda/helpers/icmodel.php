@@ -10,7 +10,7 @@
  * @author      Cyril Rezé (Lyr!C)
  * @link        http://www.joomlic.com
  *
- * @version 	3.5.7 2015-07-16
+ * @version 	3.5.13 2015-11-21
  * @since       1.0
  *------------------------------------------------------------------------------
 */
@@ -163,7 +163,8 @@ class iCModelItem extends JModelItem
 
 		$user		= JFactory::getUser();
 		$userLevels	= $user->getAuthorisedViewLevels();
-		$userGroups	= $user->groups;
+		$userGroups = $user->getAuthorisedGroups();
+
 		$groupid	= JComponentHelper::getParams('com_icagenda')->get('approvalGroups', array("8"));
 		$groupid	= is_array($groupid) ? $groupid : array($groupid);
 
@@ -741,14 +742,7 @@ class iCModelItem extends JModelItem
 		$icp	= $user->get('password');
 
 		// Get User groups of the user logged-in
-		if (version_compare(JVERSION, '3.0', 'lt'))
-		{
-			$userGroups = $user->getAuthorisedGroups();
-		}
-		else
-		{
-			$userGroups = $user->groups;
-		}
+		$userGroups = $user->getAuthorisedGroups();
 
 		$baseURL = JURI::base();
 		$subpathURL = JURI::base(true);
@@ -1679,15 +1673,28 @@ class iCModelItem extends JModelItem
 	{
 		$eventTimeZone		= null;
 		$date_today			= JHtml::date('now', 'Y-m-d');
+		$datetime_today		= JHtml::date('now', 'Y-m-d H:i');
 		$allDates			= $this->eventAllDates($i);
 		$max_tickets		= $this->evtParams($i)->get('maxReg', '1000000');
 		$typeReg			= $this->evtParams($i)->get('typeReg', '1');
 		$perioddates		= iCDatePeriod::listDates($i->startdate, $i->enddate, $eventTimeZone);
+		$regUntilEnd		= JComponentHelper::getParams('com_icagenda')->get('reg_end_period', 0);
 
 		// Check the period if individual dates
 		$only_startdate		= ($i->weekdays || $i->weekdays == '0') ? false : true;
 
 		sort($allDates);
+
+		if ($typeReg ==  '2')
+		{
+			foreach ($allDates as $k => $d)
+			{
+				if (strtotime($d) < strtotime($datetime_today))
+				{
+					return false;
+				}
+			}
+		}
 
 		$total_tickets_bookable = 0;
 
@@ -1711,9 +1718,18 @@ class iCModelItem extends JModelItem
 
 			$nb_tickets_left	= $max_tickets - self::getNbTicketsBooked($datetime_date, $i->registered, $i->id, $is_full_period);
 
+			// Full period & registration for all dates of the event
 			if ($is_full_period
 				&& $typeReg == 2
+				&& $regUntilEnd == 0
 				&& (strtotime($datetime_startdate) < strtotime($date_today))
+				)
+			{
+				$total_tickets_bookable = 0;
+			}
+			elseif ($is_full_period
+				&& $regUntilEnd == 1
+				&& (strtotime($datetime_enddate) <= strtotime($datetime_today))
 				)
 			{
 				$total_tickets_bookable = 0;
@@ -1781,7 +1797,7 @@ class iCModelItem extends JModelItem
 			if (strtotime($datetime_date) > strtotime($date_today_compare)
 				&& $nb_tickets_left > 0)
 			{
-				$tickets_left = ($max_tickets != '1000000') ? ' [' . $nb_tickets_left . ']' : '';
+				$tickets_left = ($max_tickets != '1000000') ? ' (&#10003;' . $nb_tickets_left . ')' : '';
 
 				if ($is_full_period)
 				{
@@ -2237,11 +2253,11 @@ class iCModelItem extends JModelItem
 	{
 		// Date Format Option (Global Component Option)
 		$date_format_global	= JComponentHelper::getParams('com_icagenda')->get('date_format_global', 'Y - m - d');
-		$date_format_global	= ($date_format_global != 0) ? $date_format_global : 'Y - m - d'; // Previous 3.5.6 setting
+		$date_format_global	= ($date_format_global !== '0') ? $date_format_global : 'Y - m - d'; // Previous 3.5.6 setting
 
 		// Date Format Option (Menu Option)
 		$date_format_menu	= JFactory::getApplication()->getParams()->get('format', '');
-		$date_format_menu	= ($date_format_menu != 0) ? $date_format_menu : ''; // Previous 3.5.6 setting
+		$date_format_menu	= ($date_format_menu !== '0') ? $date_format_menu : ''; // Previous 3.5.6 setting
 
 		// Set Date Format option to be used
 		$format				= $date_format_menu ? $date_format_menu : $date_format_global;
@@ -2760,7 +2776,7 @@ class iCModelItem extends JModelItem
 		// Get User Access Levels
 		$user		= JFactory::getUser();
 		$userLevels	= $user->getAuthorisedViewLevels();
-		$userGroups = version_compare(JVERSION, '3.0', 'ge') ? $user->groups : $user->getAuthorisedGroups();
+		$userGroups = $user->getAuthorisedGroups();
 
 		// Control: if access level, or Super User
 		if (in_array($accessLevel, $userLevels)
@@ -2785,6 +2801,8 @@ class iCModelItem extends JModelItem
 		// Access Levels Option
 		$accessInfoDetails	= JComponentHelper::getParams('com_icagenda')->get('accessInfoDetails', 1);
 
+		$customFields = $this->loadEventCustomFields($i);
+
 		if ( ($infoDetails == 1 && $this->accessLevels($accessInfoDetails))
 			&& (($this->statutReg($i) == '1' && $this->maxNbTickets($i))
 				|| $i->phone
@@ -2792,6 +2810,7 @@ class iCModelItem extends JModelItem
 				|| $i->website
 				|| $i->address
 				|| $i->file
+				|| $customFields
 				)
 			)
 		{
@@ -2838,6 +2857,9 @@ class iCModelItem extends JModelItem
 	// function AddThis social networks sharing
 	protected function share ($i)
 	{
+		$url = parse_url(Juri::base());
+		$addthis_scheme = ($url['scheme'] == 'https') ? 'https://' : 'http://';
+
 		$addthis	= $this->options['addthis'];
 		$float		= $this->options['atfloat'];
 		$icon		= $this->options['aticon'];
@@ -2887,12 +2909,12 @@ class iCModelItem extends JModelItem
 		if ($addthis)
 		{
 			$at_div.= '<script type="text/javascript">var addthis_config = {"data_track_addressbar":true};</script>';
-			$at_div.= '<script type="text/javascript" src="http://s7.addthis.com/js/300/addthis_widget.js#pubid=' . $this->options['addthis'] . '"></script>';
+			$at_div.= '<script type="text/javascript" src="' . $addthis_scheme . 's7.addthis.com/js/300/addthis_widget.js#pubid=' . $this->options['addthis'] . '" async="async"></script>';
 		}
 		else
 		{
 			$at_div.= '<script type="text/javascript">var addthis_config = {"data_track_addressbar":false};</script>';
-			$at_div.= '<script type="text/javascript" src="http://s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5024db5322322e8b"></script>';
+			$at_div.= '<script type="text/javascript" src="' . $addthis_scheme . 's7.addthis.com/js/300/addthis_widget.js#pubid=ra-5024db5322322e8b" async="async"></script>';
 		}
 
 		$at_div.= '<!-- AddThis Button END -->';
@@ -3221,6 +3243,7 @@ class iCModelItem extends JModelItem
 
 			$reg_button = '<div class="ic-registration-box">';
 
+			// Upcoming date and ticket(s) available for this event
 			if ($upcomingDatesBooking
 				&& $ticketsCouldBeBooked
 				)
@@ -3237,6 +3260,7 @@ class iCModelItem extends JModelItem
 						$reg_button.= '<span class="ic-select-another-date">' . JText::_('COM_ICAGENDA_REGISTRATION_REGISTER_ANOTHER_DATE') . '</span>';
 						$reg_button.= '</a>';
 					}
+
 					elseif ($date_is_upcoming
 						|| $is_next)
 					{
@@ -3246,6 +3270,19 @@ class iCModelItem extends JModelItem
 						$reg_button.= '</div>';
 						$reg_button.= '</a>';
 					}
+
+					// Registration Until end of the period (dev. special)
+					elseif ($regUntilEnd == 1
+						&& $is_full_period
+						)
+					{
+						$reg_button.= '<a href="' . $this->regUrl($i) . '" rel="nofollow">';
+						$reg_button.= '<div class="ic-btn ic-btn-success ic-btn-small ic-event-register regis_button">';
+						$reg_button.= '<i class="iCicon iCicon-register"></i>&nbsp;' . $TextRegBt;
+						$reg_button.= '</div>';
+						$reg_button.= '</a>';
+					}
+
 					else
 					{
 						$reg_button.= '<a class="ic-addtocal" title="' . htmlspecialchars($select_date) . '" rel="nofollow">';
@@ -3266,18 +3303,8 @@ class iCModelItem extends JModelItem
 					$reg_button.= '</a>';
 				}
 			}
-			elseif ( $upcomingDatesBooking
-				&& ! $ticketsCouldBeBooked
-				&& $regUntilEnd == 1
-				&& $is_full_period
-				)
-			{
-				$reg_button.= '<a href="' . $this->regUrl($i) . '" rel="nofollow">';
-				$reg_button.= '<div class="ic-btn ic-btn-success ic-btn-small ic-event-register regis_button">';
-				$reg_button.= '<i class="iCicon iCicon-register"></i>&nbsp;' . $TextRegBt;
-				$reg_button.= '</div>';
-				$reg_button.= '</a>';
-			}
+
+			// Upcoming date but no ticket left
 			elseif ($upcomingDatesBooking
 				&& ! $ticketsCouldBeBooked
 				)
@@ -3692,7 +3719,7 @@ class iCModelItem extends JModelItem
 			$phone	= $phone ? $phone : JText::_( 'COM_ICAGENDA_NOT_SPECIFIED' );
 
 			// Check if Custom Fields required not empty
-			$customfields_list = icagendaCustomfields::getListCustomFields($data->id, 1, 1);
+			$customfields_list = icagendaCustomfields::getListCustomFields(1, 1);
 
 			if ($customfields_list)
 			{
@@ -3809,13 +3836,16 @@ class iCModelItem extends JModelItem
 			$contactemail	= $db->loadObject()->contactemail;
 			$displayTime	= $db->loadObject()->displaytime;
 
+			$timeformat		= JFactory::getApplication()->getParams()->get('timeformat', 1);
+			$lang_time		= ($timeformat == 1) ? 'H:i' : 'h:i A';
+
 			$startD = $this->formatDate($startdate);
 			$endD = $this->formatDate($enddate);
-			$startT = JHtml::date($startdate, 'H:i', $eventTimeZone);
-			$endT = JHtml::date($enddate, 'H:i', $eventTimeZone);
+			$startT = JHtml::date($startdate, $lang_time, $eventTimeZone);
+			$endT = JHtml::date($enddate, $lang_time, $eventTimeZone);
 
 			$regDate = $this->formatDate($data->date);
-			$regTime = JHtml::date($data->date, 'H:i', $eventTimeZone);
+			$regTime = JHtml::date($data->date, $lang_time, $eventTimeZone);
 
 			$regDateTime		= !empty($displayTime) ? $regDate.' - '.$regTime : $regDate;
 			$regStartDateTime	= !empty($displayTime) ? $startD.' - '.$startT : $startD;
@@ -3853,8 +3883,28 @@ class iCModelItem extends JModelItem
 
 			$period_set = substr($startdate, 0, 4);
 
-			if ($periodreg == 1
-				|| ($array['date'] == '' && !$periodreg))
+			// Registration Type is set 'for all dates of the event'
+			if ($periodreg == 1)
+			{
+				$periodd 		= '';
+				$adminsubject	= JText::_('COM_ICAGENDA_REGISTRATION_EMAIL_ADMIN_DEFAULT_SUBJECT');
+				$adminbody 		= JText::_('COM_ICAGENDA_REGISTRATION_EMAIL_ADMIN_DATE_DEFAULT_BODY');
+
+				if ($defaultemail == 0)
+				{
+					$subject	= $eUSP;
+					$body		= $eUBP;
+				}
+				else
+				{
+					$subject	= JText::_( 'COM_ICAGENDA_REGISTRATION_EMAIL_USER_DATE_DEFAULT_SUBJECT' );
+					$body		= JText::_( 'COM_ICAGENDA_REGISTRATION_EMAIL_USER_DATE_DEFAULT_BODY' );
+				}
+			}
+
+			// Registration Type is 'select list of dates' (single dates + period)
+			// Period (no date, and period = 0)
+			elseif ($array['date'] == '' && ! $periodreg)
 			{
 				$periodd 		= ($period_set != '0000')
 								? JText::sprintf( 'COM_ICAGENDA_REGISTERED_EVENT_PERIOD', $startD, $startT, $endD, $endT )
@@ -3873,11 +3923,11 @@ class iCModelItem extends JModelItem
 					$body		= JText::_( 'COM_ICAGENDA_REGISTRATION_EMAIL_USER_PERIOD_DEFAULT_BODY' );
 				}
 			}
+
+			// Registration Type is 'select list of dates' (single dates + period)
+			// Single date
 			else
 			{
-//				$periodd		= ($period_set != '0000')
-//								? JText::sprintf( 'COM_ICAGENDA_REGISTERED_EVENT_DATE', $regDate, '' )
-//								: '';
 				$periodd		= JText::sprintf( 'COM_ICAGENDA_REGISTERED_EVENT_DATE', $regDate, '' );
 				$adminsubject	= JText::_( 'COM_ICAGENDA_REGISTRATION_EMAIL_ADMIN_DEFAULT_SUBJECT' );
 				$adminbody		= JText::_( 'COM_ICAGENDA_REGISTRATION_EMAIL_ADMIN_DATE_DEFAULT_BODY' );
@@ -3919,7 +3969,7 @@ class iCModelItem extends JModelItem
 			}
 
 			// Generates filled custom fields into email body
-			$customfields = icagendaCustomfields::getListNotEmpty($data->id);
+			$customfields = icagendaCustomfields::getListNotEmpty($data->id, 1);
 
  			$custom_fields = '';
 
@@ -3954,7 +4004,7 @@ class iCModelItem extends JModelItem
 				'[NOTES]'			=> $notes,
 				'[DATE]'			=> $regDate,
 				'[TIME]'			=> $regTime,
-				'[DATETIME]'		=> $regDateTime,
+				'[DATETIME]'		=> ($periodreg != 1) ? $regDateTime : JText::_('COM_ICAGENDA_REG_FOR_ALL_DATES'),
 				'[STARTDATE]'		=> $startD,
 				'[ENDDATE]'			=> $endD,
 				'[STARTDATETIME]'	=> $regStartDateTime,

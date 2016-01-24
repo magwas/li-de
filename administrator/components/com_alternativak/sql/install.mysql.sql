@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS `#__alternativak` (
   `leiras` text COLLATE utf8_hungarian_ci NOT NULL COMMENT 'Alternatíva leírása',
   `letrehozo` int(11) NOT NULL COMMENT 'user-id',
   `letrehozva` date NOT NULL COMMENT 'létrehozás időpontja',
+  `elbiralasra_var` int(1) NOT NULL DEFAULT 0 COMMENT 'elbiralasra var';
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB COLLATE=utf8_hungarian_ci;
 

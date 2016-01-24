@@ -6,7 +6,7 @@
  * @license    GNU General Public License version 2 or later; see LICENSE.txt
  */
 
- /**
+/**
  * Define the application's minimum supported PHP version as a constant so it can be referenced within the application.
  */
 define('JOOMLA_MINIMUM_PHP', '5.3.10');
@@ -40,29 +40,6 @@ JDEBUG ? $_PROFILER->mark('afterLoad') : null;
 
 // Instantiate the application.
 $app = JFactory::getApplication('site');
-
-
-// domain/SU/component/view/task/temakor/szavazas/limit/limitstart/order/urlencode(filterStr) stilusú rövid URL kezelés 
-if (JRequest::getVar('option') == '') {
-	$w = explode('/',$_SERVER['REQUEST_URI']);
-	$i = 0;
-	while ($i < count($w)) {
-		if ($w[$i] == 'SU') {
-			JRequest::setVar('option','com_'.$w[$i+1]);
-			JRequest::setVar('view',$w[$i+2]);
-			JRequest::setVar('task',$w[$i+3]);
-			JRequest::setVar('temakor',$w[$i+4]);
-			JRequest::setVar('szavazas',$w[$i+5]);
-			JRequest::setVar('limit',$w[$i+6]);
-			JRequest::setVar('limitstart',$w[$i+7]);
-			JRequest::setVar('order',$w[$i+8]);
-			JRequest::setVar('filterStr',urldecode($w[$i+9]));
-		    $i = count($w); // kilép a ciklusból 	
-		}
-		$i = $i + 1;
-	}
-}
-
 
 // Execute the application.
 $app->execute();

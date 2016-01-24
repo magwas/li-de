@@ -10,7 +10,7 @@
  * @author      Cyril Rezé (Lyr!C)
  * @link        http://www.joomlic.com
  *
- * @version     3.5.0 2015-02-05
+ * @version     3.5.11 2015-09-03
  * @since       2.1.7
  *------------------------------------------------------------------------------
 */
@@ -19,6 +19,7 @@
 defined('_JEXEC') or die();
 
 			// Reference Date : 30 April 1993, the birth of the web
+			// CERN announced that the World Wide Web would be free to anyone, with no fees due.
 
 			$dateglobalize_1 = '30/04/1993';
 			$datevalue_1 = 'd / m / Y';
@@ -34,7 +35,7 @@ defined('_JEXEC') or die();
 
 			// Optional English Language
 			$dateglobalize_5 = '30th April';
-			$datevalue_5 = 'dS _ F';
+			$datevalue_5 = 'jS _ F';
 
 			$dateglobalize_6 = 'April 1993';
 			$datevalue_6 = 'F _ Y';
@@ -45,13 +46,13 @@ defined('_JEXEC') or die();
 			$dateglobalize_8 = 'Friday, 30 April';
 			$datevalue_8 = 'l , _ d _ F';
 
-			// Optional English Language
+			// Optional English en-GB Language
 			$dateglobalize_9 = 'Friday, 30th April 1993';
-			$datevalue_9 = 'l , _ dS _ F _ Y';
+			$datevalue_9 = 'l , _ jS _ F _ Y';
 
-			// Optional English Language
+			// Optional English en-GB Language
 			$dateglobalize_10 = 'Friday, 30th April';
-			$datevalue_10 = 'l , _ dS _ F';
+			$datevalue_10 = 'l , _ jS _ F';
 
 			$dateglobalize_11 = 'Fri, 30 Apr 1993';
 			$datevalue_11 = 'D , _ d _ M _ Y';

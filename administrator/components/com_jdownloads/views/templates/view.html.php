@@ -44,6 +44,7 @@ class jdownloadsViewtemplates extends JViewLegacy
     $this->assignRef('temp_type_name',        $temp_type);    
         
         $this->addToolbar();
+        $this->sidebar = JHtmlSidebar::render();        
         parent::display($tpl);
     }    
         
@@ -78,7 +79,7 @@ class jdownloadsViewtemplates extends JViewLegacy
         
         JToolBarHelper::title(JText::_('COM_JDOWNLOADS').': '.JText::_('COM_JDOWNLOADS_BACKEND_CPANEL_TEMPLATES_NAME').': '.$layout_type, 'jdlayouts'); 
         
-        JToolBarHelper::custom( 'templates.cancel', 'template', 'template', JText::_('COM_JDOWNLOADS_LAYOUTS'), false, false );
+        JToolBarHelper::custom( 'templates.cancel', 'list.png', 'list.png', JText::_('COM_JDOWNLOADS_LAYOUTS'), false, false );
         JToolBarHelper::divider();
         
         if ($canDo->get('core.create')) {
@@ -95,6 +96,10 @@ class jdownloadsViewtemplates extends JViewLegacy
             JToolBarHelper::custom( 'templates.activate', 'publish', 'publish', JText::_('COM_JDOWNLOADS_BACKEND_TEMPLIST_MENU_TEXT_ACTIVE'), true, false );            
             JToolBarHelper::checkin('templates.checkin');
         }
+        if ($canDo->get('core.edit')) {
+            JToolBarHelper::custom( 'layouts.install', 'upload.png', 'upload.png', JText::_('COM_JDOWNLOADS_LAYOUTS_IMPORT_LABEL'), false, false); 
+            JToolBarHelper::custom( 'templates.export', 'download.png', 'download.png', JText::_('COM_JDOWNLOADS_LAYOUTS_EXPORT_LABEL'), true, false); 
+        }        
         
         JToolBarHelper::divider();
         JToolBarHelper::help('help.templates', true);

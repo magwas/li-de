@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS `#__icagenda` (
 --
 
 INSERT IGNORE INTO `#__icagenda` (`id`, `version`, `releasedate`, `params`) VALUES
-(3,'3.5.8','2015-07-17','');
+(3,'3.5.13','2015-12-05','');
 
 -- --------------------------------------------------------
 

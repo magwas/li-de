@@ -377,6 +377,24 @@ setlocale(LC_ALL, 'C.UTF-8', 'C');
             $editIcon = '';
         }   
         
+        // replace 'featured' placeholders
+        if ($this->item->featured){
+            // add the css class
+            $body = str_replace('{featured_class}', 'jd_featured', $body);
+            $body = str_replace('{featured_detail_class}', 'jd_featured_detail', $body);            
+            // add the pic
+            if ($jlistConfig['featured.pic.filename']){
+                $featured_pic = '<img class="jd_featured_star" src="'.JURI::base().'images/jdownloads/featuredimages/'.$jlistConfig['featured.pic.filename'].'" width="'.$jlistConfig['featured.pic.size'].'" height="'.$jlistConfig['featured.pic.size.height'].'" alt="'.$jlistConfig['featured.pic.filename'].'" />';
+                $body = str_replace('{featured_pic}', $featured_pic, $body);
+            } else {
+                $body = str_replace('{featured_pic}', '', $body);
+            }
+        } else {
+            $body = str_replace('{featured_class}', '', $body);
+            $body = str_replace('{featured_detail_class}', '', $body);
+            $body = str_replace('{featured_pic}', '', $body);
+        }        
+        
         $body = str_replace('{price_value}', $this->item->price, $body);
         $body = str_replace('{views_value}',JDHelper::strToNumber((int)$this->item->views), $body);
         $body = str_replace('{details_block_title}', JText::_('COM_JDOWNLOADS_FE_DETAILS_DATA_BLOCK_TITLE'), $body);
@@ -387,8 +405,18 @@ setlocale(LC_ALL, 'C.UTF-8', 'C');
         } else {
             $body = str_replace('{file_name}', '', $body);
         }   
+
+        $body = str_replace('{category_title}', JText::_('COM_JDOWNLOADS_CATEGORY_LABEL'), $body);
+        $body = str_replace('{category_name}', $this->item->category_title, $body);
+        
         $body = str_replace('{file_title}', $this->item->file_title.' '.$editIcon, $body);
-        $body = str_replace('{filesize_value}', $this->item->size, $body);
+        
+        if ($this->item->size == '0 B'){
+            $body = str_replace('{filesize_value}', '', $body);
+        } else {
+            $body = str_replace('{filesize_value}', $this->item->size, $body);
+        } 
+        
         $body = str_replace('{created_by_value}', $this->item->creator, $body);    
         $body = str_replace('{modified_by_value}', $this->item->modifier, $body);
         $body = str_replace('{hits_value}',JDHelper::strToNumber((int)$this->item->downloads), $body);         
@@ -400,8 +428,10 @@ setlocale(LC_ALL, 'C.UTF-8', 'C');
         if ($params->get('show_tags', 1) && !empty($this->item->tags->itemTags)){ 
             $this->item->tagLayout = new JLayoutFile('joomla.content.tags');
             $body = str_replace('{tags}', $this->item->tagLayout->render($this->item->tags->itemTags), $body);
+            $body = str_replace('{tags_title}', JText::_('COM_JDOWNLOADS_TAGS_LABEL'), $body);
         } else {
             $body = str_replace('{tags}', '', $body);
+            $body = str_replace('{tags_title}', '', $body);
         }
         
         
@@ -747,22 +777,22 @@ setlocale(LC_ALL, 'C.UTF-8', 'C');
         if ($this->item->preview_filename){
             // we use the preview file when exist  
             $is_preview = true;
-            $this->itemtype = JDHelper::getFileExtension($this->item->preview_filename);
+            $this->item->itemtype = JDHelper::getFileExtension($this->item->preview_filename);
             $is_playable    = JDHelper::isPlayable($this->item->preview_filename);
         } else {                  
             $is_preview = false;
             if ($this->item->extern_file){
                 $extern_media = true;
-                $this->itemtype = JDHelper::getFileExtension($this->item->extern_file);
+                $this->item->itemtype = JDHelper::getFileExtension($this->item->extern_file);
                 $is_playable    = JDHelper::isPlayable($this->item->extern_file);
             } else {    
-                $this->itemtype = JDHelper::getFileExtension($this->item->url_download);
+                $this->item->itemtype = JDHelper::getFileExtension($this->item->url_download);
                 $is_playable    = JDHelper::isPlayable($this->item->url_download);
                 $extern_media = false;
             }  
         }
             
-        if ( !$jlistConfig['flowplayer.use'] && $this->itemtype == 'mp3' ){
+        if ( !$jlistConfig['flowplayer.use'] && !$jlistConfig['html5player.use'] && $this->item->itemtype == 'mp3' ){
             // we use only the 'OLD' mp3 player
             if ($extern_media){
                 $mp3_path = $this->item->extern_file;
@@ -776,7 +806,6 @@ setlocale(LC_ALL, 'C.UTF-8', 'C');
                 }   
             }    
             $mp3_config = trim($jlistConfig['mp3.player.config']);
-            $mp3_config = str_replace('', '', $mp3_config);
             $mp3_config = str_replace(';', '&amp;', $mp3_config);
             
             $mp3_player =  
@@ -786,79 +815,124 @@ setlocale(LC_ALL, 'C.UTF-8', 'C');
             <param name="FlashVars" value="mp3='.$mp3_path.'&amp;'.$mp3_config.'" />
             </object>';   
             
-            $body = str_replace('{mp3_player}', $mp3_player, $body);            
-            
-        } 
-        
-        if ( $jlistConfig['flowplayer.use'] && $is_playable ){
-            // we will use the new flowplayer option
-            if ($extern_media){
-                $media_path = $this->item->extern_file;
-            } else {        
-                if ($is_preview){
-                    // we need the relative path to the "previews" folder
-                    $media_path = $jdownloads_root_dir_name.'/'.$jlistConfig['preview.files.folder.name'].'/'.$this->item->preview_filename;
-                } else {
-                    // we use the normal download file for the player
-                    $media_path = $jdownloads_root_dir_name.'/'.$category_dir.'/'.$this->item->url_download;
-                }   
-            }    
-
-            $ipadcode = '';
-            
-            if ($this->itemtype == 'mp3'){
-                $fullscreen = 'false';
-                $autohide = 'false';
-                $playerheight = (int)$jlistConfig['flowplayer.playerheight.audio'];
-                // we must use also the ipad plugin identifier when required
-                // see http://flowplayer.blacktrash.org/test/ipad-audio.html and http://flash.flowplayer.org/plugins/javascript/ipad.html
-                if ($this->ipad_user){
-                   $ipadcode = '.ipad();'; 
-                }    
-            } else {
-                $fullscreen = 'true';
-                $autohide = 'true';
-                $playerheight = (int)$jlistConfig['flowplayer.playerheight'];
-            }
-            
-            $player = '<a href="'.$media_path.'" style="display:block;width:'.$jlistConfig['flowplayer.playerwidth'].'px;height:'.$playerheight.'px;" id="player" class="player"></a>';
-            $player .= '<script language="JavaScript">
-            // install flowplayer into container
-                        flowplayer("player", "'.JURI::base().'components/com_jdownloads/assets/flowplayer/flowplayer-3.2.16.swf",
-                         {
- 
-                plugins: {
-                    controls: {
-                        // insert at first the config settings
-                        '.$jlistConfig['flowplayer.control.settings'].'
-                        // and now the basics
-                        fullscreen: '.$fullscreen.',
-                        height: '.(int)$jlistConfig['flowplayer.playerheight.audio'].',
-                        autoHide: '.$autohide.'
-                    }
-                    
-                },
-
-                clip: {
-                    autoPlay: false,
-                    // optional: when playback starts close the first audio playback
-                    onBeforeBegin: function() {
-                        $f("player").close();
-                    }
-                }
-            })'.$ipadcode.'; </script>'; // the 'ipad code' is only required for ipad/iphone users 
-
-            // We will replace at first the old placeholder when exist
             if (strpos($body, '{mp3_player}')){
-                $body = str_replace('{mp3_player}', $player, $body);
+                $body = str_replace('{mp3_player}', $mp3_player, $body);
                 $body = str_replace('{preview_player}', '', $body);
             } else {                
-                $body = str_replace('{preview_player}', $player, $body);
-            }    
+                $body = str_replace('{preview_player}', $mp3_player, $body);
+            }            
+        } 
+        
+        if ( $is_playable ){
+            
+               if ($jlistConfig['html5player.use']){
+                    // we will use the new HTML5 player option
+                    if ($extern_media){
+                        $media_path = $this->item->extern_file;
+                    } else {        
+                        if ($is_preview){
+                            // we need the relative path to the "previews" folder
+                            $media_path = $jdownloads_root_dir_name.'/'.$jlistConfig['preview.files.folder.name'].'/'.$this->item->preview_filename;
+                        } else {
+                            // we use the normal download file for the player
+                            $media_path = $jdownloads_root_dir_name.'/'.$category_dir.'/'.$this->item->url_download;
+                        }   
+                    }    
+                            
+                    // create the HTML5 player
+                    $player = JDHelper::getHTML5Player($this->item, $media_path);
+                    
+                    if ($this->item->itemtype == 'mp4' || $this->item->itemtype == 'webm' || $this->item->itemtype == 'ogg' || $this->item->itemtype == 'ogv' || $this->item->itemtype == 'mp3' || $this->item->itemtype == 'wav' || $this->item->itemtype == 'oga'){
+                        // We will replace at first the old placeholder when exist
+                        if (strpos($body, '{mp3_player}')){
+                            $body = str_replace('{mp3_player}', $player, $body);
+                            $body = str_replace('{preview_player}', '', $body);
+                        } else {                
+                            $body = str_replace('{preview_player}', $player, $body);
+                        }    
+                    } else {
+                        $body = str_replace('{mp3_player}', '', $body);        
+                        $body = str_replace('{preview_player}', '', $body);       
+                    }
+                
+                } else {
+            
+                    if ( $jlistConfig['flowplayer.use'] ){
+                        // we will use the new flowplayer option
+                        if ($extern_media){
+                            $media_path = $this->item->extern_file;
+                        } else {        
+                            if ($is_preview){
+                                // we need the relative path to the "previews" folder
+                                $media_path = $jdownloads_root_dir_name.'/'.$jlistConfig['preview.files.folder.name'].'/'.$this->item->preview_filename;
+                            } else {
+                                // we use the normal download file for the player
+                                $media_path = $jdownloads_root_dir_name.'/'.$category_dir.'/'.$this->item->url_download;
+                            }   
+                        }    
 
+                        $ipadcode = '';
+                        
+                        if ($this->item->itemtype == 'mp3'){
+                            $fullscreen = 'false';
+                            $autohide = 'false';
+                            $playerheight = (int)$jlistConfig['flowplayer.playerheight.audio'];
+                            // we must use also the ipad plugin identifier when required
+                            // see http://flowplayer.blacktrash.org/test/ipad-audio.html and http://flash.flowplayer.org/plugins/javascript/ipad.html
+                            if ($this->ipad_user){
+                               $ipadcode = '.ipad();'; 
+                            }    
+                        } else {
+                            $fullscreen = 'true';
+                            $autohide = 'true';
+                            $playerheight = (int)$jlistConfig['flowplayer.playerheight'];
+                        }
+                        
+                        $player = '<a href="'.$media_path.'" style="display:block;width:'.$jlistConfig['flowplayer.playerwidth'].'px;height:'.$playerheight.'px;" id="player" class="player"></a>';
+                        $player .= '<script language="JavaScript">
+                        // install flowplayer into container
+                                    flowplayer("player", "'.JURI::base().'components/com_jdownloads/assets/flowplayer/flowplayer-3.2.16.swf",
+                                     {
+             
+                            plugins: {
+                                controls: {
+                                    // insert at first the config settings
+                                    '.$jlistConfig['flowplayer.control.settings'].'
+                                    // and now the basics
+                                    fullscreen: '.$fullscreen.',
+                                    height: '.(int)$jlistConfig['flowplayer.playerheight.audio'].',
+                                    autoHide: '.$autohide.'
+                                }
+                                
+                            },
+
+                            clip: {
+                                autoPlay: false,
+                                // optional: when playback starts close the first audio playback
+                                onBeforeBegin: function() {
+                                    $f("player").close();
+                                }
+                            }
+                        })'.$ipadcode.'; </script>'; // the 'ipad code' is only required for ipad/iphone users 
+
+                        if ($this->item->itemtype == 'mp4' || $this->item->itemtype == 'flv' || $this->item->itemtype == 'mp3'){    
+                            // We will replace at first the old placeholder when exist
+                            if (strpos($body, '{mp3_player}')){
+                                $body = str_replace('{mp3_player}', $player, $body);
+                                $body = str_replace('{preview_player}', '', $body);
+                            } else {
+                                $body = str_replace('{preview_player}', $player, $body);
+                            }                                
+                        } else {
+                            $body = str_replace('{mp3_player}', '', $body);
+                            $body = str_replace('{preview_player}', '', $body);
+                        }                        
+                    
+                    }
+               }
         } 
             
-        if ($jlistConfig['mp3.view.id3.info'] && $this->itemtype == 'mp3' && !$extern_media){
+        if ($jlistConfig['mp3.view.id3.info'] && $this->item->itemtype == 'mp3' && !$extern_media){
             // read mp3 infos
             if ($is_preview){
                 // get the path to the preview file
@@ -908,8 +982,10 @@ setlocale(LC_ALL, 'C.UTF-8', 'C');
         if ($jlistConfig['view.ratings']){
             $rating_system = JDHelper::getRatings($this->item->file_id, $this->item->rating_count, $this->item->rating_sum);
             $body = str_replace('{rating}', $rating_system, $body);
+            $body = str_replace('{rating_title}', JText::_('COM_JDOWNLOADS_RATING_LABEL'), $body);
         } else {
             $body = str_replace('{rating}', '', $body);
+            $body = str_replace('{rating_title}', '', $body);
         } 
 
         // remove empty html tags

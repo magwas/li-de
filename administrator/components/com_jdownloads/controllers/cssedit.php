@@ -63,9 +63,11 @@ class jdownloadsControllercssedit extends jdownloadsController
        $css_text = JArrayHelper::getValue($_POST,'cssfile', '');
        $css_file2 = JPATH_SITE.DS.'components'.DS.'com_jdownloads'.DS.'assets'.DS.'css'.DS.'jdownloads_buttons.css';
        $css_text2 = JArrayHelper::getValue($_POST,'cssfile2', '');
+       $css_file3 = JPATH_SITE.DS.'components'.DS.'com_jdownloads'.DS.'assets'.DS.'css'.DS.'jdownloads_custom.css';
+       $css_text3 = JArrayHelper::getValue($_POST,'cssfile3', '');
        clearstatcache();
 
-       if (!is_writable($css_file) || !is_writable($css_file2)) {
+       if (!is_writable($css_file) || !is_writable($css_file2) || !is_writable($css_file3)) {
             $this->setRedirect("index.php?option=com_jdownloads&view=layouts", JText::_('COM_JDOWNLOADS_BACKEND_EDIT_CSS_WRITE_STATUS_TEXT').JText::_('COM_JDOWNLOADS_BACKEND_EDIT_LANG_CSS_FILE_WRITABLE_NO') );
         break;
       }
@@ -78,9 +80,14 @@ class jdownloadsControllercssedit extends jdownloadsController
       if ($fp = fopen( $css_file2, "w")) {
         fputs($fp,stripslashes($css_text2));
         fclose($fp);
-            $this->setRedirect("index.php?option=com_jdownloads&view=layouts", JText::_('COM_JDOWNLOADS_BACKEND_EDIT_CSS_SAVED'));
       }        
 
+      if ($fp = fopen( $css_file3, "w")) {
+        fputs($fp,stripslashes($css_text3));
+        fclose($fp);
+            $this->setRedirect("index.php?option=com_jdownloads&view=layouts", JText::_('COM_JDOWNLOADS_BACKEND_EDIT_CSS_SAVED'));
+      }        
+      
         
     }
 	

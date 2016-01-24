@@ -17,8 +17,7 @@ require_once __DIR__ . '/helper.php';
 	$db      = JFactory::getDBO(); 
 	$user    = JFactory::getUser(); 
 	$Itemid  = JRequest::getVar("Itemid");
-        
-    JHTML::_('behavior.tooltip');
+    
     JHTML::stylesheet( 'mod_jdownloads_most_recently_downloaded.css','modules/'.$module->module.'/'); 
     
     // get published root menu link
@@ -41,7 +40,7 @@ require_once __DIR__ . '/helper.php';
     $text_before    = modJdownloadsMostRecentlyDownloadedHelper::getOnlyLanguageSubstring($before);
     $after          = trim($params->get( 'text_after' ) );
     $text_after     = modJdownloadsMostRecentlyDownloadedHelper::getOnlyLanguageSubstring($after);
-	$cat_id          = trim($params->get( 'cat_id' ) );
+	$cat_id          = $params->get( 'cat_id', array() );
 	$sum_view        = intval(($params->get( 'sum_view', 5 ) ));
 	$sum_char        = intval(($params->get( 'sum_char' ) ));
 	$short_char      = ($params->get( 'short_char', '' ) ); 

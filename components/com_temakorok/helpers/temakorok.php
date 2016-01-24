@@ -21,9 +21,9 @@ class TemakorokHelper {
     $db = JFactory::getDBO();
     if ($temakor_id != 0) {
       $db->setQuery('select * from #__beallitasok where id = (10+'.$temakor_id.')');
-      $res = $db->loadObject();
-      if (($res->json == '') | ($res->json == '[]')) {
-        $res = false;
+      $res_t = $db->loadObject();
+      if (($res_t->json == '') | ($res_t->json == '[]')) {
+        $res_t = false;
       }
     }  
     if ($res == false) {
@@ -32,11 +32,25 @@ class TemakorokHelper {
     }
     if ($res) {
       $result = JSON_decode($res->json);
+	  if ($res_t) {
+	    // merge res_t, $result -> result
+		$result_t = JSON_decode($res_t);  
+		foreach ($result_t as $fn => $fv) {
+			$result->$fn = $fv;
+		}  
+	  }	
     } else {
       $result = JSON_decode('{
       "temakor_felvivok":1,
       "tobbszintu_atruhazas":1,
-      "atruhazas_lefele_titkos":0
+      "atruhazas_lefele_titkos":0,
+	  "csakAdminEdit":0,
+	  "csakAdminUpload":0,
+	  "csakSSOupload":0,
+	  "csakAdminPublikalhat":0
+	  "csakSSOszavazhat":0,
+	  "csakSSOindithat":0,
+	  "csakSSOJavasolhatAlternativat":0,
       }');
     }
     return $result;
@@ -154,7 +168,7 @@ class TemakorokHelper {
     $db = JFactory::getDBO();
 
 	/* szavazásra nem javasoltaknál határidő csusztatás */
-    $db->setQuery('update #__szavazasok sz, ekh_szavazasok_igennem w
+    $db->setQuery('update #__szavazasok sz, #__szavazasok_igennem w
     set  vita1_vege = adddate(vita1_vege, 10),
          vita2_vege = adddate(vita2_vege, 10),
          szavazas_vege = adddate(szavazas_vege, 10) 	

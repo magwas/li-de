@@ -10,7 +10,7 @@
  * @author      Cyril Rezé (Lyr!C)
  * @link        http://www.joomlic.com
  *
- * @version     3.5.6 2015-05-06
+ * @version     3.5.10 2015-08-13
  * @since       1.0
  *------------------------------------------------------------------------------
 */
@@ -34,6 +34,17 @@ class JFormFieldModal_date extends JFormField
 
 	protected function getInput()
 	{
+		$lang = JFactory::getLanguage();
+
+		$id_suffix = ($lang->getTag() == 'fa-IR') ? '_jalali' : '';
+
+		if ($lang->getTag() == 'fa-IR')
+		{
+			// Including fallback code for HTML5 non supported browsers.
+			JHtml::_('jquery.framework');
+			JHtml::_('script', 'system/html5fallback.js', false, true);
+		}
+
 		$id = JRequest::getInt('id');
 		$class = !empty($this->class) ? ' ' . $this->class : '';
 
@@ -53,7 +64,29 @@ class JFormFieldModal_date extends JFormField
 
 		$dates = iCString::isSerialized($datesDB) ? unserialize($datesDB) : false;
 
-		$html = '<table id="dTable" style="border:0px">';
+//		if ($lang->getTag() == 'fa-IR'
+//			&& $dates
+//			&& $dates != array('0000-00-00 00:00'))
+//		{
+//			$dates_to_sql = array();
+
+//			foreach ($dates AS $date)
+//			{
+//				if (iCDate::isDate($date))
+//				{
+//					$year		= date('Y', strtotime($date));
+//					$month		= date('m', strtotime($date));
+//					$day		= date('d', strtotime($date));
+//					$time		= date('H:i', strtotime($date));
+
+//					$dates_to_sql[] = iCGlobalizeConvert::gregorianToJalali($year, $month, $day, true) . ' ' . $time;
+//				}
+//			}
+
+//			$dates = $dates_to_sql;
+//		}
+
+		$html = '<table id="dTable' . $id_suffix . '" style="border:0px">';
 
 		$html.= '<thead>';
 		$html.= '<tr>';
@@ -66,6 +99,8 @@ class JFormFieldModal_date extends JFormField
 		$html.= '</tr>';
 		$html.= '</thead>';
 
+		$add_counter = 0;
+
 		if ($dates
 			&& $dates != array('0000-00-00 00:00'))
 		{
@@ -73,7 +108,18 @@ class JFormFieldModal_date extends JFormField
 			{
 				$html.= '<tr>';
 				$html.= '<td>';
-				$html.= '<input class="ic-date-input" type="text" name="d" value="' . $date . '" />';
+
+				if ($lang->getTag() == 'fa-IR')
+				{
+					$add_counter = $add_counter+1;
+//					$this_number = $add_counter ? $add_counter : '';
+					$html.= JHtml::_('calendar', $date, 'd', 'date_jalali' . $add_counter, '%Y-%m-%d %H:%M', ' class="ic-date-input' . $id_suffix . '"');
+				}
+				else
+				{
+					$html.= '<input class="ic-date-input' . $id_suffix . '" type="text" name="d" value="' . $date . '" />';
+				}
+
 				$html.= '</td>';
 				$html.= '<td>';
 				$html.= '<a class="del btn btn-danger btn-mini" href="#">' . JText::_('COM_ICAGENDA_DELETE_DATE') . '</a>';
@@ -88,7 +134,15 @@ class JFormFieldModal_date extends JFormField
 		{
 			$html.= '<tr>';
 			$html.= '<td>';
-			$html.= '<input class="ic-date-input" type="text" name="d" value="0000-00-00 00:00" />';
+
+			if ($lang->getTag() == 'fa-IR')
+			{
+				$html.= JHtml::_('calendar', '0000-00-00 00:00', 'd', 'date_jalali', '%Y-%m-%d %H:%M', ' class="ic-date-input' . $id_suffix . '"');
+			}
+			else
+			{
+				$html.= '<input class="ic-date-input' . $id_suffix . '" type="text" name="d" value="0000-00-00 00:00" />';
+			}
 			$html.= '</td>';
 			$html.= '<td>';
 			$html.= '<a class="del btn btn-danger btn-mini" href="#">' . JText::_('COM_ICAGENDA_DELETE_DATE') . '</a>';
